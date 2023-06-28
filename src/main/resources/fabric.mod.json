@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "id": "mcd_enchantments",
+  "version": "${version}",
+
+  "name": "Minecraft Dungeons: Enchantments",
+  "description": "Sus amogus",
+  "authors": [
+    "BackupCup"
+  ],
+  "contact": {
+    "homepage": "https://fabricmc.net/",
+    "sources": "https://github.com/FabricMC/fabric-example-mod"
+  },
+
+  "license": "All Rights Reserved",
+  "icon": "assets/mcd_enchantments/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "mcd_enchantments:init": [
+      "net.backupcup.mcd_enchantments.MCDEnchantments"
+    ],
+    "main": [
+      "net.backupcup.mcd_enchantments.MCDEnchantments"
+    ],
+    "client": [
+      "net.backupcup.mcd_enchantments.MCDEClient"
+    ]
+  },
+  "mixins": [
+    "mcd_enchantments.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.14.19",
+    "fabric-api": "*",
+    "minecraft": "~1.19.2",
+    "java": ">=17",
+    "mcdw": ">=5.0.12-1.19",
+    "mcda": ">=2.4.4"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}

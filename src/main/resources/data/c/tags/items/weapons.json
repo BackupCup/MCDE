@@ -1,0 +1,25 @@
+{
+  "replace": false,
+  "values": [
+    "#c:swords",
+    "#c:axes",
+    "#fabric:bows",
+    "#fabric:crossbows",
+
+
+    "minecraft:bow",
+    "mcdw:bow_bubble_bow",
+    "mcdw:bow_bubble_burster",
+    "mcdw:bow_twin_bow",
+    "mcdw:bow_twisting_vine_bow",
+    "mcdw:bow_weeping_vine_bow",
+
+    "minecraft:crossbow",
+    "mcdw:crossbow_shadow_crossbow",
+    "mcdw:dagger_dagger",
+    "mcdw:dagger_shear_dagger",
+    "mcdw:sickle_sickle",
+    "mcdw:dagger_tempest_knife",
+    "mcdw:sword_cutlass"
+  ]
+}
