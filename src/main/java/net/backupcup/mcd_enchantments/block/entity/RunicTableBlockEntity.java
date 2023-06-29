@@ -24,8 +24,7 @@ import net.minecraft.world.World;
 
 public class RunicTableBlockEntity extends BlockEntity implements NamedScreenHandlerFactory, ImplementedInventory {
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(1, ItemStack.EMPTY);
-
-    private EnchantmentSlots slots;
+    private boolean slotsRead = false;
 
     public DefaultedList<ItemStack> getInventory() {
         return inventory;
@@ -89,12 +88,18 @@ public class RunicTableBlockEntity extends BlockEntity implements NamedScreenHan
         ItemStack itemStack = inventory.get(0);
 
         if (itemStack.isEmpty()) {
-            entity.slots = null;
+            entity.slotsRead = false;
             return;
         }
-        if (entity.slots == null) {
-            entity.slots = EnchantmentUtils.getEnchantments(itemStack.getItem());
-            MCDEnchantments.LOGGER.info("Generated slots for {}: {}", Registry.ITEM.getId(itemStack.getItem()), entity.slots);
+        if (!itemStack.getNbt().contains("Slots")) {
+            EnchantmentSlots slots = EnchantmentUtils.getEnchantments(itemStack.getItem());
+            itemStack.getNbt().put("Slots", slots.asNbt());
+            MCDEnchantments.LOGGER.info("Generated slots for [{}]: {}", Registry.ITEM.getId(itemStack.getItem()), slots);
+        }
+        else if (!entity.slotsRead) {
+            EnchantmentSlots slots = EnchantmentSlots.fromNbt(itemStack.getNbt().getCompound("Slots"));
+            MCDEnchantments.LOGGER.info("Read slots [{}]: {}", Registry.ITEM.getId(itemStack.getItem()), slots);
+            entity.slotsRead = true;
         }
     }
 }

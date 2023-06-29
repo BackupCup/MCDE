@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
 
 public class EnchantmentSlots {
@@ -17,10 +18,15 @@ public class EnchantmentSlots {
     public static class EnchantmentSlot {
         private List<Identifier> enchantments;
 
-        private Optional<Slot> chosen;
+        private Optional<Slot> chosen = Optional.empty();
 
         private EnchantmentSlot(List<Identifier> enchantments) {
             this.enchantments = enchantments;
+        }
+
+        private EnchantmentSlot(List<Identifier> enchantments, Slot chosen) {
+            this.enchantments = enchantments;
+            this.chosen = Optional.of(chosen);
         }
 
         public Optional<Identifier> getChosen() {
@@ -47,7 +53,7 @@ public class EnchantmentSlots {
 
         @Override
         public String toString() {
-            return "EnchantmentSlot [enchantments=" + enchantments + ", chosen=" + chosen + "]";
+            return String.format("%s (%s)", enchantments, chosen);
         }
     }
 
@@ -97,5 +103,50 @@ public class EnchantmentSlots {
     @Override
     public String toString() {
         return slots.toString();
+    }
+
+    public NbtCompound asNbt() {
+        NbtCompound root = new NbtCompound();
+        
+        for (int i = 0; i < slots.size(); i++) {
+            EnchantmentSlot slot = slots.get(i);
+            NbtCompound slotNbt = new NbtCompound();
+            for (int j = 0; j < slot.enchantments.size(); j++) {
+                Identifier id = slot.enchantments.get(j);
+                slotNbt.putString(String.format("Choice%s", j), id.toString());
+            }
+            if (slot.chosen.isPresent()) {
+                slotNbt.putInt("Chosen", slot.chosen.get().ordinal());
+            }
+            root.put(String.format("Slot%s", i), slotNbt);
+        }
+        return root;
+    }
+
+    public static EnchantmentSlots fromNbt(NbtCompound nbt) {
+        List<EnchantmentSlot> slots = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            String key = String.format("Slot%d", i);
+            if (!nbt.contains(key)) {
+                continue;
+            }
+            NbtCompound slotNbt = nbt.getCompound(key);
+            List<Identifier> choice = new ArrayList<>();
+            for (int j = 0; j < 3; j++) {
+                String innerKey = String.format("Choice%d", j);
+                if (!slotNbt.contains(innerKey)) {
+                    continue;
+                }
+                Identifier id = Identifier.tryParse(slotNbt.getString(String.format("Choice%d", j)));
+                choice.add(id);
+            }
+            if (slotNbt.contains("Chosen")) {
+                slots.add(new EnchantmentSlot(Collections.unmodifiableList(choice), Slot.values()[slotNbt.getInt("Chosen")]));
+            }
+            else {
+                slots.add(new EnchantmentSlot(Collections.unmodifiableList(choice)));
+            }
+        }
+        return new EnchantmentSlots(Collections.unmodifiableList(slots));
     }
 }

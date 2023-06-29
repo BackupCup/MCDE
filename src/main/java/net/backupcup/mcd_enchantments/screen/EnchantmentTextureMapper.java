@@ -2,8 +2,6 @@ package net.backupcup.mcd_enchantments.screen;
 
 import java.util.Map;
 import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import net.backupcup.mcd_enchantments.util.EnchantmentUtils;
