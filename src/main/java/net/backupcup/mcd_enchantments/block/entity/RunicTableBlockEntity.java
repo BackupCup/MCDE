@@ -1,6 +1,11 @@
 package net.backupcup.mcd_enchantments.block.entity;
 
+import org.jetbrains.annotations.Nullable;
+
+import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.screen.RunicTableScreenHandler;
+import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
+import net.backupcup.mcd_enchantments.util.EnchantmentUtils;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -14,11 +19,14 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
 
 public class RunicTableBlockEntity extends BlockEntity implements NamedScreenHandlerFactory, ImplementedInventory {
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(1, ItemStack.EMPTY);
+
+    private EnchantmentSlots slots;
+
     public DefaultedList<ItemStack> getInventory() {
         return inventory;
     }
@@ -80,8 +88,13 @@ public class RunicTableBlockEntity extends BlockEntity implements NamedScreenHan
         DefaultedList<ItemStack> inventory = entity.getItems();
         ItemStack itemStack = inventory.get(0);
 
-        if (!itemStack.isEmpty()) {
+        if (itemStack.isEmpty()) {
+            entity.slots = null;
             return;
+        }
+        if (entity.slots == null) {
+            entity.slots = EnchantmentUtils.getEnchantments(itemStack.getItem());
+            MCDEnchantments.LOGGER.info("Generated slots for {}: {}", Registry.ITEM.getId(itemStack.getItem()), entity.slots);
         }
     }
 }
