@@ -1,6 +1,9 @@
 package net.backupcup.mcd_enchantments.screen;
 
+import org.lwjgl.opengl.GREMEDYStringMarker;
+
 import com.mojang.blaze3d.systems.RenderSystem;
+
 import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
 import net.backupcup.mcd_enchantments.util.Slot;
@@ -73,7 +76,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         renderBackground(matrices);
         super.render(matrices, mouseX, mouseY, delta);
-
+        RenderSystem.setShaderTexture(0, TEXTURE);
         int posX = ((width - backgroundWidth) / 2) - 2;
         int posY = (height - backgroundHeight) / 2;
         int[] slotOffsetsX = {posX + 17, posX + 52, posX + 87};
@@ -95,7 +98,13 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
                 drawTexture(matrices, slotOffsetsX[slot.ordinal()], posY + 37, 220, 104, 33, 33);
 
             if (slotOpened[slot.ordinal()]) {
+                RenderSystem.setShaderTexture(0, TEXTURE);
                 drawTexture(matrices, posX + (slot.ordinal() * 35), posY, 186, 0, 67, 51);
+                Identifier test = new Identifier("mcdw", "freezing");
+                RenderSystem.setShaderTexture(0, EnchantmentTextureMapper.getTexture(test));
+                EnchantmentTextureMapper.TexturePos pos = EnchantmentTextureMapper.getPos(test);
+                drawTexture(matrices, posX + (slot.ordinal() * 35), posY, pos.x(), pos.y(), 23, 23);
+                RenderSystem.setShaderTexture(0, TEXTURE);
             }
         }
 
