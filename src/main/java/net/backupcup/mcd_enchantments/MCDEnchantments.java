@@ -2,7 +2,6 @@ package net.backupcup.mcd_enchantments;
 
 import net.backupcup.mcd_enchantments.block.ModBlocks;
 import net.backupcup.mcd_enchantments.block.entity.ModBlockEntities;
-import net.backupcup.mcd_enchantments.item.ModItems;
 import net.backupcup.mcd_enchantments.screen.ModScreenHandlers;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
@@ -14,7 +13,6 @@ public class MCDEnchantments implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		ModItems.RegisterModItems();
 		ModBlocks.RegisterModBlocks();
 
 		ModScreenHandlers.registerAllScreenHandlers();
