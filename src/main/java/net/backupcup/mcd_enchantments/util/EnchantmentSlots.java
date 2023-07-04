@@ -1,12 +1,12 @@
 package net.backupcup.mcd_enchantments.util;
 
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.util.Identifier;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.Identifier;
 
 public class EnchantmentSlots {
     private List<EnchantmentSlot> slots;
@@ -35,7 +35,7 @@ public class EnchantmentSlots {
         }
 
         public Optional<Identifier> getInnerSlot(Slot slot) {
-            return enchantments.size() < slot.ordinal() ?
+            return enchantments.size() > slot.ordinal() ?
                 Optional.of(enchantments.get(slot.ordinal())) : Optional.empty();
         }
 
@@ -96,7 +96,7 @@ public class EnchantmentSlots {
     }
 
     public Optional<EnchantmentSlot> getSlot(Slot slot) {
-        return slots.size() < slot.ordinal() ?
+        return slots.size() > slot.ordinal() ?
             Optional.of(slots.get(slot.ordinal())) : Optional.empty();
     }
 
