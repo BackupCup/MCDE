@@ -59,7 +59,7 @@ public class RunicTableBlockEntity extends BlockEntity implements NamedScreenHan
 
     @Override
     public Text getDisplayName() {
-        return Text.literal("Runic Table");
+        return Text.translatable("block.mcd_enchantments.runic_table");
     }
 
     @Nullable
