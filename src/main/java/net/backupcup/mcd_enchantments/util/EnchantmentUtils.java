@@ -28,7 +28,9 @@ public class EnchantmentUtils {
 
     public static List<Identifier> getEnchantmentsForItem(Item item) {
         return getEnchantmentStream()
-            .filter(id -> Registry.ENCHANTMENT.get(id).type.isAcceptableItem(item))
+            .filter(id -> Registry.ENCHANTMENT.get(id).type.isAcceptableItem(item) &&
+                    !(Registry.ENCHANTMENT.get(id).isCursed() &&
+                      Registry.ENCHANTMENT.getId(Enchantments.MENDING).equals(id)))
             .collect(Collectors.toList());
     }
 
@@ -117,13 +119,6 @@ public class EnchantmentUtils {
 
             return builder.build();
         }
-        else if (EnchantmentTarget.BREAKABLE.isAcceptableItem(item)) {
-            return EnchantmentSlots.builder()
-                .withSlot(getEnchantmentId(Enchantments.UNBREAKING))
-                .withSlot(getEnchantmentId(Enchantments.MENDING))
-                .build();
-        }
-
         MCDEnchantments.LOGGER.warn("Empty slots generated");
         return EnchantmentSlots.EMPTY;
     }
