@@ -36,11 +36,10 @@
     "fabricloader": ">=0.14.19",
     "fabric-api": "*",
     "minecraft": "~1.19.2",
-    "java": ">=17",
-    "mcdw": ">=5.0.12-1.19",
-    "mcda": ">=2.4.4"
+    "java": ">=17"
   },
   "suggests": {
-    "another-mod": "*"
+    "mcdw": ">=5.0.12-1.19",
+    "mcda": ">=2.4.4"
   }
 }
