@@ -61,11 +61,29 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
         int posY = (height - backgroundHeight) / 2;
         int[] slotOffsetsX = {posX + 17, posX + 52, posX + 87};
 
+        int[] enchantOffsetX = {6, 38, 22};
+        int[] enchantOffsetY = {22, 22, 6};
+
         if (stack.isEmpty()) return super.mouseClicked(mouseX, mouseY, button);
         EnchantmentSlots slots = EnchantmentSlots.fromNbt(stack.getNbt().getCompound("Slots"));
 
         for (Slot slot : Slot.values()) {
             if (slots.getSlot(slot).isEmpty()) continue;
+
+            if (slotOpened[slot.ordinal()]) {
+                for (Slot innerSlot : Slot.values()) {
+                    Optional<Identifier> optionalIdentifier = slots.getSlot(slot).get().getInnerSlot(innerSlot);
+
+                    if (optionalIdentifier.isPresent() &&
+                        isInEBounds(posX + (slot.ordinal() * 35) + enchantOffsetX[innerSlot.ordinal()] - 1, posY + enchantOffsetY[innerSlot.ordinal()] - 1, (int) mouseX, (int) mouseY)) {
+                        Identifier enchantmentID = optionalIdentifier.get();
+
+                        //stack.addEnchantment(Registry.ENCHANTMENT.get(slots.getSlot(Slot.FIRST).get().getInnerSlot(Slot.FIRST).get()), 1);
+
+                        MCDEnchantments.LOGGER.info("Slot " + slot.ordinal() + ": " + enchantmentID + " | Is Powerful: " + classifier.isEnchantmentPowerful(String.valueOf(enchantmentID)));
+                    }
+                }
+            }
 
             if (isInSBounds(slotOffsetsX[slot.ordinal()], posY + 37, (int) mouseX, (int) mouseY)) {
                 for (int j = 0; j < 3; j++) {
