@@ -55,6 +55,9 @@ public class EnchantmentSlot {
         public Slot getSlot() {
             return slot;
         }
+        public int ordinal() {
+            return slot.ordinal();
+        }
         public Identifier getEnchantment() {
             return enchantment;
         }

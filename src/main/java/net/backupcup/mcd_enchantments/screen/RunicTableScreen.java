@@ -1,6 +1,12 @@
 package net.backupcup.mcd_enchantments.screen;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.regex.Pattern;
+
 import com.mojang.blaze3d.systems.RenderSystem;
+
 import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.util.EnchantmentClassifier;
 import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
@@ -11,21 +17,15 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
 public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
     private Inventory inventory;
-    private EnchantmentClassifier classifier = new EnchantmentClassifier();
 
     private boolean[] slotOpened = new boolean[3];
-    private boolean TooltipActive;
 
     private static final Identifier TEXTURE =
             new Identifier(MCDEnchantments.MOD_ID, "textures/gui/runic_table.png");
@@ -78,9 +78,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
                         isInEBounds(posX + (slot.ordinal() * 35) + enchantOffsetX[innerSlot.ordinal()] - 1, posY + enchantOffsetY[innerSlot.ordinal()] - 1, (int) mouseX, (int) mouseY)) {
                         Identifier enchantmentID = optionalIdentifier.get();
 
-                        //stack.addEnchantment(Registry.ENCHANTMENT.get(slots.getSlot(Slot.FIRST).get().getChoice(Slot.FIRST).get()), 1);
-
-                        MCDEnchantments.LOGGER.info("Slot " + slot.ordinal() + ": " + enchantmentID + " | Is Powerful: " + classifier.isEnchantmentPowerful(String.valueOf(enchantmentID)));
+                        MCDEnchantments.LOGGER.info("Slot " + slot.ordinal() + ": " + enchantmentID + " | Is Powerful: " + EnchantmentClassifier.isEnchantmentPowerful(enchantmentID));
                     }
                 }
             }
@@ -119,9 +117,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
         EnchantmentSlots slots = EnchantmentSlots.fromNbt(itemStack.getNbt().getCompound("Slots"));
         Identifier tooltipEnchantmentID = null;
 
-        for (Slot slot : Slot.values()) {
-            if (slots.getSlot(slot).isEmpty()) continue;
-
+        for (var slot : slots) {
             drawTexture(matrices, slotOffsetsX[slot.ordinal()] + 1, posY + 38, 187, 105, 31, 31);
             if (isInSBounds(slotOffsetsX[slot.ordinal()], posY + 37, mouseX, mouseY))
                 drawTexture(matrices, slotOffsetsX[slot.ordinal()], posY + 37, 220, 104, 33, 33);
@@ -129,72 +125,41 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
             if (slotOpened[slot.ordinal()]) {
                 drawTexture(matrices, posX + (slot.ordinal() * 35), posY, 186, 0, 67, 51);
 
-                for (Slot innerSlot : Slot.values()) {
-                    Optional<Identifier> optionalIdentifier = slots.getSlot(slot).get().getChoice(innerSlot);
-                    if (optionalIdentifier.isPresent()) {
-                        Identifier enchantmentID = optionalIdentifier.get();
+                for (var choice : slot.choices()) {
+                    Identifier enchantmentID = choice.getEnchantment();
+                    RenderSystem.setShaderTexture(0, EnchantmentTextureMapper.getTexture(enchantmentID));
+                    EnchantmentTextureMapper.TexturePos pos = EnchantmentTextureMapper.getPos(enchantmentID);
 
-                        RenderSystem.setShaderTexture(0, EnchantmentTextureMapper.getTexture(enchantmentID));
-                        EnchantmentTextureMapper.TexturePos pos = EnchantmentTextureMapper.getPos(enchantmentID);
-
-                        if (!isInEBounds(posX + (slot.ordinal() * 35) + enchantOffsetX[innerSlot.ordinal()] - 1, posY + enchantOffsetY[innerSlot.ordinal()] - 1, mouseX, mouseY))
-                            if (classifier.isEnchantmentPowerful(String.valueOf(enchantmentID))) drawTexture(matrices, posX + (slot.ordinal() * 35) + enchantOffsetX[innerSlot.ordinal()] - 1, posY + enchantOffsetY[innerSlot.ordinal()] - 1, 199, 225, 25, 25);
-                            else drawTexture(matrices, posX + (slot.ordinal() * 35) + enchantOffsetX[innerSlot.ordinal()] - 1, posY + enchantOffsetY[innerSlot.ordinal()] - 1, 172, 225, 25, 25);
-                        else {
-                            drawTexture(matrices, posX + (slot.ordinal() * 35) + enchantOffsetX[innerSlot.ordinal()] - 1, posY + enchantOffsetY[innerSlot.ordinal()] - 1, 226, 225, 25, 25);
-                            tooltipEnchantmentID = enchantmentID;
-                        }
-
-                        drawTexture(matrices, posX + (slot.ordinal() * 35) + enchantOffsetX[innerSlot.ordinal()], posY + enchantOffsetY[innerSlot.ordinal()], pos.x(), pos.y(), 23, 23);
-                    } else {
-                        RenderSystem.setShaderTexture(0, TEXTURE);
-                        drawTexture(matrices, posX + (slot.ordinal() * 35) + enchantOffsetX[innerSlot.ordinal()] - 1, posY + enchantOffsetY[innerSlot.ordinal()] - 1, 190, 52, 25, 25);
+                    if (!isInEBounds(posX + (slot.ordinal() * 35) + enchantOffsetX[choice.ordinal()] - 1, posY + enchantOffsetY[choice.ordinal()] - 1, mouseX, mouseY))
+                        if (EnchantmentClassifier.isEnchantmentPowerful(enchantmentID))
+                            drawTexture(matrices, posX + (slot.ordinal() * 35) + enchantOffsetX[choice.ordinal()] - 1, posY + enchantOffsetY[choice.ordinal()] - 1, 199, 225, 25, 25);
+                        else
+                            drawTexture(matrices, posX + (slot.ordinal() * 35) + enchantOffsetX[choice.ordinal()] - 1, posY + enchantOffsetY[choice.ordinal()] - 1, 172, 225, 25, 25);
+                    else {
+                        drawTexture(matrices, posX + (slot.ordinal() * 35) + enchantOffsetX[choice.ordinal()] - 1, posY + enchantOffsetY[choice.ordinal()] - 1, 226, 225, 25, 25);
+                        tooltipEnchantmentID = enchantmentID;
                     }
+
+                    drawTexture(matrices, posX + (slot.ordinal() * 35) + enchantOffsetX[choice.ordinal()], posY + enchantOffsetY[choice.ordinal()], pos.x(), pos.y(), 23, 23);
                 }
                 RenderSystem.setShaderTexture(0, TEXTURE);
             }
         }
 
         if (tooltipEnchantmentID != null) {
-            String[] parts = tooltipEnchantmentID.toString().split(":");
-            String namespace = parts[0];
-            String id = parts[1];
-            int maxLineWords = 5;
-            int wordCount = 0;
+            String namespace = tooltipEnchantmentID.getNamespace();
+            String id = tooltipEnchantmentID.getPath();
             List<Text> tooltipLines = new ArrayList<>();
-
-            if (classifier.isEnchantmentPowerful(String.valueOf(tooltipEnchantmentID))) {
-                Text enchantmentName = Text.translatable("enchantment." + namespace + "." + id).formatted(Formatting.LIGHT_PURPLE);
-                tooltipLines.add(enchantmentName);
-            }
-            else {
-                Text enchantmentName = Text.translatable("enchantment." + namespace + "." + id).formatted(Formatting.AQUA);
-                tooltipLines.add(enchantmentName);
-            }
+            Text enchantmentName = Text.translatable("enchantment." + namespace + "." + id)
+                .formatted(EnchantmentClassifier.isEnchantmentPowerful(tooltipEnchantmentID) ? Formatting.LIGHT_PURPLE : Formatting.AQUA);
+            tooltipLines.add(enchantmentName);
 
             Text enchantmentDescription = Text.translatable("enchantment." + namespace + "." + id + ".desc");
-
-            List<String> words = Arrays.asList(enchantmentDescription.getString().split(" "));
-            StringBuilder wrappedDescription = new StringBuilder();
-
-            for (String word : words) {
-                if (wrappedDescription.length() > 0) {
-                    wrappedDescription.append(" ");
-                }
-
-                wrappedDescription.append(word);
-                wordCount++;
-
-                if (wordCount >= maxLineWords) {
-                    tooltipLines.add(Text.literal(wrappedDescription.toString()).formatted(Formatting.GRAY));
-                    wrappedDescription.setLength(0);
-                    wordCount = 0;
-                }
-            }
-
-            if (wrappedDescription.length() > 0) {
-                tooltipLines.add(Text.literal(wrappedDescription.toString()).formatted(Formatting.GRAY));
-            }
+            Pattern wrap = Pattern.compile("(\\b.{1,40})(?:\\s+|$)");
+            List<MutableText> desc = wrap.matcher(enchantmentDescription.getString())
+                .results().map(res -> Text.literal(res.group(1)).formatted(Formatting.GRAY))
+                .toList();
+            tooltipLines.addAll(desc);
             renderTooltip(matrices, tooltipLines, mouseX, mouseY);
         }
 

@@ -1,15 +1,13 @@
 package net.backupcup.mcd_enchantments.util;
 
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.Identifier;
-
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.util.Identifier;
 
 public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
     private Map<Slot, EnchantmentSlot> slots;
