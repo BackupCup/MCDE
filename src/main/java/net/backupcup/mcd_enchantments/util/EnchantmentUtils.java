@@ -1,15 +1,5 @@
 package net.backupcup.mcd_enchantments.util;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentTarget;
@@ -17,6 +7,12 @@ import net.minecraft.enchantment.Enchantments;
 import net.minecraft.item.Item;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
+
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class EnchantmentUtils {
     private static Predicate<String> namespaceMatcher = Pattern.compile("minecraft|mcd[aw]").asPredicate();
@@ -29,8 +25,10 @@ public class EnchantmentUtils {
     public static List<Identifier> getEnchantmentsForItem(Item item) {
         return getEnchantmentStream()
             .filter(id -> Registry.ENCHANTMENT.get(id).type.isAcceptableItem(item) &&
-                    !(Registry.ENCHANTMENT.get(id).isCursed() &&
-                      Registry.ENCHANTMENT.getId(Enchantments.MENDING).equals(id)))
+                    !(Registry.ENCHANTMENT.getId(Enchantments.VANISHING_CURSE).equals(id) ||
+                      Registry.ENCHANTMENT.getId(Enchantments.BINDING_CURSE).equals(id) ||
+                      Registry.ENCHANTMENT.getId(Enchantments.MENDING).equals(id) ||
+                      Registry.ENCHANTMENT.getId(Enchantments.UNBREAKING).equals(id)))
             .collect(Collectors.toList());
     }
 
@@ -51,14 +49,12 @@ public class EnchantmentUtils {
                     getEnchantmentId(Enchantments.FORTUNE),
                     getEnchantmentId(Enchantments.SILK_TOUCH)
                 )
-                .withSlot(getEnchantmentId(Enchantments.UNBREAKING))
                 .build();
         }
         else if (EnchantmentTarget.FISHING_ROD.isAcceptableItem(item)) {
             return EnchantmentSlots.builder()
                 .withSlot(getEnchantmentId(Enchantments.LURE))
                 .withSlot(getEnchantmentId(Enchantments.LUCK_OF_THE_SEA))
-                .withSlot(getEnchantmentId(Enchantments.UNBREAKING))
                 .build();
         }
         else if (EnchantmentTarget.TRIDENT.isAcceptableItem(item)) {
@@ -71,12 +67,12 @@ public class EnchantmentUtils {
                     getEnchantmentId(Enchantments.RIPTIDE),
                     getEnchantmentId(Enchantments.CHANNELING)
                 )
-                .withSlot(getEnchantmentId(Enchantments.UNBREAKING))
                 .build();
         }
         else if (EnchantmentTarget.WEAPON.isAcceptableItem(item) ||
-                 EnchantmentTarget.BOW.isAcceptableItem(item) ||
-                 EnchantmentTarget.CROSSBOW.isAcceptableItem(item)) {
+                 EnchantmentTarget.BOW.isAcceptableItem(item) || EnchantmentTarget.CROSSBOW.isAcceptableItem(item) ||
+                 EnchantmentTarget.ARMOR_FEET.isAcceptableItem(item) || EnchantmentTarget.ARMOR_LEGS.isAcceptableItem(item) ||
+                 EnchantmentTarget.ARMOR_CHEST.isAcceptableItem(item) || EnchantmentTarget.ARMOR_HEAD.isAcceptableItem(item)) {
             Random random = new Random(System.nanoTime());
             List<Identifier> enchantments = getEnchantmentsForItem(item);
             Collections.shuffle(enchantments, random);
