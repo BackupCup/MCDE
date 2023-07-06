@@ -31,6 +31,10 @@ public class EnchantmentSlot {
         return slot;
     }
 
+    public int ordinal() {
+        return slot.ordinal();
+    }
+
     public Optional<Identifier> getChoice(Slot slot) {
         return enchantments.containsKey(slot) ?
             Optional.of(enchantments.get(slot)) : Optional.empty();
