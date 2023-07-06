@@ -1,5 +1,7 @@
 package net.backupcup.mcd_enchantments.screen;
 
+import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
+import net.backupcup.mcd_enchantments.util.Slots;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -10,6 +12,8 @@ import net.minecraft.screen.ArrayPropertyDelegate;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 
 public class RunicTableScreenHandler extends ScreenHandler {
     private final Inventory inventory;
@@ -48,6 +52,26 @@ public class RunicTableScreenHandler extends ScreenHandler {
         addPlayerHotbar(playerInventory);
 
         addProperties(delegate);
+    }
+
+    public void enchantItem(Identifier enchantment, EnchantmentSlots slots) {
+        ItemStack itemStack = inventory.getStack(0);
+        itemStack.addEnchantment(Registry.ENCHANTMENT.get(enchantment), 1);
+        itemStack.setSubNbt("Slots", slots.asNbt());
+        syncState();
+    }
+
+    @Override
+    public boolean onButtonClick(PlayerEntity player, int id) {
+        ItemStack itemStack = inventory.getStack(0);
+        EnchantmentSlots slots = EnchantmentSlots.fromNbt(itemStack.getSubNbt("Slots"));
+        var slotsSize = Slots.values().length;
+        var clickedSlot = slots.getSlot(Slots.values()[id / slotsSize]).get();
+        var clickedChoice = clickedSlot.getChoice(Slots.values()[id % slotsSize]).get();
+        itemStack.addEnchantment(Registry.ENCHANTMENT.get(clickedChoice), 1);
+        clickedSlot.setChosen(Slots.values()[id % slotsSize]);
+        itemStack.setSubNbt("Slots", slots.asNbt());
+        return super.onButtonClick(player, id);
     }
 
     @Override

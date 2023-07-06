@@ -2,7 +2,6 @@ package net.backupcup.mcd_enchantments.screen;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -10,7 +9,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.util.EnchantmentClassifier;
 import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
-import net.backupcup.mcd_enchantments.util.Slot;
+import net.backupcup.mcd_enchantments.util.Slots;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
@@ -67,18 +66,16 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
         if (stack.isEmpty()) return super.mouseClicked(mouseX, mouseY, button);
         EnchantmentSlots slots = EnchantmentSlots.fromNbt(stack.getNbt().getCompound("Slots"));
 
-        for (Slot slot : Slot.values()) {
-            if (slots.getSlot(slot).isEmpty()) continue;
-
+        for (var slot : slots) {
             if (slotOpened[slot.ordinal()]) {
-                for (Slot innerSlot : Slot.values()) {
-                    Optional<Identifier> optionalIdentifier = slots.getSlot(slot).get().getChoice(innerSlot);
+                for (var choice : slot.choices()) {
+                    Identifier optionalIdentifier = choice.getEnchantment();
 
-                    if (optionalIdentifier.isPresent() &&
-                        isInEBounds(posX + (slot.ordinal() * 35) + enchantOffsetX[innerSlot.ordinal()] - 1, posY + enchantOffsetY[innerSlot.ordinal()] - 1, (int) mouseX, (int) mouseY)) {
-                        Identifier enchantmentID = optionalIdentifier.get();
+                    if (isInEBounds(posX + (slot.ordinal() * 35) + enchantOffsetX[choice.ordinal()] - 1, posY + enchantOffsetY[choice.ordinal()] - 1, (int) mouseX, (int) mouseY)) {
 
-                        MCDEnchantments.LOGGER.info("Slot " + slot.ordinal() + ": " + enchantmentID + " | Is Powerful: " + EnchantmentClassifier.isEnchantmentPowerful(enchantmentID));
+                        MCDEnchantments.LOGGER.info("Slot " + slot.ordinal() + ": " + optionalIdentifier + " | Is Powerful: " + EnchantmentClassifier.isEnchantmentPowerful(optionalIdentifier));
+                        slot.setChosen(choice.getSlot());
+                        client.interactionManager.clickButton(handler.syncId, Slots.values().length * (slot.ordinal()) + (choice.ordinal()));
                     }
                 }
             }

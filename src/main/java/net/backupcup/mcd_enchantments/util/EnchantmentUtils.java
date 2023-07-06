@@ -6,7 +6,7 @@ import net.minecraft.enchantment.EnchantmentTarget;
 import net.minecraft.item.Item;
 import net.minecraft.util.Identifier;
 
-import static net.backupcup.mcd_enchantments.util.Slot.*;
+import static net.backupcup.mcd_enchantments.util.Slots.*;
 import static net.minecraft.enchantment.Enchantments.*;
 import static net.minecraft.util.registry.Registry.ENCHANTMENT;
 

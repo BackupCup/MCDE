@@ -1,5 +1,5 @@
 package net.backupcup.mcd_enchantments.util;
 
-public enum Slot {
+public enum Slots {
     FIRST, SECOND, THIRD
 }

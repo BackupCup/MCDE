@@ -6,12 +6,12 @@ import java.util.Optional;
 import net.minecraft.util.Identifier;
 
 public class EnchantmentSlot {
-    private Slot slot;
-    private Map<Slot, Identifier> enchantments;
+    private Slots slot;
+    private Map<Slots, Identifier> enchantments;
 
-    private Optional<Slot> chosen = Optional.empty();
+    private Optional<Slots> chosen = Optional.empty();
 
-    public EnchantmentSlot(Slot slot, Map<Slot, Identifier> enchantments) {
+    public EnchantmentSlot(Slots slot, Map<Slots, Identifier> enchantments) {
         this.slot = slot;
         this.enchantments = enchantments;
     }
@@ -21,13 +21,13 @@ public class EnchantmentSlot {
             Optional.of(new Choice(chosen.get(), enchantments.get(chosen.get()))) : Optional.empty();
     }
 
-    public void setChosen(Slot chosen) {
+    public void setChosen(Slots chosen) {
         if (enchantments.containsKey(chosen)) {
             this.chosen = Optional.of(chosen);
         }
     }
 
-    public Slot getSlot() {
+    public Slots getSlot() {
         return slot;
     }
 
@@ -35,7 +35,7 @@ public class EnchantmentSlot {
         return slot.ordinal();
     }
 
-    public Optional<Identifier> getChoice(Slot slot) {
+    public Optional<Identifier> getChoice(Slots slot) {
         return enchantments.containsKey(slot) ?
             Optional.of(enchantments.get(slot)) : Optional.empty();
     }
@@ -45,14 +45,14 @@ public class EnchantmentSlot {
     }
 
     public class Choice {
-        private Slot slot;
+        private Slots slot;
         private Identifier enchantment;
 
-        public Choice(Slot slot, Identifier enchantment) {
+        public Choice(Slots slot, Identifier enchantment) {
             this.slot = slot;
             this.enchantment = enchantment;
         }
-        public Slot getSlot() {
+        public Slots getSlot() {
             return slot;
         }
         public int ordinal() {
@@ -63,16 +63,16 @@ public class EnchantmentSlot {
         }
     }
 
-    public static EnchantmentSlot of(Slot slot, Identifier first) {
-        return new EnchantmentSlot(slot, Map.of(Slot.FIRST, first));
+    public static EnchantmentSlot of(Slots slot, Identifier first) {
+        return new EnchantmentSlot(slot, Map.of(Slots.FIRST, first));
     }
 
-    public static EnchantmentSlot of(Slot slot, Identifier first, Identifier second) {
-        return new EnchantmentSlot(slot, Map.of(Slot.FIRST, first, Slot.SECOND, second));
+    public static EnchantmentSlot of(Slots slot, Identifier first, Identifier second) {
+        return new EnchantmentSlot(slot, Map.of(Slots.FIRST, first, Slots.SECOND, second));
     }
 
-    public static EnchantmentSlot of(Slot slot, Identifier first, Identifier second, Identifier third) {
-        return new EnchantmentSlot(slot, Map.of(Slot.FIRST, first, Slot.SECOND, second, Slot.THIRD, third));
+    public static EnchantmentSlot of(Slots slot, Identifier first, Identifier second, Identifier third) {
+        return new EnchantmentSlot(slot, Map.of(Slots.FIRST, first, Slots.SECOND, second, Slots.THIRD, third));
     }
 
     @Override

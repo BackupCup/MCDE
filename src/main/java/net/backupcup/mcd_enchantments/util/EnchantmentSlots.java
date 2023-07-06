@@ -10,26 +10,26 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
 
 public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
-    private Map<Slot, EnchantmentSlot> slots;
+    private Map<Slots, EnchantmentSlot> slots;
 
-    public EnchantmentSlots(Map<Slot, EnchantmentSlot> slots) {
+    public EnchantmentSlots(Map<Slots, EnchantmentSlot> slots) {
         this.slots = slots;
     }
 
     public static class Builder {
-        private Map<Slot, EnchantmentSlot> slots = new TreeMap<>();
+        private Map<Slots, EnchantmentSlot> slots = new TreeMap<>();
 
-        public Builder withSlot(Slot slot, Identifier first) {
+        public Builder withSlot(Slots slot, Identifier first) {
             slots.put(slot, EnchantmentSlot.of(slot, first));
             return this;
         }
 
-        public Builder withSlot(Slot slot, Identifier first, Identifier second) {
+        public Builder withSlot(Slots slot, Identifier first, Identifier second) {
             slots.put(slot, EnchantmentSlot.of(slot, first, second));
             return this;
         }
 
-        public Builder withSlot(Slot slot, Identifier first, Identifier second, Identifier third) {
+        public Builder withSlot(Slots slot, Identifier first, Identifier second, Identifier third) {
             slots.put(slot, EnchantmentSlot.of(slot, first, second, third));
             return this;
         }
@@ -45,7 +45,7 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
         return new Builder();
     }
 
-    public Optional<EnchantmentSlot> getSlot(Slot slot) {
+    public Optional<EnchantmentSlot> getSlot(Slots slot) {
         return slots.size() > slot.ordinal() ?
             Optional.of(slots.get(slot)) : Optional.empty();
     }
@@ -76,15 +76,15 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
     }
 
     public static EnchantmentSlots fromNbt(NbtCompound nbt) {
-        Map<Slot, EnchantmentSlot> slots = new TreeMap<>();
-        for (var slot : Slot.values()) {
+        Map<Slots, EnchantmentSlot> slots = new TreeMap<>();
+        for (var slot : Slots.values()) {
             String key = String.format("Slot%d", slot.ordinal());
             if (!nbt.contains(key)) {
                 continue;
             }
             NbtCompound slotNbt = nbt.getCompound(key);
-            Map<Slot, Identifier> choice = new TreeMap<>();
-            for (var choiceSlot : Slot.values()) {
+            Map<Slots, Identifier> choice = new TreeMap<>();
+            for (var choiceSlot : Slots.values()) {
                 String choiceKey = String.format("Choice%d", choiceSlot.ordinal());
                 if (!slotNbt.contains(choiceKey)) {
                     continue;
@@ -95,7 +95,7 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
             var newSlot = new EnchantmentSlot(slot, Collections.unmodifiableMap(choice));
             slots.put(slot, newSlot);
             if (slotNbt.contains("Chosen")) {
-                newSlot.setChosen(Slot.values()[slotNbt.getInt("Chosen")]);
+                newSlot.setChosen(Slots.values()[slotNbt.getInt("Chosen")]);
             }
         }
         return new EnchantmentSlots(Collections.unmodifiableMap(slots));
