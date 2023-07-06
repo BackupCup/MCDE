@@ -3,10 +3,12 @@ package net.backupcup.mcd_enchantments.util;
 import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentTarget;
-import net.minecraft.enchantment.Enchantments;
 import net.minecraft.item.Item;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
+
+import static net.backupcup.mcd_enchantments.util.Slot.*;
+import static net.minecraft.enchantment.Enchantments.*;
+import static net.minecraft.util.registry.Registry.ENCHANTMENT;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -18,16 +20,16 @@ public class EnchantmentUtils {
     private static Predicate<String> namespaceMatcher = Pattern.compile("minecraft|mcd[aw]").asPredicate();
 
     public static Stream<Identifier> getEnchantmentStream() {
-        return Registry.ENCHANTMENT.getIds().stream()
+        return ENCHANTMENT.getIds().stream()
             .filter(id -> namespaceMatcher.test(id.getNamespace()));
     }
 
     public static List<Identifier> getEnchantmentsForItem(Item item) {
         return getEnchantmentStream()
-            .filter(id -> Registry.ENCHANTMENT.get(id).type.isAcceptableItem(item) &&
-                    !(Registry.ENCHANTMENT.get(id).isCursed() ||
-                      Registry.ENCHANTMENT.getId(Enchantments.MENDING).equals(id) ||
-                      Registry.ENCHANTMENT.getId(Enchantments.UNBREAKING).equals(id)))
+            .filter(id -> ENCHANTMENT.get(id).type.isAcceptableItem(item) &&
+                    !(ENCHANTMENT.get(id).isCursed() ||
+                      ENCHANTMENT.getId(MENDING).equals(id) ||
+                      ENCHANTMENT.getId(UNBREAKING).equals(id)))
             .collect(Collectors.toList());
     }
 
@@ -37,34 +39,34 @@ public class EnchantmentUtils {
     }
 
     public static Identifier getEnchantmentId(Enchantment enchantment) {
-        return Registry.ENCHANTMENT.getId(enchantment);
+        return ENCHANTMENT.getId(enchantment);
     }
 
     public static EnchantmentSlots getEnchantments(Item item) {
         if (EnchantmentTarget.DIGGER.isAcceptableItem(item)) {
             return EnchantmentSlots.builder()
-                .withSlot(getEnchantmentId(Enchantments.EFFICIENCY))
-                .withSlot(
-                    getEnchantmentId(Enchantments.FORTUNE),
-                    getEnchantmentId(Enchantments.SILK_TOUCH)
+                .withSlot(FIRST, getEnchantmentId(EFFICIENCY))
+                .withSlot(SECOND,
+                    getEnchantmentId(FORTUNE),
+                    getEnchantmentId(SILK_TOUCH)
                 )
                 .build();
         }
         else if (EnchantmentTarget.FISHING_ROD.isAcceptableItem(item)) {
             return EnchantmentSlots.builder()
-                .withSlot(getEnchantmentId(Enchantments.LURE))
-                .withSlot(getEnchantmentId(Enchantments.LUCK_OF_THE_SEA))
+                .withSlot(FIRST, getEnchantmentId(LURE))
+                .withSlot(SECOND, getEnchantmentId(LUCK_OF_THE_SEA))
                 .build();
         }
         else if (EnchantmentTarget.TRIDENT.isAcceptableItem(item)) {
             return EnchantmentSlots.builder()
-                .withSlot(
-                    getEnchantmentId(Enchantments.IMPALING),
-                    getEnchantmentId(Enchantments.LOYALTY)
+                .withSlot(FIRST,
+                    getEnchantmentId(IMPALING),
+                    getEnchantmentId(LOYALTY)
                 )
-                .withSlot(
-                    getEnchantmentId(Enchantments.RIPTIDE),
-                    getEnchantmentId(Enchantments.CHANNELING)
+                .withSlot(SECOND,
+                    getEnchantmentId(RIPTIDE),
+                    getEnchantmentId(CHANNELING)
                 )
                 .build();
         }
@@ -84,19 +86,19 @@ public class EnchantmentUtils {
             float thirdSlotChance = 0.25f;
 
             if (random.nextFloat() < threeChoiceChance) {
-                builder.withSlot(it.next(), it.next(), it.next());
+                builder.withSlot(FIRST, it.next(), it.next(), it.next());
             }
             else {
-                builder.withSlot(it.next(), it.next());
+                builder.withSlot(FIRST, it.next(), it.next());
                 isTwoChoiceGenerated = true;
             }
 
             if (random.nextFloat() < secondSlotChance) {
                 if (!isTwoChoiceGenerated && random.nextFloat() < threeChoiceChance) {
-                    builder.withSlot(it.next(), it.next(), it.next());
+                    builder.withSlot(SECOND, it.next(), it.next(), it.next());
                 }
                 else {
-                    builder.withSlot(it.next(), it.next());
+                    builder.withSlot(SECOND, it.next(), it.next());
                     isTwoChoiceGenerated = true;
                 }
                 isSecondSlotGenerated = true;
@@ -104,10 +106,10 @@ public class EnchantmentUtils {
 
             if (isSecondSlotGenerated && random.nextFloat() < thirdSlotChance) {
                 if (!isTwoChoiceGenerated && random.nextFloat() < threeChoiceChance) {
-                    builder.withSlot(it.next(), it.next(), it.next());
+                    builder.withSlot(THIRD, it.next(), it.next(), it.next());
                 }
                 else {
-                    builder.withSlot(it.next(), it.next());
+                    builder.withSlot(THIRD, it.next(), it.next());
                     isTwoChoiceGenerated = true;
                 }
             }

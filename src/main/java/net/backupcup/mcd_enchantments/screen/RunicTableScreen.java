@@ -72,13 +72,13 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
 
             if (slotOpened[slot.ordinal()]) {
                 for (Slot innerSlot : Slot.values()) {
-                    Optional<Identifier> optionalIdentifier = slots.getSlot(slot).get().getInnerSlot(innerSlot);
+                    Optional<Identifier> optionalIdentifier = slots.getSlot(slot).get().getChoice(innerSlot);
 
                     if (optionalIdentifier.isPresent() &&
                         isInEBounds(posX + (slot.ordinal() * 35) + enchantOffsetX[innerSlot.ordinal()] - 1, posY + enchantOffsetY[innerSlot.ordinal()] - 1, (int) mouseX, (int) mouseY)) {
                         Identifier enchantmentID = optionalIdentifier.get();
 
-                        //stack.addEnchantment(Registry.ENCHANTMENT.get(slots.getSlot(Slot.FIRST).get().getInnerSlot(Slot.FIRST).get()), 1);
+                        //stack.addEnchantment(Registry.ENCHANTMENT.get(slots.getSlot(Slot.FIRST).get().getChoice(Slot.FIRST).get()), 1);
 
                         MCDEnchantments.LOGGER.info("Slot " + slot.ordinal() + ": " + enchantmentID + " | Is Powerful: " + classifier.isEnchantmentPowerful(String.valueOf(enchantmentID)));
                     }
@@ -130,7 +130,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
                 drawTexture(matrices, posX + (slot.ordinal() * 35), posY, 186, 0, 67, 51);
 
                 for (Slot innerSlot : Slot.values()) {
-                    Optional<Identifier> optionalIdentifier = slots.getSlot(slot).get().getInnerSlot(innerSlot);
+                    Optional<Identifier> optionalIdentifier = slots.getSlot(slot).get().getChoice(innerSlot);
                     if (optionalIdentifier.isPresent()) {
                         Identifier enchantmentID = optionalIdentifier.get();
 
