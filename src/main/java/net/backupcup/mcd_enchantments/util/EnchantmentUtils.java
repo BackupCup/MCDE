@@ -25,8 +25,7 @@ public class EnchantmentUtils {
     public static List<Identifier> getEnchantmentsForItem(Item item) {
         return getEnchantmentStream()
             .filter(id -> Registry.ENCHANTMENT.get(id).type.isAcceptableItem(item) &&
-                    !(Registry.ENCHANTMENT.getId(Enchantments.VANISHING_CURSE).equals(id) ||
-                      Registry.ENCHANTMENT.getId(Enchantments.BINDING_CURSE).equals(id) ||
+                    !(Registry.ENCHANTMENT.get(id).isCursed() ||
                       Registry.ENCHANTMENT.getId(Enchantments.MENDING).equals(id) ||
                       Registry.ENCHANTMENT.getId(Enchantments.UNBREAKING).equals(id)))
             .collect(Collectors.toList());
