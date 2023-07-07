@@ -1,11 +1,6 @@
 package net.backupcup.mcd_enchantments.screen;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
-
 import com.mojang.blaze3d.systems.RenderSystem;
-
 import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.util.EnchantmentClassifier;
 import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
@@ -20,6 +15,10 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
 
 public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
     private Inventory inventory;
@@ -148,7 +147,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
             String id = tooltipEnchantmentID.getPath();
             List<Text> tooltipLines = new ArrayList<>();
             Text enchantmentName = Text.translatable("enchantment." + namespace + "." + id)
-                .formatted(EnchantmentClassifier.isEnchantmentPowerful(tooltipEnchantmentID) ? Formatting.LIGHT_PURPLE : Formatting.AQUA);
+                .formatted(EnchantmentClassifier.isEnchantmentPowerful(tooltipEnchantmentID) ? Formatting.RED : Formatting.LIGHT_PURPLE);
             tooltipLines.add(enchantmentName);
 
             Text enchantmentDescription = Text.translatable("enchantment." + namespace + "." + id + ".desc");
