@@ -2,12 +2,12 @@ package net.backupcup.mcd_enchantments.screen;
 
 import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
 import net.backupcup.mcd_enchantments.util.Slots;
+import net.minecraft.enchantment.EnchantmentTarget;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.screen.ArrayPropertyDelegate;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
@@ -39,7 +39,11 @@ public class RunicTableScreenHandler extends ScreenHandler {
 
             @Override
             public boolean canInsert(ItemStack stack) {
-                return !(stack.getItem() == Items.BOOK) && stack.isEnchantable();
+                return (EnchantmentTarget.TRIDENT.isAcceptableItem(stack.getItem()) ||
+                        EnchantmentTarget.BOW.isAcceptableItem(stack.getItem()) ||
+                        EnchantmentTarget.CROSSBOW.isAcceptableItem(stack.getItem()) ||
+                        EnchantmentTarget.ARMOR.isAcceptableItem(stack.getItem()) ||
+                        EnchantmentTarget.WEAPON.isAcceptableItem(stack.getItem()));
             }
 
             @Override
