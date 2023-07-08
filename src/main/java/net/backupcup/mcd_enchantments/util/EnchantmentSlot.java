@@ -35,15 +35,6 @@ public class EnchantmentSlot {
         return false;
     }
 
-    public Optional<ChoiceWithLevel> tryUpgrade() {
-        if (chosen.isPresent()) {
-            if (!isMaxedOut())
-                level++;
-            return Optional.of(new ChoiceWithLevel(chosen.get(), enchantments.get(chosen.get()), level));
-        }
-        return Optional.empty();
-    }
-
     public void clearChoice() {
         chosen = Optional.empty();
         level = 0;
@@ -95,6 +86,13 @@ public class EnchantmentSlot {
 
         public short getLevel() {
             return level;
+        }
+
+        public void upgrade() {
+            if (!isMaxedOut()) {
+                level++;
+                EnchantmentSlot.this.level++;
+            }
         }
 
         public boolean isMaxedOut() {

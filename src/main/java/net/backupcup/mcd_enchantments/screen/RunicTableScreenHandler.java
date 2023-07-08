@@ -65,12 +65,16 @@ public class RunicTableScreenHandler extends ScreenHandler {
         EnchantmentSlots slots = EnchantmentSlots.fromItemStack(itemStack);
         var slotsSize = Slots.values().length;
         var clickedSlot = slots.getSlot(Slots.values()[id / slotsSize]).get();
-        var upgraded = clickedSlot.tryUpgrade();
+        var chosen = clickedSlot.getChosen();
         short level = 1;
         Identifier enchantmentId;
-        if (upgraded.isPresent()) {
-            level = upgraded.get().getLevel();
-            enchantmentId = upgraded.get().getEnchantment();
+        if (chosen.isPresent()) {
+            if (chosen.get().isMaxedOut()) {
+                return super.onButtonClick(player, id);
+            }
+            chosen.get().upgrade();
+            level = chosen.get().getLevel();
+            enchantmentId = chosen.get().getEnchantment();
             if (!canEnchant(player, enchantmentId, level)) {
                 return super.onButtonClick(player, id);
             }
