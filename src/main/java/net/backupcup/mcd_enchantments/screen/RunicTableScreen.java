@@ -28,7 +28,7 @@ import net.minecraft.util.Identifier;
 public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
     private Inventory inventory;
 
-    private Pattern wrap = Pattern.compile("(\\b.{1,40})(?:\\s+|$)");
+    private static Pattern wrap = Pattern.compile("(\\b.{1,40})(?:\\s+|$)");
 
     private Optional<Slots> opened = Optional.empty();
 
