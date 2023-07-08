@@ -94,7 +94,9 @@ public class RunicTableScreenHandler extends ScreenHandler {
             itemStack.addEnchantment(Registry.ENCHANTMENT.get(enchantmentId), level);
         }
         slots.updateItemStack(itemStack);
-        player.addExperienceLevels(-EnchantmentUtils.getCost(enchantmentId, level));
+        if (!player.isCreative()) {
+            player.addExperienceLevels(-EnchantmentUtils.getCost(enchantmentId, level));
+        }
         return super.onButtonClick(player, id);
     }
 
@@ -143,6 +145,7 @@ public class RunicTableScreenHandler extends ScreenHandler {
     }
 
     public boolean canEnchant(PlayerEntity player, Identifier enchantmentId, short level) {
-        return player.experienceLevel >= EnchantmentUtils.getCost(enchantmentId, level); 
+        if (!player.isCreative()) {return player.experienceLevel >= EnchantmentUtils.getCost(enchantmentId, level);}
+        else {return true;}
     }
 }
