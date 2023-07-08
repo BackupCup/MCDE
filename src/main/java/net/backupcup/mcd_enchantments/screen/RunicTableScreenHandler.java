@@ -13,6 +13,8 @@ import net.minecraft.screen.ArrayPropertyDelegate;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
@@ -101,6 +103,7 @@ public class RunicTableScreenHandler extends ScreenHandler {
         slots.updateItemStack(itemStack);
         if (!player.isCreative()) {
             player.addExperienceLevels(-EnchantmentUtils.getCost(enchantmentId, level));
+            player.playSound(SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, SoundCategory.BLOCKS, 0.5f, 1f);
         }
         return super.onButtonClick(player, id);
     }
