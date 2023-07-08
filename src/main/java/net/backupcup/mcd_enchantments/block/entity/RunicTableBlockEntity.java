@@ -17,7 +17,6 @@ import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
@@ -81,12 +80,6 @@ public class RunicTableBlockEntity extends BlockEntity implements NamedScreenHan
         super.readNbt(nbt);
     }
 
-    public void enchantItem(Identifier enchantment, EnchantmentSlots slots) {
-        ItemStack itemStack = inventory.get(0);
-        itemStack.addEnchantment(Registry.ENCHANTMENT.get(enchantment), 1);
-        itemStack.setSubNbt("Slots", slots.asNbt());
-    }
-
     public static void tick(World world, BlockPos blockPos, BlockState state, RunicTableBlockEntity entity) {
         if (world.isClient()) {
             return;
@@ -100,11 +93,11 @@ public class RunicTableBlockEntity extends BlockEntity implements NamedScreenHan
         }
         if (!itemStack.getNbt().contains("Slots")) {
             EnchantmentSlots slots = EnchantmentUtils.getEnchantments(itemStack.getItem());
-            itemStack.setSubNbt("Slots", slots.asNbt());
+            slots.updateItemStack(itemStack);
             MCDEnchantments.LOGGER.info("Generated slots for [{}]: {}", Registry.ITEM.getId(itemStack.getItem()), slots);
         }
         else if (!entity.slotsRead) {
-            EnchantmentSlots slots = EnchantmentSlots.fromNbt(itemStack.getNbt().getCompound("Slots"));
+            EnchantmentSlots slots = EnchantmentSlots.fromItemStack(itemStack);
             MCDEnchantments.LOGGER.info("Read slots [{}]: {}", Registry.ITEM.getId(itemStack.getItem()), slots);
             entity.slotsRead = true;
         }
