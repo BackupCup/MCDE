@@ -1,5 +1,6 @@
 package net.backupcup.mcd_enchantments.screen;
 
+import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
 import net.backupcup.mcd_enchantments.util.Slots;
 import net.minecraft.enchantment.EnchantmentTarget;
@@ -8,6 +9,10 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtType;
+import net.minecraft.nbt.NbtTypes;
 import net.minecraft.screen.ArrayPropertyDelegate;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
@@ -58,23 +63,36 @@ public class RunicTableScreenHandler extends ScreenHandler {
         addProperties(delegate);
     }
 
-    public void enchantItem(Identifier enchantment, EnchantmentSlots slots) {
-        ItemStack itemStack = inventory.getStack(0);
-        itemStack.addEnchantment(Registry.ENCHANTMENT.get(enchantment), 1);
-        itemStack.setSubNbt("Slots", slots.asNbt());
-        syncState();
-    }
-
     @Override
     public boolean onButtonClick(PlayerEntity player, int id) {
         ItemStack itemStack = inventory.getStack(0);
-        EnchantmentSlots slots = EnchantmentSlots.fromNbt(itemStack.getSubNbt("Slots"));
+        EnchantmentSlots slots = EnchantmentSlots.fromItemStack(itemStack);
         var slotsSize = Slots.values().length;
         var clickedSlot = slots.getSlot(Slots.values()[id / slotsSize]).get();
-        var clickedChoice = clickedSlot.getChoice(Slots.values()[id % slotsSize]).get();
-        itemStack.addEnchantment(Registry.ENCHANTMENT.get(clickedChoice), 1);
-        clickedSlot.setChosen(Slots.values()[id % slotsSize]);
-        itemStack.setSubNbt("Slots", slots.asNbt());
+        var upgraded = clickedSlot.tryUpgrade();
+        short level = 1;
+        Identifier enchantmentId;
+        if (upgraded.isPresent()) {
+            level = upgraded.get().getLevel();
+            enchantmentId = upgraded.get().getEnchantment();
+            var enchantments = itemStack.getEnchantments();
+            for (int i = 0; i < enchantments.size(); i++) {
+                var nbt = enchantments.getCompound(i);
+                if (!nbt.getString("id").equals(enchantmentId.toString())) {
+                    MCDEnchantments.LOGGER.info("Skipping {} since {} clicked", nbt.getString("id"), enchantmentId);
+                    continue;
+                }
+                nbt.putShort("lvl", level);
+                break;
+            }
+        }
+        else {
+            int choiceSlot = id % slotsSize;
+            enchantmentId = clickedSlot.getChoice(Slots.values()[choiceSlot]).get();
+            clickedSlot.setChosen(Slots.values()[choiceSlot], (short)1);
+            itemStack.addEnchantment(Registry.ENCHANTMENT.get(enchantmentId), level);
+        }
+        slots.updateItemStack(itemStack);
         return super.onButtonClick(player, id);
     }
 

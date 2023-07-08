@@ -5,8 +5,12 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.util.Identifier;
 
 public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
@@ -55,50 +59,27 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
         return slots.toString();
     }
 
-    public NbtCompound asNbt() {
+    public NbtCompound toNbt() {
         NbtCompound root = new NbtCompound();
-        
-        for (var kvp : slots.entrySet()) {
-            EnchantmentSlot slot = kvp.getValue();
-            NbtCompound slotNbt = new NbtCompound();
-            for (var choice : slot.choices()) {
-                slotNbt.putString(
-                    String.format("Choice%s", choice.getSlot().ordinal()),
-                    choice.getEnchantment().toString()
-                );
-            }
-            if (slot.getChosen().isPresent()) {
-                slotNbt.putInt("Chosen", slot.getChosen().get().getSlot().ordinal());
-            }
-            root.put(String.format("Slot%s", kvp.getKey().ordinal()), slotNbt);
-        }
+        slots.entrySet().stream()
+            .forEach(kvp -> root.put(kvp.getKey().name(), kvp.getValue().toNbt()));
         return root;
     }
 
     public static EnchantmentSlots fromNbt(NbtCompound nbt) {
-        Map<Slots, EnchantmentSlot> slots = new TreeMap<>();
-        for (var slot : Slots.values()) {
-            String key = String.format("Slot%d", slot.ordinal());
-            if (!nbt.contains(key)) {
-                continue;
-            }
-            NbtCompound slotNbt = nbt.getCompound(key);
-            Map<Slots, Identifier> choice = new TreeMap<>();
-            for (var choiceSlot : Slots.values()) {
-                String choiceKey = String.format("Choice%d", choiceSlot.ordinal());
-                if (!slotNbt.contains(choiceKey)) {
-                    continue;
-                }
-                Identifier id = Identifier.tryParse(slotNbt.getString(choiceKey));
-                choice.put(choiceSlot, id);
-            }
-            var newSlot = new EnchantmentSlot(slot, Collections.unmodifiableMap(choice));
-            slots.put(slot, newSlot);
-            if (slotNbt.contains("Chosen")) {
-                newSlot.setChosen(Slots.values()[slotNbt.getInt("Chosen")]);
-            }
-        }
-        return new EnchantmentSlots(Collections.unmodifiableMap(slots));
+        return nbt == null ? null : new EnchantmentSlots(nbt.getKeys().stream()
+                .collect(Collectors.toMap(
+                    key -> Slots.valueOf(key),
+                    key -> EnchantmentSlot.fromNbt(nbt.getCompound(key), Slots.valueOf(key))
+                )));
+    }
+
+    public static EnchantmentSlots fromItemStack(ItemStack itemStack) {
+        return EnchantmentSlots.fromNbt(itemStack.getSubNbt("Slots"));
+    }
+
+    public void updateItemStack(ItemStack itemStack) {
+        itemStack.setSubNbt("Slots", toNbt());
     }
 
     @Override
