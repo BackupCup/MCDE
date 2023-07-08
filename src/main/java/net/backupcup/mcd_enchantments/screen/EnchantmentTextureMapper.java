@@ -7,13 +7,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-
 import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.util.EnchantmentUtils;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 
 public class EnchantmentTextureMapper {
     private static Map<String, Map<String, Integer>> iconMap = null;

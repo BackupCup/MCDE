@@ -1,7 +1,7 @@
 package net.backupcup.mcd_enchantments.screen;
 
-import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
+import net.backupcup.mcd_enchantments.util.EnchantmentUtils;
 import net.backupcup.mcd_enchantments.util.Slots;
 import net.minecraft.enchantment.EnchantmentTarget;
 import net.minecraft.entity.player.PlayerEntity;
@@ -9,10 +9,6 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtType;
-import net.minecraft.nbt.NbtTypes;
 import net.minecraft.screen.ArrayPropertyDelegate;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
@@ -75,11 +71,13 @@ public class RunicTableScreenHandler extends ScreenHandler {
         if (upgraded.isPresent()) {
             level = upgraded.get().getLevel();
             enchantmentId = upgraded.get().getEnchantment();
+            if (!canEnchant(player, enchantmentId, level)) {
+                return super.onButtonClick(player, id);
+            }
             var enchantments = itemStack.getEnchantments();
             for (int i = 0; i < enchantments.size(); i++) {
                 var nbt = enchantments.getCompound(i);
                 if (!nbt.getString("id").equals(enchantmentId.toString())) {
-                    MCDEnchantments.LOGGER.info("Skipping {} since {} clicked", nbt.getString("id"), enchantmentId);
                     continue;
                 }
                 nbt.putShort("lvl", level);
@@ -89,10 +87,14 @@ public class RunicTableScreenHandler extends ScreenHandler {
         else {
             int choiceSlot = id % slotsSize;
             enchantmentId = clickedSlot.getChoice(Slots.values()[choiceSlot]).get();
-            clickedSlot.setChosen(Slots.values()[choiceSlot], (short)1);
+            if (!canEnchant(player, enchantmentId, level)) {
+                return super.onButtonClick(player, id);
+            }
+            clickedSlot.setChosen(Slots.values()[choiceSlot], level);
             itemStack.addEnchantment(Registry.ENCHANTMENT.get(enchantmentId), level);
         }
         slots.updateItemStack(itemStack);
+        player.addExperienceLevels(-EnchantmentUtils.getCost(enchantmentId, level));
         return super.onButtonClick(player, id);
     }
 
@@ -138,5 +140,9 @@ public class RunicTableScreenHandler extends ScreenHandler {
         for (int i = 0; i < 9; ++i) {
             this.addSlot(new Slot(playerInventory, i, 10 + i * 18, 142));
         }
+    }
+
+    public boolean canEnchant(PlayerEntity player, Identifier enchantmentId, short level) {
+        return player.experienceLevel >= EnchantmentUtils.getCost(enchantmentId, level); 
     }
 }

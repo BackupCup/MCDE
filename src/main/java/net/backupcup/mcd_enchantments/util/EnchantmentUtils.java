@@ -1,20 +1,36 @@
 package net.backupcup.mcd_enchantments.util;
 
+import static net.backupcup.mcd_enchantments.util.Slots.FIRST;
+import static net.backupcup.mcd_enchantments.util.Slots.SECOND;
+import static net.backupcup.mcd_enchantments.util.Slots.THIRD;
+import static net.minecraft.enchantment.Enchantments.CHANNELING;
+import static net.minecraft.enchantment.Enchantments.EFFICIENCY;
+import static net.minecraft.enchantment.Enchantments.FORTUNE;
+import static net.minecraft.enchantment.Enchantments.IMPALING;
+import static net.minecraft.enchantment.Enchantments.LOYALTY;
+import static net.minecraft.enchantment.Enchantments.LUCK_OF_THE_SEA;
+import static net.minecraft.enchantment.Enchantments.LURE;
+import static net.minecraft.enchantment.Enchantments.MENDING;
+import static net.minecraft.enchantment.Enchantments.RIPTIDE;
+import static net.minecraft.enchantment.Enchantments.SILK_TOUCH;
+import static net.minecraft.enchantment.Enchantments.UNBREAKING;
+import static net.minecraft.util.registry.Registry.ENCHANTMENT;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentTarget;
 import net.minecraft.item.Item;
 import net.minecraft.util.Identifier;
-
-import static net.backupcup.mcd_enchantments.util.Slots.*;
-import static net.minecraft.enchantment.Enchantments.*;
-import static net.minecraft.util.registry.Registry.ENCHANTMENT;
-
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class EnchantmentUtils {
     private static Predicate<String> namespaceMatcher = Pattern.compile("minecraft|mcd[aw]").asPredicate();
@@ -36,6 +52,10 @@ public class EnchantmentUtils {
     public static List<EnchantmentTarget> getEnchantmentTargets(Item item) {
         return Arrays.stream(EnchantmentTarget.values())
             .filter(target -> target.isAcceptableItem(item)).toList();
+    }
+
+    public static int getCost(Identifier enchantmentId, short level) {
+        return (EnchantmentClassifier.isEnchantmentPowerful(enchantmentId) ? 5 : 3) * level;
     }
 
     public static Identifier getEnchantmentId(Enchantment enchantment) {

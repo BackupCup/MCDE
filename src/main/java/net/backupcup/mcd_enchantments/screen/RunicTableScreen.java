@@ -1,34 +1,34 @@
 package net.backupcup.mcd_enchantments.screen;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.regex.Pattern;
+
 import com.mojang.blaze3d.systems.RenderSystem;
 
-import net.backupcup.mcd_enchantments.MCDEClient;
 import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.util.EnchantmentClassifier;
+import net.backupcup.mcd_enchantments.util.EnchantmentSlot.Choice;
+import net.backupcup.mcd_enchantments.util.EnchantmentSlot.ChoiceWithLevel;
 import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
 import net.backupcup.mcd_enchantments.util.EnchantmentUtils;
 import net.backupcup.mcd_enchantments.util.Slots;
-import net.backupcup.mcd_enchantments.util.EnchantmentSlot.Choice;
-import net.backupcup.mcd_enchantments.util.EnchantmentSlot.ChoiceWithLevel;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtList;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.regex.Pattern;
-
 public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
     private Inventory inventory;
+
+    private Pattern wrap = Pattern.compile("(\\b.{1,40})(?:\\s+|$)");
 
     private Optional<Slots> opened = Optional.empty();
 
@@ -139,11 +139,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
                 int outlineTextureX = EnchantmentClassifier.isEnchantmentPowerful(chosen.getEnchantment()) ?
                     221 : 187;
                 drawTexture(matrices, slotOffsetsX[slot.ordinal()] + 1, posY + 38, outlineTextureX, 138, 31, 31);
-                if (chosen.isMaxedOut()) {
-                    RenderSystem.setShaderColor(0.5f, 0.5f, 0.5f, 1.0f);
-                }
                 drawEnchantmentIcon(matrices, chosen, posX + (slot.ordinal() * 35) + 21, posY + 41, mouseX, mouseY, false);
-                RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
                 if (isInSBounds(slotOffsetsX[slot.ordinal()], posY + 37, mouseX, mouseY))
                     tooltipEnchantmentID = Optional.of(chosen);
                 RenderSystem.setShaderTexture(0, TEXTURE);
@@ -178,29 +174,37 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
             Identifier enchantment = tooltipEnchantmentID.get().getEnchantment();
             String translationKey = enchantment.toTranslationKey("enchantment");
             List<Text> tooltipLines = new ArrayList<>();
+            short level = 1;
+            boolean enoughLevels = handler.canEnchant(client.player, enchantment, level);
             MutableText enchantmentName = Text.translatable(translationKey)
                 .formatted(EnchantmentClassifier.isEnchantmentPowerful(enchantment) ? Formatting.RED : Formatting.LIGHT_PURPLE);
             if (tooltipEnchantmentID.get() instanceof ChoiceWithLevel withLevel) {
                 enchantmentName.append(" ");
                 if (withLevel.isMaxedOut()) {
                     enchantmentName.append(Text.literal("(Max level)"));
+                    enoughLevels = true;
                 }
                 else {
                     enchantmentName
                         .append(Text.translatable("enchantment.level." + withLevel.getLevel()))
                         .append(" → ")
                         .append(Text.translatable("enchantment.level." + (withLevel.getLevel() + 1)));
+                    level = (short)(withLevel.getLevel() + 1);
+                    enoughLevels = handler.canEnchant(client.player, enchantment, level);
+
                 }
             }
             tooltipLines.add(enchantmentName);
 
-
             Text enchantmentDescription = Text.translatable(translationKey + ".desc");
-            Pattern wrap = Pattern.compile("(\\b.{1,40})(?:\\s+|$)");
             List<MutableText> desc = wrap.matcher(enchantmentDescription.getString())
                 .results().map(res -> Text.literal(res.group(1)).formatted(Formatting.GRAY))
                 .toList();
             tooltipLines.addAll(desc);
+            if (!enoughLevels) {
+                tooltipLines.add(Text.literal("Not enough levels").formatted(Formatting.DARK_RED, Formatting.ITALIC)
+                        .append(Text.literal(String.format(" (%d levels required)", EnchantmentUtils.getCost(enchantment, level))).formatted(Formatting.ITALIC, Formatting.DARK_GRAY)));
+            }
             renderTooltip(matrices, tooltipLines, mouseX, mouseY);
         }
 
@@ -225,7 +229,18 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
                     drawTexture(matrices, posX, posY, 172, 225, 25, 25);
             }
         }
+        short level = 1;
+        boolean isMaxedOut = false;
+        if (choice instanceof ChoiceWithLevel withLevel) {
+            level = (short)(withLevel.getLevel() + 1);
+            isMaxedOut = withLevel.isMaxedOut();
+        }
+        if (isMaxedOut || !handler.canEnchant(client.player, choice.getEnchantment(), level)) {
+            RenderSystem.setShaderColor(0.5f, 0.5f, 0.5f, 1.0f);
+            
+        }
         drawTexture(matrices, posX + 1, posY + 1, pos.x(), pos.y(), 23, 23);
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
         return tooltipEnchantmentID;
     }
 
