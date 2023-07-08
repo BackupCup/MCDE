@@ -181,7 +181,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
             if (tooltipEnchantmentID.get() instanceof ChoiceWithLevel withLevel) {
                 enchantmentName.append(" ");
                 if (withLevel.isMaxedOut()) {
-                    enchantmentName.append(Text.literal("(Max level)"));
+                    enchantmentName.append(Text.translatable("message.mcde.max_level"));
                     enoughLevels = true;
                 }
                 else {
@@ -202,8 +202,11 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
                 .toList();
             tooltipLines.addAll(desc);
             if (!enoughLevels) {
-                tooltipLines.add(Text.literal("Not enough levels").formatted(Formatting.DARK_RED, Formatting.ITALIC)
-                        .append(Text.literal(String.format(" (%d levels required)", EnchantmentUtils.getCost(enchantment, level))).formatted(Formatting.ITALIC, Formatting.DARK_GRAY)));
+                tooltipLines.add(Text.translatable("message.mcde.not_enough_levels").formatted(Formatting.DARK_RED, Formatting.ITALIC));
+                tooltipLines.add(Text.translatable(
+                            "message.mcde.levels_required",
+                            EnchantmentUtils.getCost(enchantment, level)
+                            ).formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
             }
             renderTooltip(matrices, tooltipLines, mouseX, mouseY);
         }
