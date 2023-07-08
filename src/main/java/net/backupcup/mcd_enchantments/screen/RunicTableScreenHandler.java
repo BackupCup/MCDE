@@ -44,7 +44,8 @@ public class RunicTableScreenHandler extends ScreenHandler {
                         EnchantmentTarget.BOW.isAcceptableItem(stack.getItem()) ||
                         EnchantmentTarget.CROSSBOW.isAcceptableItem(stack.getItem()) ||
                         EnchantmentTarget.ARMOR.isAcceptableItem(stack.getItem()) ||
-                        EnchantmentTarget.WEAPON.isAcceptableItem(stack.getItem()));
+                        EnchantmentTarget.WEAPON.isAcceptableItem(stack.getItem()) ||
+                        EnchantmentTarget.DIGGER.isAcceptableItem(stack.getItem()));
             }
 
             @Override
