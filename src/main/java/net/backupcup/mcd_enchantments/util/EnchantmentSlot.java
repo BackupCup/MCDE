@@ -103,9 +103,6 @@ public class EnchantmentSlot {
     private static boolean isMaxedOut(Identifier enchantmentId, short level) {
         return level >= Registry.ENCHANTMENT.get(enchantmentId).getMaxLevel();
     }
-    private boolean isMaxedOut() {
-        return chosen.isPresent() && isMaxedOut(enchantments.get(chosen.get()), level);
-    }
 
     public static EnchantmentSlot of(Slots slot, Identifier first) {
         return new EnchantmentSlot(slot, Map.of(Slots.FIRST, first));
