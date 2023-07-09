@@ -33,7 +33,9 @@ public class EnchantmentUtils {
         return ENCHANTMENT.getIds().stream()
             .filter(id -> namespaceMatcher.test(id.getNamespace()) &&
                     !existing.contains(id) &&
-                    ENCHANTMENT.get(id).type.isAcceptableItem(itemStack.getItem()) &&
+                    (itemStack.isIn(ModTags.Items.WEAPONS) &&
+                     ENCHANTMENT.get(id).type.equals(EnchantmentTarget.WEAPON) ||
+                     ENCHANTMENT.get(id).type.isAcceptableItem(itemStack.getItem())) &&
                     !(ENCHANTMENT.get(id).isCursed() ||
                         ENCHANTMENT.getId(MENDING).equals(id) ||
                         ENCHANTMENT.getId(UNBREAKING).equals(id)))
@@ -55,7 +57,6 @@ public class EnchantmentUtils {
 
     public static EnchantmentSlots getEnchantments(ItemStack itemStack) {
         var item = itemStack.getItem();
-        // itemStack.isIn(ModTags.Items.WEAPONS) ||
         if (EnchantmentTarget.TRIDENT.isAcceptableItem(item)) {
             return EnchantmentSlots.builder()
                     .withSlot(FIRST,
@@ -68,7 +69,8 @@ public class EnchantmentUtils {
                     )
                     .build();
         }
-        else if (EnchantmentTarget.WEAPON.isAcceptableItem(item) ||
+        else if (itemStack.isIn(ModTags.Items.WEAPONS) ||
+                EnchantmentTarget.WEAPON.isAcceptableItem(item) ||
                 EnchantmentTarget.BOW.isAcceptableItem(item) || EnchantmentTarget.CROSSBOW.isAcceptableItem(item) ||
                 EnchantmentTarget.ARMOR_FEET.isAcceptableItem(item) || EnchantmentTarget.ARMOR_LEGS.isAcceptableItem(item) ||
                 EnchantmentTarget.ARMOR_CHEST.isAcceptableItem(item) || EnchantmentTarget.ARMOR_HEAD.isAcceptableItem(item)) {
