@@ -9,6 +9,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.screen.ArrayPropertyDelegate;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
@@ -81,7 +82,7 @@ public class RunicTableScreenHandler extends ScreenHandler {
             if (!canEnchant(player, enchantmentId, level)) {
                 return super.onButtonClick(player, id);
             }
-            var enchantments = itemStack.getEnchantments();
+            var enchantments = itemStack.getNbt().getList("Enchantments", NbtElement.COMPOUND_TYPE);
             for (int i = 0; i < enchantments.size(); i++) {
                 var nbt = enchantments.getCompound(i);
                 if (!nbt.getString("id").equals(enchantmentId.toString())) {
