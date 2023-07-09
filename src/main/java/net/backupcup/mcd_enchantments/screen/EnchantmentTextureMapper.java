@@ -30,9 +30,9 @@ public class EnchantmentTextureMapper {
                     Collectors.toMap(Identifier::getPath, id -> counters.get(id.getNamespace()).getAndIncrement())
                 ));
             for (var e : iconMap.entrySet()) {
-                MCDEnchantments.LOGGER.info("Map of {} enchantments: ", e.getKey());
+                MCDEnchantments.LOGGER.debug("Map of {} enchantments: ", e.getKey());
                 for (var inner : e.getValue().entrySet().stream().sorted(Comparator.comparing(kvp -> kvp.getValue())).toList()) {
-                    MCDEnchantments.LOGGER.info("  {} -> {}", inner.getKey(), inner.getValue());
+                    MCDEnchantments.LOGGER.debug("  {} -> {}", inner.getKey(), inner.getValue());
                 }
             }
         }
