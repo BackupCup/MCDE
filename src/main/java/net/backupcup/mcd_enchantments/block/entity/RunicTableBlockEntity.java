@@ -92,7 +92,7 @@ public class RunicTableBlockEntity extends BlockEntity implements NamedScreenHan
             return;
         }
         if (!itemStack.getNbt().contains("Slots")) {
-            EnchantmentSlots slots = EnchantmentUtils.getEnchantments(itemStack.getItem());
+            EnchantmentSlots slots = EnchantmentUtils.getEnchantments(itemStack);
             slots.updateItemStack(itemStack);
             MCDEnchantments.LOGGER.info("Generated slots for [{}]: {}", Registry.ITEM.getId(itemStack.getItem()), slots);
         }
@@ -100,6 +100,9 @@ public class RunicTableBlockEntity extends BlockEntity implements NamedScreenHan
             EnchantmentSlots slots = EnchantmentSlots.fromItemStack(itemStack);
             MCDEnchantments.LOGGER.info("Read slots [{}]: {}", Registry.ITEM.getId(itemStack.getItem()), slots);
             entity.slotsRead = true;
+            for (var nbt : itemStack.getEnchantments()) {
+                MCDEnchantments.LOGGER.info("Existing: {}", nbt.asString());
+            }
         }
     }
 }
