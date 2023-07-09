@@ -1,25 +1,29 @@
 {
   "replace": false,
   "values": [
-    "#c:swords",
-    "#c:axes",
-    "#fabric:bows",
-    "#fabric:crossbows",
-
-
-    "minecraft:bow",
-    "mcdw:bow_bubble_bow",
-    "mcdw:bow_bubble_burster",
-    "mcdw:bow_twin_bow",
-    "mcdw:bow_twisting_vine_bow",
-    "mcdw:bow_weeping_vine_bow",
-
-    "minecraft:crossbow",
-    "mcdw:crossbow_shadow_crossbow",
-    "mcdw:dagger_dagger",
-    "mcdw:dagger_shear_dagger",
-    "mcdw:sickle_sickle",
-    "mcdw:dagger_tempest_knife",
-    "mcdw:sword_cutlass"
+    "mcdw:axe_anchor",
+    "mcdw:axe_axe",
+    "mcdw:axe_encrusted_anchor",
+    "mcdw:axe_firebrand",
+    "mcdw:axe_highland",
+    "mcdw:axe_cursed",
+    "mcdw:axe_double",
+    "mcdw:axe_whirlwind",
+    "mcdw:hammer_boneclub",
+    "mcdw:hammer_bone_cudgel",
+    "mcdw:hammer_flail",
+    "mcdw:hammer_gravity",
+    "mcdw:hammer_great_hammer",
+    "mcdw:hammer_mace",
+    "mcdw:hammer_stormlander",
+    "mcdw:hammer_suns_grace",
+    "mcdw:spear_spear",
+    "mcdw:spear_whispering_spear",
+    "mcdw:spear_fortune",
+    "mcdw:staff_battlestaff",
+    "mcdw:staff_battlestaff_of_terror",
+    "mcdw:staff_growing_staff",
+    "mcdw:whip_vine_whip",
+    "mcdw:whip_whip"
   ]
 }
