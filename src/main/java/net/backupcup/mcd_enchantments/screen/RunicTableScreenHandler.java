@@ -2,6 +2,7 @@ package net.backupcup.mcd_enchantments.screen;
 
 import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
 import net.backupcup.mcd_enchantments.util.EnchantmentUtils;
+import net.backupcup.mcd_enchantments.util.ModTags;
 import net.backupcup.mcd_enchantments.util.Slots;
 import net.minecraft.enchantment.EnchantmentTarget;
 import net.minecraft.entity.player.PlayerEntity;
@@ -43,7 +44,8 @@ public class RunicTableScreenHandler extends ScreenHandler {
 
             @Override
             public boolean canInsert(ItemStack stack) {
-                return (EnchantmentTarget.TRIDENT.isAcceptableItem(stack.getItem()) ||
+                return (stack.isIn(ModTags.Items.WEAPONS) ||
+                        EnchantmentTarget.TRIDENT.isAcceptableItem(stack.getItem()) ||
                         EnchantmentTarget.BOW.isAcceptableItem(stack.getItem()) ||
                         EnchantmentTarget.CROSSBOW.isAcceptableItem(stack.getItem()) ||
                         EnchantmentTarget.ARMOR.isAcceptableItem(stack.getItem()) ||
@@ -102,9 +104,9 @@ public class RunicTableScreenHandler extends ScreenHandler {
             itemStack.addEnchantment(Registry.ENCHANTMENT.get(enchantmentId), level);
         }
         slots.updateItemStack(itemStack);
+        player.playSound(SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, SoundCategory.BLOCKS, 0.5f, 1f);
         if (!player.isCreative()) {
             player.addExperienceLevels(-EnchantmentUtils.getCost(enchantmentId, level));
-            player.playSound(SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, SoundCategory.BLOCKS, 0.5f, 1f);
         }
         return super.onButtonClick(player, id);
     }
