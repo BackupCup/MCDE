@@ -23,6 +23,6 @@ public abstract class AnvilScreenHandlerMixin {
         ItemStack itemSlot2 = screenGetSlot(1).getStack();
 
         MCDEnchantments.LOGGER.info("canTakeOutput called with slots {} and {}", itemSlot1, itemSlot2);
-        if ((itemSlot2.getItem() != Items.ENCHANTED_BOOK)) cir.setReturnValue(false);
+        if (itemSlot2.hasEnchantments() && (itemSlot2.getItem() != Items.ENCHANTED_BOOK)) cir.setReturnValue(false);
     }
 }
