@@ -4,16 +4,18 @@
   "version": "${version}",
 
   "name": "Minecraft Dungeons: Enchantments",
-  "description": "Sus amogus",
+  "description": "Brings the Enchantment system from Minecraft Dungeons to Minecraft",
   "authors": [
-    "BackupCup"
+    "BackupCup",
+    "Iamnotagenius"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "curseforge": "https://legacy.curseforge.com/minecraft/mc-mods/mc-dungeons-enchantments",
+    "modrinth": "https://modrinth.com/mod/mc-dungeons-enchantments",
+    "sources": "https://github.com/EndLone/MCDE"
   },
 
-  "license": "All Rights Reserved",
+  "license": "Custom License",
   "icon": "assets/mcd_enchantments/icon.png",
 
   "environment": "*",
