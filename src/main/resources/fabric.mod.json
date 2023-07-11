@@ -43,5 +43,11 @@
   "suggests": {
     "mcdw": ">=5.0.12-1.19",
     "mcda": ">=2.4.4"
+  },
+  "custom": {
+    "mc-publish": {
+      "modrinth": "iwkcspV8",
+      "curseforge": 886511
+    }
   }
 }
