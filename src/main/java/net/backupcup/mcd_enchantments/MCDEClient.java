@@ -14,5 +14,6 @@ public class MCDEClient implements ClientModInitializer {
         HandledScreens.register(ModScreenHandlers.RUNIC_TABLE_SCREEN_HANDLER, RunicTableScreen::new);
 
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.RUNIC_TABLE, RenderLayer.getCutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.REROLL_STATION, RenderLayer.getCutout());
     }
 }

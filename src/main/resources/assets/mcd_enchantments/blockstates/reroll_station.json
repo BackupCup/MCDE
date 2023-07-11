@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "mcd_enchantments:block/reroll_station"
+    },
+    "facing=south": {
+      "model": "mcd_enchantments:block/reroll_station",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "mcd_enchantments:block/reroll_station",
+      "y": 270
+    },
+    "facing=east": {
+      "model": "mcd_enchantments:block/reroll_station",
+      "y": 90
+    }
+  }
+}

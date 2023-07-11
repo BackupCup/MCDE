@@ -3,7 +3,7 @@
 	"texture_size": [41, 16],
 	"textures": {
 		"0": "mcd_enchantments:block/runic_table",
-		"particle": "minecraft:block/cartography_table_side3"
+		"particle": "block/cartography_table_side3"
 	},
 	"elements": [
 		{
@@ -272,30 +272,34 @@
 	],
 	"display": {
 		"thirdperson_righthand": {
-			"rotation": [60, 45, 0],
-			"scale": [0.25, 0.25, 0.25]
+			"rotation": [75, 45, 0],
+			"translation": [0, 2.5, 0],
+			"scale": [0.375, 0.375, 0.375]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [75, 45, 0],
+			"translation": [0, 2.5, 0],
+			"scale": [0.375, 0.375, 0.375]
 		},
 		"firstperson_righthand": {
-			"rotation": [25, 130, 0],
-			"translation": [0, -0.75, 0],
-			"scale": [0.65, 0.65, 0.65]
+			"rotation": [0, 45, 0],
+			"scale": [0.4, 0.4, 0.4]
 		},
 		"firstperson_lefthand": {
-			"rotation": [25, 130, 0],
-			"translation": [0, -0.75, 0],
-			"scale": [0.65, 0.65, 0.65]
+			"rotation": [0, 225, 0],
+			"scale": [0.4, 0.4, 0.4]
 		},
 		"ground": {
-			"translation": [0, 1.5, 0],
+			"translation": [0, 3, 0],
 			"scale": [0.25, 0.25, 0.25]
 		},
 		"gui": {
-			"rotation": [25, 130, 0],
-			"translation": [0, -0.75, 0],
-			"scale": [0.65, 0.65, 0.65]
+			"rotation": [30, 136, 0],
+			"translation": [0, -1, 0],
+			"scale": [0.625, 0.625, 0.625]
 		},
 		"fixed": {
-			"scale": [0.65, 0.65, 0.65]
+			"scale": [0.5, 0.5, 0.5]
 		}
 	}
 }

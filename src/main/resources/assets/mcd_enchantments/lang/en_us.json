@@ -2,6 +2,7 @@
   "item.mcd_enchantments.test_rune": "Test Rune",
 
   "block.mcd_enchantments.runic_table": "Runic Table",
+  "block.mcd_enchantments.reroll_station": "Reroll Station",
 
   "enchantment.minecraft.protection.desc": "Reduces damage from most sources.",
   "enchantment.minecraft.fire_protection.desc": "Reduces the effects of fire damage. Also reduces the burn time when set on fire.",

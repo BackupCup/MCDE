@@ -1,6 +1,7 @@
 package net.backupcup.mcd_enchantments.block;
 
 import net.backupcup.mcd_enchantments.MCDEnchantments;
+import net.backupcup.mcd_enchantments.block.custom.RerollStationBlock;
 import net.backupcup.mcd_enchantments.block.custom.RunicTableBlock;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
@@ -16,6 +17,9 @@ public class ModBlocks {
 
     public static final Block RUNIC_TABLE = registerBlock("runic_table",
             new RunicTableBlock(FabricBlockSettings.of(Material.WOOD).strength(2f).nonOpaque()), ItemGroup.DECORATIONS);
+
+    public static final Block REROLL_STATION = registerBlock("reroll_station",
+            new RerollStationBlock(FabricBlockSettings.of(Material.STONE).strength(2f).nonOpaque()), ItemGroup.DECORATIONS);
 
     public static Block registerBlock(String name, Block block, ItemGroup tab) {
         registerBlockItem(name, block, tab);
