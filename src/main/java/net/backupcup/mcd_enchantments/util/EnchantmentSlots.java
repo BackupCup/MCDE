@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -83,5 +84,9 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
     @Override
     public Iterator<EnchantmentSlot> iterator() {
         return slots.values().iterator();
+    }
+
+    public Stream<EnchantmentSlot> stream() {
+        return slots.values().stream();
     }
 }
