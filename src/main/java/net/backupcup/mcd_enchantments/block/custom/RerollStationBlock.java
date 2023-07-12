@@ -119,7 +119,7 @@ public class RerollStationBlock extends BlockWithEntity {
     @Nullable
     @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return null;
+        return new RerollStationBlockEntity(pos, state);
     }
 
     @Nullable
