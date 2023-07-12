@@ -8,8 +8,8 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
 public class ModBlockEntities {
-    public static BlockEntityType<RerollStationBlockEntity> REROLL_STATION;
     public static BlockEntityType<RunicTableBlockEntity> RUNIC_TABLE;
+    public static BlockEntityType<RerollStationBlockEntity> REROLL_STATION;
 
     public static void registerBlockEntities() {
         RUNIC_TABLE = Registry.register(

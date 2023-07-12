@@ -1,7 +1,7 @@
 package net.backupcup.mcd_enchantments.block.custom;
 
 import net.backupcup.mcd_enchantments.block.entity.ModBlockEntities;
-import net.backupcup.mcd_enchantments.block.entity.RunicTableBlockEntity;
+import net.backupcup.mcd_enchantments.block.entity.RerollStationBlockEntity;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -94,8 +94,8 @@ public class RerollStationBlock extends BlockWithEntity {
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
         if (state.getBlock() != newState.getBlock()) {
             BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (blockEntity instanceof RunicTableBlockEntity) {
-                ItemScatterer.spawn(world, pos, (RunicTableBlockEntity)blockEntity);
+            if (blockEntity instanceof RerollStationBlockEntity) {
+                ItemScatterer.spawn(world, pos, (RerollStationBlockEntity)blockEntity);
                 world.updateComparators(pos,this);
             }
             super.onStateReplaced(state, world, pos, newState, moved);
@@ -125,6 +125,6 @@ public class RerollStationBlock extends BlockWithEntity {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return checkType(type, ModBlockEntities.RUNIC_TABLE, RunicTableBlockEntity::tick);
+        return checkType(type, ModBlockEntities.REROLL_STATION, RerollStationBlockEntity::tick);
     }
 }

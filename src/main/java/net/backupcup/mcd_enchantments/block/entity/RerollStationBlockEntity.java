@@ -1,6 +1,6 @@
 package net.backupcup.mcd_enchantments.block.entity;
 
-import net.backupcup.mcd_enchantments.screen.RunicTableScreenHandler;
+import net.backupcup.mcd_enchantments.screen.RerollStationScreenHandler;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class RerollStationBlockEntity extends BlockEntity implements NamedScreenHandlerFactory, ImplementedInventory {
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(1, ItemStack.EMPTY);
-    private boolean slotsRead = false;
+    //private boolean slotsRead = false;
 
     public DefaultedList<ItemStack> getInventory() {
         return inventory;
@@ -28,7 +28,7 @@ public class RerollStationBlockEntity extends BlockEntity implements NamedScreen
 
 
     public RerollStationBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.RUNIC_TABLE, pos, state);
+        super(ModBlockEntities.REROLL_STATION, pos, state);
         this.propertyDelegate = new PropertyDelegate() {
             @Override
             public int get(int index) {
@@ -60,7 +60,7 @@ public class RerollStationBlockEntity extends BlockEntity implements NamedScreen
     @Nullable
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
-        return new RunicTableScreenHandler(syncId, inv, this, this.propertyDelegate);
+        return new RerollStationScreenHandler(syncId, inv, this, this.propertyDelegate);
     }
 
     @Override
