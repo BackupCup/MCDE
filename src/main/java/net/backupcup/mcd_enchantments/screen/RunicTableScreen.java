@@ -1,13 +1,17 @@
 package net.backupcup.mcd_enchantments.screen;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.backupcup.mcd_enchantments.MCDEnchantments;
+import net.backupcup.mcd_enchantments.screen.EnchantmentTextureMapper.TexturePos;
 import net.backupcup.mcd_enchantments.util.EnchantmentClassifier;
 import net.backupcup.mcd_enchantments.util.EnchantmentSlot.Choice;
 import net.backupcup.mcd_enchantments.util.EnchantmentSlot.ChoiceWithLevel;
@@ -35,6 +39,8 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
     private static final Identifier TEXTURE =
             new Identifier(MCDEnchantments.MOD_ID, "textures/gui/runic_table.png");
 
+    private EnchantmentSlotsRenderer slotsRenderer;
+
     public RunicTableScreen(RunicTableScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
         this.inventory = handler.getInventory();
@@ -45,6 +51,41 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
         super.init();
         titleX = 125;
         titleY = 10;
+
+        int posX = ((width - backgroundWidth) / 2) - 2;
+        int posY = (height - backgroundHeight) / 2;
+        var slotPos = Arrays.stream(Slots.values())
+            .collect(Collectors.toMap(
+                        Function.identity(),
+                        s -> new TexturePos(posX + 17 + 35 * s.ordinal(), posY + 38)
+                        ));
+        int[] enchantOffsetX = {6, 38, 22};
+        int[] enchantOffsetY = {22, 22, 6};
+        var choiceOffsets = Arrays.stream(Slots.values())
+            .collect(Collectors.toMap(
+                        Function.identity(),
+                        s -> new TexturePos(enchantOffsetX[s.ordinal()], enchantOffsetY[s.ordinal()])
+                        ));
+        slotsRenderer = EnchantmentSlotsRenderer.builder()
+            .withHelper(this)
+            .withDimPredicate(choice -> {
+                short level = 1;
+                boolean isMaxedOut = false;
+                if (choice instanceof ChoiceWithLevel withLevel) {
+                    level = (short)(withLevel.getLevel() + 1);
+                    isMaxedOut = withLevel.isMaxedOut();
+                }
+                return isMaxedOut || !handler.canEnchant(client.player, choice.getEnchantment(), level);
+            })
+            .withSlotTexturePos(187, 105)
+            .withOutlinePos(187, 138)
+            .withPowerfulOutlinePos(221, 138)
+            .withChoiceTexturePos(186, 0)
+            .withChoicePosOffset(-17, -38)
+            .withHoverOutlinePos(220, 104)
+            .withSlotPositions(slotPos)
+            .withChoiceOffsets(choiceOffsets)
+            .build();
     }
 
     @Override
@@ -62,18 +103,11 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         ItemStack stack = inventory.getStack(0);
 
-        int posX = ((width - backgroundWidth) / 2) - 2;
-        int posY = (height - backgroundHeight) / 2;
-        int[] slotOffsetsX = {posX + 17, posX + 52, posX + 87};
-
-        int[] enchantOffsetX = {6, 38, 22};
-        int[] enchantOffsetY = {22, 22, 6};
-
         if (stack.isEmpty()) return super.mouseClicked(mouseX, mouseY, button);
         EnchantmentSlots slots = EnchantmentSlots.fromItemStack(stack);
 
         for (var slot : slots) {
-            if (isInSBounds(slotOffsetsX[slot.ordinal()], posY + 37, (int)mouseX, (int)mouseY)) {
+            if (slotsRenderer.isInSlotBounds(slot.getSlot(), (int)mouseX, (int)mouseY)) {
                 if (slot.getChosen().isPresent()) {
                     client.interactionManager.clickButton(handler.syncId, Slots.values().length * slot.ordinal());
                     return super.mouseClicked(mouseX, mouseY, button);
@@ -90,10 +124,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
 
             if (opened.isPresent() && opened.get() == slot.getSlot()) {
                 for (var choice : slot.choices()) {
-                    Identifier enchantmentId = choice.getEnchantment();
-
-                    if (isInEBounds(posX + (slot.ordinal() * 35) + enchantOffsetX[choice.ordinal()] - 1, posY + enchantOffsetY[choice.ordinal()] - 1, (int) mouseX, (int) mouseY)) {
-                        MCDEnchantments.LOGGER.info("Slot " + slot.ordinal() + ": " + enchantmentId + " | Is Powerful: " + EnchantmentClassifier.isEnchantmentPowerful(enchantmentId));
+                    if (slotsRenderer.isInChoiceBounds(slot.getSlot(), choice.getSlot(), (int) mouseX, (int) mouseY)) {
                         client.interactionManager.clickButton(handler.syncId, Slots.values().length * slot.ordinal() + choice.ordinal());
                         opened = Optional.empty();
                         return super.mouseClicked(mouseX, mouseY, button);
@@ -111,13 +142,6 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
         renderBackground(matrices);
         super.render(matrices, mouseX, mouseY, delta);
         RenderSystem.setShaderTexture(0, TEXTURE);
-        int posX = ((width - backgroundWidth) / 2) - 2;
-        int posY = (height - backgroundHeight) / 2;
-        int[] slotOffsetsX = {posX + 17, posX + 52, posX + 87};
-
-        int[] enchantOffsetX = {6, 38, 22};
-        int[] enchantOffsetY = {22, 22, 6};
-        
         ItemStack itemStack = inventory.getStack(0);
 
         if (itemStack.isEmpty()) {
@@ -130,155 +154,88 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
         if (slots == null) {
             return;
         }
-        Optional<Choice> tooltipEnchantmentID = Optional.empty();
+        Optional<Choice> hoveredChoice = Optional.empty();
 
         for (var slot : slots) {
-            drawTexture(matrices, slotOffsetsX[slot.ordinal()] + 1, posY + 38, 187, 105, 31, 31);
+            slotsRenderer.drawSlot(matrices, slot.getSlot());
             if (slot.getChosen().isPresent()) {
                 var chosen = slot.getChosen().get();
-                int outlineTextureX = EnchantmentClassifier.isEnchantmentPowerful(chosen.getEnchantment()) ?
-                    221 : 187;
-                drawTexture(matrices, slotOffsetsX[slot.ordinal()] + 1, posY + 38, outlineTextureX, 138, 31, 31);
-                drawEnchantmentIcon(matrices, chosen, posX + (slot.ordinal() * 35) + 21, posY + 41, mouseX, mouseY, false);
-                if (isInSBounds(slotOffsetsX[slot.ordinal()], posY + 37, mouseX, mouseY))
-                    tooltipEnchantmentID = Optional.of(chosen);
+                slotsRenderer.drawEnchantmentIconInSlot(matrices, slot.getSlot(), chosen);
+                if (slotsRenderer.isInSlotBounds(slot.getSlot(), mouseX, mouseY))
+                    hoveredChoice = Optional.of(chosen);
                 RenderSystem.setShaderTexture(0, TEXTURE);
             }
-            if (isInSBounds(slotOffsetsX[slot.ordinal()], posY + 37, mouseX, mouseY))
-                drawTexture(matrices, slotOffsetsX[slot.ordinal()], posY + 37, 220, 104, 33, 33);
+            if (slotsRenderer.isInSlotBounds(slot.getSlot(), mouseX, mouseY))
+                slotsRenderer.drawHoverOutline(matrices, slot.getSlot());
 
             if (opened.isPresent() && opened.get() == slot.getSlot()) {
-                drawTexture(matrices, posX + (slot.ordinal() * 35), posY, 186, 0, 67, 51);
+                slotsRenderer.drawChoices(matrices, slot.getSlot());
 
                 for (var choice : slot.choices()) {
-                    Identifier enchantmentID = choice.getEnchantment();
-                    RenderSystem.setShaderTexture(0, EnchantmentTextureMapper.getTexture(enchantmentID));
-                    var hovered = drawEnchantmentIcon(
-                        matrices,
-                        choice,
-                        posX + (slot.ordinal() * 35) + enchantOffsetX[choice.ordinal()] - 1,
-                        posY + enchantOffsetY[choice.ordinal()] - 1,
-                        mouseX,
-                        mouseY,
-                        true
-                    );
-                    if (hovered.isPresent()) {
-                        tooltipEnchantmentID = Optional.of(hovered.get());
-                    }
+                    slotsRenderer.drawEnchantmentIconOutline(matrices, slot.getSlot(), choice, mouseX, mouseY);
+                    slotsRenderer.drawEnchantmentIconInChoice(matrices, slot.getSlot(), choice);
                 }
                 RenderSystem.setShaderTexture(0, TEXTURE);
             }
         }
 
-        if (tooltipEnchantmentID.isPresent()) {
-            Identifier enchantment = tooltipEnchantmentID.get().getEnchantment();
-            String translationKey = enchantment.toTranslationKey("enchantment");
-            List<Text> tooltipLines = new ArrayList<>();
-            short level = 1;
-            boolean enoughLevels = handler.canEnchant(client.player, enchantment, level);
-            MutableText enchantmentName = Text.translatable(translationKey)
-                .formatted(EnchantmentClassifier.isEnchantmentPowerful(enchantment) ? Formatting.RED : Formatting.LIGHT_PURPLE);
-            if (tooltipEnchantmentID.get() instanceof ChoiceWithLevel withLevel) {
-                enchantmentName.append(" ");
-                if (withLevel.isMaxedOut()) {
-                    enchantmentName.append(Text.translatable("message.mcde.max_level"));
-                    enoughLevels = true;
+        if (hoveredChoice.isEmpty()) {
+            for (var slot : slots) {
+                if (opened.isEmpty() || opened.get() != slot.getSlot()) {
+                    continue;
                 }
-                else {
-                    enchantmentName
-                        .append(Text.translatable("enchantment.level." + withLevel.getLevel()))
-                        .append(" → ")
-                        .append(Text.translatable("enchantment.level." + (withLevel.getLevel() + 1)));
-                    level = (short)(withLevel.getLevel() + 1);
-                    enoughLevels = handler.canEnchant(client.player, enchantment, level);
-
+                for (var choice : slot.choices()) {
+                    if (slotsRenderer.isInChoiceBounds(slot.getSlot(), choice.getSlot(), mouseX, mouseY)) {
+                        hoveredChoice = Optional.of(choice);
+                    }
                 }
             }
-            tooltipLines.add(enchantmentName);
-
-            Text enchantmentDescription = Text.translatable(translationKey + ".desc");
-            List<MutableText> desc = wrap.matcher(enchantmentDescription.getString())
-                .results().map(res -> Text.literal(res.group(1)).formatted(Formatting.GRAY))
-                .toList();
-            tooltipLines.addAll(desc);
-            if (!enoughLevels) {
-                tooltipLines.add(Text.translatable("message.mcde.not_enough_levels").formatted(Formatting.DARK_RED, Formatting.ITALIC));
-                tooltipLines.add(Text.translatable(
-                            "message.mcde.levels_required",
-                            EnchantmentUtils.getCost(enchantment, level)
-                            ).formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
-            }
-            renderTooltip(matrices, tooltipLines, mouseX, mouseY);
         }
 
-        drawMouseoverTooltip(matrices, mouseX, mouseY);
-    }
+        if (hoveredChoice.isEmpty()) {
+            drawMouseoverTooltip(matrices, mouseX, mouseY);
+            return;
+        }
 
-    private Optional<Choice> drawEnchantmentIcon(MatrixStack matrices, Choice choice, int posX, int posY, int mouseX, int mouseY, boolean outline) {
-        Optional<Choice> tooltipEnchantmentID = Optional.empty();
-        Identifier enchantmentID = choice.getEnchantment();
-        RenderSystem.setShaderTexture(0, EnchantmentTextureMapper.getTexture(enchantmentID));
-        var pos = EnchantmentTextureMapper.getPos(enchantmentID);
-
-        if (outline) {
-            if (isInEBounds(posX, posY, mouseX, mouseY)) {
-                drawTexture(matrices, posX, posY, 226, 225, 25, 25);
-                tooltipEnchantmentID = Optional.of(choice);
+        Identifier enchantment = hoveredChoice.get().getEnchantment();
+        String translationKey = enchantment.toTranslationKey("enchantment");
+        List<Text> tooltipLines = new ArrayList<>();
+        short level = 1;
+        boolean enoughLevels = handler.canEnchant(client.player, enchantment, level);
+        MutableText enchantmentName = Text.translatable(translationKey)
+            .formatted(EnchantmentClassifier.isEnchantmentPowerful(enchantment) ? Formatting.RED : Formatting.LIGHT_PURPLE);
+        if (hoveredChoice.get() instanceof ChoiceWithLevel withLevel) {
+            enchantmentName.append(" ");
+            if (withLevel.isMaxedOut()) {
+                enchantmentName.append(Text.translatable("message.mcde.max_level"));
+                enoughLevels = true;
             }
             else {
-                if (EnchantmentClassifier.isEnchantmentPowerful(enchantmentID))
-                    drawTexture(matrices, posX, posY, 199, 225, 25, 25);
-                else
-                    drawTexture(matrices, posX, posY, 172, 225, 25, 25);
+                enchantmentName
+                    .append(Text.translatable("enchantment.level." + withLevel.getLevel()))
+                    .append(" → ")
+                    .append(Text.translatable("enchantment.level." + (withLevel.getLevel() + 1)));
+                level = (short)(withLevel.getLevel() + 1);
+                enoughLevels = handler.canEnchant(client.player, enchantment, level);
+
             }
         }
-        short level = 1;
-        boolean isMaxedOut = false;
-        if (choice instanceof ChoiceWithLevel withLevel) {
-            level = (short)(withLevel.getLevel() + 1);
-            isMaxedOut = withLevel.isMaxedOut();
+        tooltipLines.add(enchantmentName);
+
+        Text enchantmentDescription = Text.translatable(translationKey + ".desc");
+        List<MutableText> desc = wrap.matcher(enchantmentDescription.getString())
+            .results().map(res -> Text.literal(res.group(1)).formatted(Formatting.GRAY))
+            .toList();
+        tooltipLines.addAll(desc);
+        if (!enoughLevels) {
+            tooltipLines.add(Text.translatable("message.mcde.not_enough_levels").formatted(Formatting.DARK_RED, Formatting.ITALIC));
+            tooltipLines.add(Text.translatable(
+                        "message.mcde.levels_required",
+                        EnchantmentUtils.getCost(enchantment, level)
+                        ).formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
         }
-        if (isMaxedOut || !handler.canEnchant(client.player, choice.getEnchantment(), level)) {
-            RenderSystem.setShaderColor(0.5f, 0.5f, 0.5f, 1.0f);
-            
-        }
-        drawTexture(matrices, posX + 1, posY + 1, pos.x(), pos.y(), 23, 23);
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-        return tooltipEnchantmentID;
-    }
+        renderTooltip(matrices, tooltipLines, mouseX, mouseY);
 
-    private static boolean isInBounds(int posX, int posY, int mouseX, int mouseY, int startX, int endX, int startY, int endY) {
-        return mouseX >= posX + startX && mouseX <= posX + endX && mouseY >= posY + startY && mouseY <= posY + endY;
-    }
-
-    //SLOT BUTTONS
-
-    private boolean isInSBounds(int posX, int posY, int mouseX, int mouseY) {
-        boolean ButtonBox1 = isInBounds(posX, posY, mouseX, mouseY, 13, 18, 0, 31);
-        boolean ButtonBox2 = isInBounds(posX, posY, mouseX, mouseY, 0, 31, 13, 18);
-        boolean ButtonBox3 = isInBounds(posX, posY, mouseX, mouseY, 6, 25, 6, 25);
-        boolean ButtonBox4 = isInBounds(posX, posY, mouseX, mouseY, 9, 22, 2, 29);
-        boolean ButtonBox5 = isInBounds(posX, posY, mouseX, mouseY, 2, 29, 9, 22);
-
-        ItemStack stack = inventory.getStack(0);
-        if (stack.isEmpty())
-            return false;
-
-        return ButtonBox1 || ButtonBox2 || ButtonBox3 || ButtonBox4 || ButtonBox5;
-    }
-
-    //ENCHANTMENT BUTTONS
-    private boolean isInEBounds(int posX, int posY, int mouseX, int mouseY) {
-        boolean ButtonBox1 = isInBounds(posX, posY, mouseX, mouseY, 10, 13, 0, 23);
-        boolean ButtonBox2 = isInBounds(posX, posY, mouseX, mouseY, 0, 23, 10, 13);
-        boolean ButtonBox3 = isInBounds(posX, posY, mouseX, mouseY, 5, 18, 5, 18);
-        boolean ButtonBox4 = isInBounds(posX, posY, mouseX, mouseY, 7, 16, 2, 21);
-        boolean ButtonBox5 = isInBounds(posX, posY, mouseX, mouseY, 2, 21, 7, 16);
-
-        ItemStack stack = inventory.getStack(0);
-        if (stack.isEmpty())
-            return false;
-
-        return ButtonBox1 || ButtonBox2 || ButtonBox3 || ButtonBox4 || ButtonBox5;
+        drawMouseoverTooltip(matrices, mouseX, mouseY);
     }
 }
