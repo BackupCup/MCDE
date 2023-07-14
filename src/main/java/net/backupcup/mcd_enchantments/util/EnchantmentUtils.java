@@ -7,12 +7,17 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Util;
+import net.minecraft.util.math.random.*;
+import net.minecraft.util.math.random.Random;
 
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import static net.backupcup.mcd_enchantments.util.Slots.*;
 import static net.minecraft.enchantment.Enchantments.*;
@@ -26,7 +31,7 @@ public class EnchantmentUtils {
             .filter(id -> namespaceMatcher.test(id.getNamespace()));
     }
 
-    public static List<Identifier> getEnchantmentsForItem(ItemStack itemStack) {
+    public static Stream<Identifier> getEnchantmentsForItem(ItemStack itemStack) {
         var existing = itemStack.getEnchantments().stream()
             .map(nbt -> Identifier.tryParse(((NbtCompound)nbt).getString("id")))
             .collect(Collectors.toSet());
@@ -38,8 +43,7 @@ public class EnchantmentUtils {
                      ENCHANTMENT.get(id).type.isAcceptableItem(itemStack.getItem())) &&
                     !(ENCHANTMENT.get(id).isCursed() ||
                         ENCHANTMENT.getId(MENDING).equals(id) ||
-                        ENCHANTMENT.getId(UNBREAKING).equals(id)))
-            .collect(Collectors.toList());
+                        ENCHANTMENT.getId(UNBREAKING).equals(id)));
     }
 
     public static List<EnchantmentTarget> getEnchantmentTargets(Item item) {
@@ -56,7 +60,7 @@ public class EnchantmentUtils {
     }
 
     public static EnchantmentSlots generateEnchantments(ItemStack itemStack) {
-        return generateEnchantments(itemStack, new Random(System.nanoTime()));
+        return generateEnchantments(itemStack, new LocalRandom(System.nanoTime()));
     }
 
     public static EnchantmentSlots generateEnchantments(ItemStack itemStack, Random random) {
@@ -78,8 +82,9 @@ public class EnchantmentUtils {
                 EnchantmentTarget.BOW.isAcceptableItem(item) || EnchantmentTarget.CROSSBOW.isAcceptableItem(item) ||
                 EnchantmentTarget.ARMOR_FEET.isAcceptableItem(item) || EnchantmentTarget.ARMOR_LEGS.isAcceptableItem(item) ||
                 EnchantmentTarget.ARMOR_CHEST.isAcceptableItem(item) || EnchantmentTarget.ARMOR_HEAD.isAcceptableItem(item)) {
-            List<Identifier> enchantments = getEnchantmentsForItem(itemStack);
-            Collections.shuffle(enchantments, random);
+            var enchantments = getEnchantmentsForItem(itemStack).collect(ObjectArrayList.toList());
+            Util.shuffle(enchantments, random);
+            Collections.shuffle(enchantments, new java.util.Random(random.nextLong()));
             Iterator<Identifier> it = enchantments.iterator();
             EnchantmentSlots.Builder builder = EnchantmentSlots.builder();
             boolean isTwoChoiceGenerated = false;
@@ -140,7 +145,7 @@ public class EnchantmentUtils {
     }
 
     public static Optional<Identifier> generateEnchantment(ItemStack itemStack, EnchantmentSlots slots) {
-        return generateEnchantment(itemStack, slots, new Random(System.nanoTime()));
+        return generateEnchantment(itemStack, slots, new LocalRandom(System.nanoTime()));
     }
 
     public static Optional<Identifier> generateEnchantment(ItemStack itemStack, EnchantmentSlots slots, Random random) {
@@ -148,7 +153,7 @@ public class EnchantmentUtils {
             .flatMap(slot -> slot.choices().stream())
             .map(choice -> choice.getEnchantment())
             .collect(Collectors.toSet());
-        var newEnchantments = getEnchantmentsForItem(itemStack).stream()
+        var newEnchantments = getEnchantmentsForItem(itemStack)
             .filter(id -> !present.contains(id)).toList();
         if (newEnchantments.isEmpty()) {
             return Optional.empty();
