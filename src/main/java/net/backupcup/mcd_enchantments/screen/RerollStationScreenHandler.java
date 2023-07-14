@@ -1,15 +1,20 @@
 package net.backupcup.mcd_enchantments.screen;
 
 import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
+import net.backupcup.mcd_enchantments.util.EnchantmentUtils;
+import net.backupcup.mcd_enchantments.util.Slots;
+import net.minecraft.enchantment.EnchantmentTarget;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.screen.ArrayPropertyDelegate;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.util.Identifier;
 
 public class RerollStationScreenHandler extends ScreenHandler {
     private final Inventory inventory;
@@ -20,7 +25,7 @@ public class RerollStationScreenHandler extends ScreenHandler {
     private final PropertyDelegate propertyDelegate;
 
     public RerollStationScreenHandler(int syncId, PlayerInventory inventory) {
-        this(syncId, inventory, new SimpleInventory(1), new ArrayPropertyDelegate(0));
+        this(syncId, inventory, new SimpleInventory(2), new ArrayPropertyDelegate(1));
     }
 
     public RerollStationScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, PropertyDelegate delegate) {
@@ -31,11 +36,14 @@ public class RerollStationScreenHandler extends ScreenHandler {
         inventory.onOpen(playerInventory.player);
         this.propertyDelegate = delegate;
 
-        this.addSlot(new Slot(inventory, 0, 145, 46) {
+        this.addSlot(new Slot(inventory, 0, 145, 33) {
 
             @Override
             public boolean canInsert(ItemStack stack) {
-                return (EnchantmentSlots.fromItemStack(stack) != null);
+                return (EnchantmentSlots.fromItemStack(stack) != null &&
+                        !EnchantmentTarget.TRIDENT.isAcceptableItem(stack.getItem()) &&
+                        !EnchantmentTarget.DIGGER.isAcceptableItem(stack.getItem()) &&
+                        !EnchantmentTarget.FISHING_ROD.isAcceptableItem(stack.getItem()));
             }
 
             @Override
@@ -44,11 +52,65 @@ public class RerollStationScreenHandler extends ScreenHandler {
             }
         });
 
+        this.addSlot(new Slot(inventory, 1, 145, 52) {
+
+            @Override
+            public boolean canInsert(ItemStack stack) {
+                return (stack.getItem() == Items.LAPIS_LAZULI);
+            }
+
+            @Override
+            public int getMaxItemCount() {
+                return 64;
+            }
+        });
+
         addPlayerInventory(playerInventory);
         addPlayerHotbar(playerInventory);
 
         addProperties(delegate);
     }
+
+    @Override
+    public boolean onButtonClick(PlayerEntity player, int id) {
+        ItemStack itemStack = inventory.getStack(0);
+        ItemStack lapisLazuliStack = inventory.getStack(1);
+        EnchantmentSlots slots = EnchantmentSlots.fromItemStack(itemStack);
+
+        var slotsSize = Slots.values().length;
+        var clickedSlot = slots.getSlot(Slots.values()[id / slotsSize]).get();
+        var chosen = clickedSlot.getChosen();
+
+        if (itemStack.isEmpty() || canReroll(player, chosen.get().getEnchantment(), chosen.get().getLevel())) {
+            return super.onButtonClick(player, id);
+        }
+
+        if (chosen.isPresent()) {
+            clickedSlot.clearChoice();
+        }
+
+        EnchantmentUtils.generateEnchantment(itemStack, clickedSlot);
+
+        slots.updateItemStack(itemStack);
+
+        return super.onButtonClick(player, id);
+    }
+
+    public boolean canReroll(PlayerEntity player, Identifier enchantmentId, short level) {
+        ItemStack lapisLazuliStack = inventory.getStack(1);
+        if (!player.isCreative()) {
+            return lapisLazuliStack.getCount() >= EnchantmentUtils.getCost(enchantmentId, level);
+        } else {
+            return true;
+        }
+    }
+
+
+
+
+
+
+
 
     @Override
     public ItemStack transferSlot(PlayerEntity player, int invSlot) {
