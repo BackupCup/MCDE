@@ -44,6 +44,8 @@ public class RerollStationScreen extends HandledScreen<RerollStationScreenHandle
         super.init();
         titleX = 127;
         titleY = 10;
+        playerInventoryTitleX = -200;
+        playerInventoryTitleY = -200;
 
         int posX = ((width - backgroundWidth) / 2) - 2;
         int posY = (height - backgroundHeight) / 2;
