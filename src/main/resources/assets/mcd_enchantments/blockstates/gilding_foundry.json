@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "mcd_enchantments:block/gilding_foundry"
+    },
+    "facing=south": {
+      "model": "mcd_enchantments:block/gilding_foundry",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "mcd_enchantments:block/gilding_foundry",
+      "y": 270
+    },
+    "facing=east": {
+      "model": "mcd_enchantments:block/gilding_foundry",
+      "y": 90
+    }
+  }
+}

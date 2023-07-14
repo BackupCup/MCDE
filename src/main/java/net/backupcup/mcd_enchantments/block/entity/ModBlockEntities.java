@@ -10,6 +10,7 @@ import net.minecraft.util.registry.Registry;
 public class ModBlockEntities {
     public static BlockEntityType<RunicTableBlockEntity> RUNIC_TABLE;
     public static BlockEntityType<RerollStationBlockEntity> REROLL_STATION;
+    public static BlockEntityType<GildingFoundryBlockEntity> GILDING_FOUNDRY;
 
     public static void registerBlockEntities() {
         RUNIC_TABLE = Registry.register(
@@ -21,5 +22,10 @@ public class ModBlockEntities {
                 Registry.BLOCK_ENTITY_TYPE, new Identifier(MCDEnchantments.MOD_ID, "reroll_station"),
                 FabricBlockEntityTypeBuilder.create(RerollStationBlockEntity::new,
                         ModBlocks.REROLL_STATION).build());
+
+        GILDING_FOUNDRY = Registry.register(
+                Registry.BLOCK_ENTITY_TYPE, new Identifier(MCDEnchantments.MOD_ID, "gilding_foundry"),
+                FabricBlockEntityTypeBuilder.create(GildingFoundryBlockEntity::new,
+                        ModBlocks.GILDING_FOUNDRY).build());
     }
 }
