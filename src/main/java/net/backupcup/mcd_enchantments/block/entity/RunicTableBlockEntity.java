@@ -92,7 +92,7 @@ public class RunicTableBlockEntity extends BlockEntity implements NamedScreenHan
             return;
         }
         if (!itemStack.getNbt().contains("Slots")) {
-            EnchantmentSlots slots = EnchantmentUtils.getEnchantments(itemStack);
+            EnchantmentSlots slots = EnchantmentUtils.generateEnchantments(itemStack);
             slots.updateItemStack(itemStack);
             MCDEnchantments.LOGGER.info("Generated slots for [{}]: {}", Registry.ITEM.getId(itemStack.getItem()), slots);
         }

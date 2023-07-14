@@ -55,7 +55,11 @@ public class EnchantmentUtils {
         return ENCHANTMENT.getId(enchantment);
     }
 
-    public static EnchantmentSlots getEnchantments(ItemStack itemStack) {
+    public static EnchantmentSlots generateEnchantments(ItemStack itemStack) {
+        return generateEnchantments(itemStack, new Random(System.nanoTime()));
+    }
+
+    public static EnchantmentSlots generateEnchantments(ItemStack itemStack, Random random) {
         var item = itemStack.getItem();
         if (EnchantmentTarget.TRIDENT.isAcceptableItem(item)) {
             return EnchantmentSlots.builder()
@@ -74,7 +78,6 @@ public class EnchantmentUtils {
                 EnchantmentTarget.BOW.isAcceptableItem(item) || EnchantmentTarget.CROSSBOW.isAcceptableItem(item) ||
                 EnchantmentTarget.ARMOR_FEET.isAcceptableItem(item) || EnchantmentTarget.ARMOR_LEGS.isAcceptableItem(item) ||
                 EnchantmentTarget.ARMOR_CHEST.isAcceptableItem(item) || EnchantmentTarget.ARMOR_HEAD.isAcceptableItem(item)) {
-            Random random = new Random(System.nanoTime());
             List<Identifier> enchantments = getEnchantmentsForItem(itemStack);
             Collections.shuffle(enchantments, random);
             Iterator<Identifier> it = enchantments.iterator();
@@ -137,6 +140,10 @@ public class EnchantmentUtils {
     }
 
     public static Optional<Identifier> generateEnchantment(ItemStack itemStack, EnchantmentSlots slots) {
+        return generateEnchantment(itemStack, slots, new Random(System.nanoTime()));
+    }
+
+    public static Optional<Identifier> generateEnchantment(ItemStack itemStack, EnchantmentSlots slots, Random random) {
         var present = slots.stream()
             .flatMap(slot -> slot.choices().stream())
             .map(choice -> choice.getEnchantment())
@@ -146,7 +153,6 @@ public class EnchantmentUtils {
         if (newEnchantments.isEmpty()) {
             return Optional.empty();
         }
-        Random random = new Random(System.nanoTime());
         return Optional.of(newEnchantments.get(random.nextInt(newEnchantments.size())));
     }
 }
