@@ -12,8 +12,6 @@ import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtElement;
-import net.minecraft.screen.ArrayPropertyDelegate;
-import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.util.Identifier;
@@ -24,22 +22,18 @@ public class RerollStationScreenHandler extends ScreenHandler {
         return inventory;
     }
 
-    private final PropertyDelegate propertyDelegate;
-
     public RerollStationScreenHandler(int syncId, PlayerInventory inventory) {
-        this(syncId, inventory, new SimpleInventory(2), new ArrayPropertyDelegate(1));
+        this(syncId, inventory, new SimpleInventory(2));
     }
 
-    public RerollStationScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, PropertyDelegate delegate) {
+    public RerollStationScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory) {
         super(ModScreenHandlers.REROLL_STATION_SCREEN_HANDLER, syncId);
 
         checkSize(inventory, 1);
         this.inventory = inventory;
         inventory.onOpen(playerInventory.player);
-        this.propertyDelegate = delegate;
 
         this.addSlot(new Slot(inventory, 0, 145, 33) {
-
             @Override
             public boolean canInsert(ItemStack stack) {
                 var slots = EnchantmentSlots.fromItemStack(stack);
@@ -57,7 +51,6 @@ public class RerollStationScreenHandler extends ScreenHandler {
         });
 
         this.addSlot(new Slot(inventory, 1, 145, 52) {
-
             @Override
             public boolean canInsert(ItemStack stack) {
                 return (stack.getItem() == Items.LAPIS_LAZULI);
@@ -71,8 +64,6 @@ public class RerollStationScreenHandler extends ScreenHandler {
 
         addPlayerInventory(playerInventory);
         addPlayerHotbar(playerInventory);
-
-        addProperties(delegate);
     }
 
     @Override
