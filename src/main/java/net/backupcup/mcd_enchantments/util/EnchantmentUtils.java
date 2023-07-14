@@ -82,43 +82,63 @@ public class EnchantmentUtils {
                 EnchantmentTarget.BOW.isAcceptableItem(item) || EnchantmentTarget.CROSSBOW.isAcceptableItem(item) ||
                 EnchantmentTarget.ARMOR_FEET.isAcceptableItem(item) || EnchantmentTarget.ARMOR_LEGS.isAcceptableItem(item) ||
                 EnchantmentTarget.ARMOR_CHEST.isAcceptableItem(item) || EnchantmentTarget.ARMOR_HEAD.isAcceptableItem(item)) {
-            var enchantments = getEnchantmentsForItem(itemStack).collect(ObjectArrayList.toList());
-            Util.shuffle(enchantments, random);
-            Collections.shuffle(enchantments, new java.util.Random(random.nextLong()));
-            Iterator<Identifier> it = enchantments.iterator();
-            EnchantmentSlots.Builder builder = EnchantmentSlots.builder();
+            var builder = EnchantmentSlots.builder();
+            var enchantmentList = getEnchantmentsForItem(itemStack).collect(ObjectArrayList.toList());
+            Util.shuffle(enchantmentList, random);
+            var enchantments = new ArrayDeque<>(enchantmentList);
             boolean isTwoChoiceGenerated = false;
             boolean isSecondSlotGenerated = false;
             float threeChoiceChance = 0.5f;
             float secondSlotChance = 0.5f;
             float thirdSlotChance = 0.25f;
 
-            if (random.nextFloat() < threeChoiceChance) {
-                builder.withSlot(FIRST, it.next(), it.next(), it.next());
+            if (enchantmentList.isEmpty()) {
+                return EnchantmentSlots.EMPTY;
+            }
+
+            if (random.nextFloat() < threeChoiceChance && enchantments.size() >= 3) {
+                builder.withSlot(FIRST, enchantments.pop(), enchantments.pop(), enchantments.pop());
+            }
+            else if (enchantments.size() >= 2) {
+                builder.withSlot(FIRST, enchantments.pop(), enchantments.pop());
+                isTwoChoiceGenerated = true;
             }
             else {
-                builder.withSlot(FIRST, it.next(), it.next());
-                isTwoChoiceGenerated = true;
+                builder.withSlot(FIRST, enchantmentList.pop());
+            }
+
+            if (enchantments.isEmpty()) {
+                return builder.build();
             }
 
             if (random.nextFloat() < secondSlotChance) {
-                if (!isTwoChoiceGenerated && random.nextFloat() < threeChoiceChance) {
-                    builder.withSlot(SECOND, it.next(), it.next(), it.next());
+                if (!isTwoChoiceGenerated && random.nextFloat() < threeChoiceChance && enchantments.size() >= 3) {
+                    builder.withSlot(SECOND, enchantments.pop(), enchantments.pop(), enchantments.pop());
+                }
+                else if (enchantments.size() >= 2) {
+                    builder.withSlot(SECOND, enchantments.pop(), enchantments.pop());
+                    isTwoChoiceGenerated = true;
                 }
                 else {
-                    builder.withSlot(SECOND, it.next(), it.next());
-                    isTwoChoiceGenerated = true;
+                    builder.withSlot(SECOND, enchantments.pop());
                 }
                 isSecondSlotGenerated = true;
             }
 
+            if (enchantments.isEmpty()) {
+                return builder.build();
+            }
+
             if (isSecondSlotGenerated && random.nextFloat() < thirdSlotChance) {
-                if (!isTwoChoiceGenerated && random.nextFloat() < threeChoiceChance) {
-                    builder.withSlot(THIRD, it.next(), it.next(), it.next());
+                if (!isTwoChoiceGenerated && random.nextFloat() < threeChoiceChance && enchantments.size() >= 3) {
+                    builder.withSlot(THIRD, enchantments.pop(), enchantments.pop(), enchantments.pop());
+                }
+                else if (enchantments.size() >= 2) {
+                    builder.withSlot(THIRD, enchantments.pop(), enchantments.pop());
+                    isTwoChoiceGenerated = true;
                 }
                 else {
-                    builder.withSlot(THIRD, it.next(), it.next());
-                    isTwoChoiceGenerated = true;
+                    builder.withSlot(THIRD, enchantments.pop());
                 }
             }
 
