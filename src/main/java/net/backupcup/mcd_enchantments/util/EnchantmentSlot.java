@@ -147,7 +147,7 @@ public class EnchantmentSlot {
         return newSlot;
     }
 
-    public void changeEnchanment() {
-        enchantments.put(Slots.FIRST, new Identifier("minecraft", "sharpness"));
+    public void changeEnchantment(Slots slot, Identifier enchantment) {
+        enchantments.put(slot, enchantment);
     }
 }
