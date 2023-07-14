@@ -1,6 +1,6 @@
 package net.backupcup.mcd_enchantments.block.entity;
 
-import net.backupcup.mcd_enchantments.screen.RerollStationScreenHandler;
+import net.backupcup.mcd_enchantments.screen.GildingFoundryScreenHandler;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -60,7 +60,7 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
     @Nullable
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
-        return new RerollStationScreenHandler(syncId, inv, this, this.propertyDelegate);
+        return new GildingFoundryScreenHandler(syncId, inv, this, this.propertyDelegate);
     }
 
     @Override
