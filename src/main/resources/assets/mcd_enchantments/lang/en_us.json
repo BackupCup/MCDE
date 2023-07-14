@@ -47,5 +47,7 @@
 
   "message.mcde.max_level": "(Max Level)",
   "message.mcde.levels_required": "(%d levels required)",
-  "message.mcde.not_enough_levels": "Not enough experience levels"
+  "message.mcde.not_enough_levels": "Not enough experience levels",
+  "message.mcde.lapis_required": "(%d lapis required)",
+  "message.mcde.not_enough_lapis": "Not enough lapis"
 }

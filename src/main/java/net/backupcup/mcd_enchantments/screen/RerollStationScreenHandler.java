@@ -11,8 +11,7 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.screen.ArrayPropertyDelegate;
-import net.minecraft.screen.PropertyDelegate;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.util.Identifier;
@@ -23,28 +22,26 @@ public class RerollStationScreenHandler extends ScreenHandler {
         return inventory;
     }
 
-    private final PropertyDelegate propertyDelegate;
-
     public RerollStationScreenHandler(int syncId, PlayerInventory inventory) {
-        this(syncId, inventory, new SimpleInventory(2), new ArrayPropertyDelegate(1));
+        this(syncId, inventory, new SimpleInventory(2));
     }
 
-    public RerollStationScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, PropertyDelegate delegate) {
+    public RerollStationScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory) {
         super(ModScreenHandlers.REROLL_STATION_SCREEN_HANDLER, syncId);
 
         checkSize(inventory, 1);
         this.inventory = inventory;
         inventory.onOpen(playerInventory.player);
-        this.propertyDelegate = delegate;
 
         this.addSlot(new Slot(inventory, 0, 145, 33) {
-
             @Override
             public boolean canInsert(ItemStack stack) {
-                return (EnchantmentSlots.fromItemStack(stack) != null &&
+                var slots = EnchantmentSlots.fromItemStack(stack);
+                return (slots != null &&
                         !EnchantmentTarget.TRIDENT.isAcceptableItem(stack.getItem()) &&
                         !EnchantmentTarget.DIGGER.isAcceptableItem(stack.getItem()) &&
-                        !EnchantmentTarget.FISHING_ROD.isAcceptableItem(stack.getItem()));
+                        !EnchantmentTarget.FISHING_ROD.isAcceptableItem(stack.getItem()) &&
+                        EnchantmentUtils.getEnchantmentsForItem(stack).count() != slots.stream().flatMap(s -> s.choices().stream()).count());
             }
 
             @Override
@@ -54,7 +51,6 @@ public class RerollStationScreenHandler extends ScreenHandler {
         });
 
         this.addSlot(new Slot(inventory, 1, 145, 52) {
-
             @Override
             public boolean canInsert(ItemStack stack) {
                 return (stack.getItem() == Items.LAPIS_LAZULI);
@@ -68,8 +64,6 @@ public class RerollStationScreenHandler extends ScreenHandler {
 
         addPlayerInventory(playerInventory);
         addPlayerHotbar(playerInventory);
-
-        addProperties(delegate);
     }
 
     @Override
@@ -80,37 +74,45 @@ public class RerollStationScreenHandler extends ScreenHandler {
 
         var slotsSize = Slots.values().length;
         var clickedSlot = slots.getSlot(Slots.values()[id / slotsSize]).get();
-        var chosen = clickedSlot.getChosen();
+        Slots toChange;
         short level = 1;
         Identifier enchantmentId;
+        var newEnchantment = EnchantmentUtils.generateEnchantment(itemStack, slots);
+        if (newEnchantment.isEmpty()) {
+            return super.onButtonClick(player, id);
+        }
 
-        if (chosen.isPresent()) {
-            enchantmentId = chosen.get().getEnchantment();
-            level = chosen.get().getLevel();
-
-            MCDEnchantments.LOGGER.info(String.valueOf(enchantmentId));
+        if (clickedSlot.getChosen().isPresent()) {
+            var chosen = clickedSlot.getChosen().get();
+            enchantmentId = chosen.getEnchantment();
+            level = chosen.getLevel();
 
             if (!canReroll(player, enchantmentId, level)) {
                 return super.onButtonClick(player, id);
             }
             clickedSlot.clearChoice();
+            toChange = chosen.getSlot();
+            var list = itemStack.getNbt().getList("Enchantments", NbtElement.COMPOUND_TYPE);
+            for (int i = 0; i < list.size(); i++) {
+                var compound = list.getCompound(i);
+                if (enchantmentId.toString().equals(compound.getString("id"))) {
+                    list.remove(i);
+                }
+            }
 
         } else {
-            int choiceSlot = id % slotsSize;
-            enchantmentId = clickedSlot.getChoice(Slots.values()[choiceSlot]).get();
-
-            MCDEnchantments.LOGGER.info(String.valueOf(choiceSlot));
-            MCDEnchantments.LOGGER.info(String.valueOf(enchantmentId));
-
-            EnchantmentUtils.generateEnchantment(itemStack, clickedSlot);
+            toChange = Slots.values()[id % slotsSize];
+            enchantmentId = clickedSlot.getChoice(toChange).get();
 
             if (!canReroll(player, enchantmentId, level)) {
                 return super.onButtonClick(player, id);
             }
-
         }
 
+        clickedSlot.changeEnchantment(toChange, newEnchantment.get());
         slots.updateItemStack(itemStack);
+        MCDEnchantments.LOGGER.info("Decrementing lapis by {} items", EnchantmentUtils.getCost(enchantmentId, level));
+        lapisLazuliStack.decrement(EnchantmentUtils.getCost(enchantmentId, level));
 
         return super.onButtonClick(player, id);
     }
@@ -123,13 +125,6 @@ public class RerollStationScreenHandler extends ScreenHandler {
             return true;
         }
     }
-
-
-
-
-
-
-
 
     @Override
     public ItemStack transferSlot(PlayerEntity player, int invSlot) {

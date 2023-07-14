@@ -1,6 +1,8 @@
 package net.backupcup.mcd_enchantments.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+
+import net.backupcup.mcd_enchantments.MCDEClient;
 import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.util.*;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
@@ -29,8 +31,7 @@ public class RerollStationScreen extends HandledScreen<RerollStationScreenHandle
 
     private Optional<Slots> opened = Optional.empty();
 
-    private static final Identifier TEXTURE =
-            new Identifier(MCDEnchantments.MOD_ID, "textures/gui/reroll_station.png");
+    private static final Identifier TEXTURE = new Identifier(MCDEnchantments.MOD_ID, "textures/gui/reroll_station.png");
 
     private EnchantmentSlotsRenderer slotsRenderer;
 
@@ -52,25 +53,22 @@ public class RerollStationScreen extends HandledScreen<RerollStationScreenHandle
         var slotPos = Arrays.stream(Slots.values())
                 .collect(Collectors.toMap(
                         Function.identity(),
-                        s -> new EnchantmentTextureMapper.TexturePos(posX + 18 + 35 * s.ordinal(), posY + 38)
-                ));
-        int[] enchantOffsetX = {6, 38, 22};
-        int[] enchantOffsetY = {22, 22, 6};
+                        s -> new EnchantmentTextureMapper.TexturePos(posX + 18 + 35 * s.ordinal(), posY + 38)));
+        int[] enchantOffsetX = { 6, 38, 22 };
+        int[] enchantOffsetY = { 22, 22, 6 };
         var choiceOffsets = Arrays.stream(Slots.values())
                 .collect(Collectors.toMap(
                         Function.identity(),
-                        s -> new EnchantmentTextureMapper.TexturePos(enchantOffsetX[s.ordinal()], enchantOffsetY[s.ordinal()])
-                ));
+                        s -> new EnchantmentTextureMapper.TexturePos(enchantOffsetX[s.ordinal()],
+                                enchantOffsetY[s.ordinal()])));
         slotsRenderer = EnchantmentSlotsRenderer.builder()
                 .withHelper(this)
                 .withDimPredicate(choice -> {
                     short level = 1;
-                    boolean isMaxedOut = false;
                     if (choice instanceof EnchantmentSlot.ChoiceWithLevel withLevel) {
-                        level = (short)(withLevel.getLevel() + 1);
-                        isMaxedOut = withLevel.isMaxedOut();
+                        level = (short) (withLevel.getLevel() + 1);
                     }
-                    return isMaxedOut || !handler.canReroll(client.player, choice.getEnchantment(), level);
+                    return !handler.canReroll(client.player, choice.getEnchantment(), level);
                 })
                 .withSlotTexturePos(187, 105)
                 .withOutlinePos(187, 138)
@@ -88,7 +86,7 @@ public class RerollStationScreen extends HandledScreen<RerollStationScreenHandle
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
-        /*Reroll Station UI*/
+        /* Reroll Station UI */
         RenderSystem.setShaderTexture(0, TEXTURE);
         int posX = ((width - backgroundWidth) / 2) - 2;
         int posY = (height - backgroundHeight) / 2;
@@ -98,21 +96,23 @@ public class RerollStationScreen extends HandledScreen<RerollStationScreenHandle
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         ItemStack stack = inventory.getStack(0);
 
-        if (stack.isEmpty()) return super.mouseClicked(mouseX, mouseY, button);
+        if (stack.isEmpty())
+            return super.mouseClicked(mouseX, mouseY, button);
         EnchantmentSlots slots = EnchantmentSlots.fromItemStack(stack);
 
         for (var slot : slots) {
-            if (slotsRenderer.isInSlotBounds(slot.getSlot(), (int)mouseX, (int)mouseY)) {
+            if (slotsRenderer.isInSlotBounds(slot.getSlot(), (int) mouseX, (int) mouseY)) {
                 if (slot.getChosen().isPresent()) {
+                    var chosen = slot.getChosen().get();
                     client.interactionManager.clickButton(handler.syncId, Slots.values().length * slot.ordinal());
+                    opened = handler.canReroll(client.player, chosen.getEnchantment(), chosen.getLevel()) ?
+                        Optional.of(slot.getSlot()) : Optional.empty();
                     return super.mouseClicked(mouseX, mouseY, button);
                 }
                 if (opened.isEmpty()) {
                     opened = Optional.of(slot.getSlot());
-                }
-                else {
-                    opened = opened.get() == slot.getSlot() ?
-                            Optional.empty() : Optional.of(slot.getSlot());
+                } else {
+                    opened = opened.get() == slot.getSlot() ? Optional.empty() : Optional.of(slot.getSlot());
                 }
                 return super.mouseClicked(mouseX, mouseY, button);
             }
@@ -120,8 +120,8 @@ public class RerollStationScreen extends HandledScreen<RerollStationScreenHandle
             if (opened.isPresent() && opened.get() == slot.getSlot()) {
                 for (var choice : slot.choices()) {
                     if (slotsRenderer.isInChoiceBounds(slot.getSlot(), choice.getSlot(), (int) mouseX, (int) mouseY)) {
-                        client.interactionManager.clickButton(handler.syncId, Slots.values().length * slot.ordinal() + choice.ordinal());
-                        opened = Optional.empty();
+                        client.interactionManager.clickButton(handler.syncId,
+                                Slots.values().length * slot.ordinal() + choice.ordinal());
                         return super.mouseClicked(mouseX, mouseY, button);
                     }
                 }
@@ -196,24 +196,16 @@ public class RerollStationScreen extends HandledScreen<RerollStationScreenHandle
         String translationKey = enchantment.toTranslationKey("enchantment");
         List<Text> tooltipLines = new ArrayList<>();
         short level = 1;
-        boolean enoughLevels = handler.canReroll(client.player, enchantment, level);
+        boolean canReroll = handler.canReroll(client.player, enchantment, level);
         MutableText enchantmentName = Text.translatable(translationKey)
-                .formatted(EnchantmentClassifier.isEnchantmentPowerful(enchantment) ? Formatting.RED : Formatting.LIGHT_PURPLE);
+                .formatted(EnchantmentClassifier.isEnchantmentPowerful(enchantment) ? Formatting.RED
+                        : Formatting.LIGHT_PURPLE);
         if (hoveredChoice.get() instanceof EnchantmentSlot.ChoiceWithLevel withLevel) {
-            enchantmentName.append(" ");
-            if (withLevel.isMaxedOut()) {
-                enchantmentName.append(Text.translatable("message.mcde.max_level"));
-                enoughLevels = true;
-            }
-            else {
-                enchantmentName
-                        .append(Text.translatable("enchantment.level." + withLevel.getLevel()))
-                        .append(" → ")
-                        .append(Text.translatable("enchantment.level." + (withLevel.getLevel() + 1)));
-                level = (short)(withLevel.getLevel() + 1);
-                enoughLevels = handler.canReroll(client.player, enchantment, level);
+            enchantmentName.append(" ")
+                    .append(Text.translatable("enchantment.level." + withLevel.getLevel()));
+            level = (short) (withLevel.getLevel() + 1);
+            canReroll = handler.canReroll(client.player, enchantment, level);
 
-            }
         }
         tooltipLines.add(enchantmentName);
 
@@ -222,12 +214,12 @@ public class RerollStationScreen extends HandledScreen<RerollStationScreenHandle
                 .results().map(res -> Text.literal(res.group(1)).formatted(Formatting.GRAY))
                 .toList();
         tooltipLines.addAll(desc);
-        if (!enoughLevels) {
-            tooltipLines.add(Text.translatable("message.mcde.not_enough_levels").formatted(Formatting.DARK_RED, Formatting.ITALIC));
+        if (!canReroll) {
+            tooltipLines.add(Text.translatable("message.mcde.not_enough_lapis").formatted(Formatting.DARK_RED,
+                    Formatting.ITALIC));
             tooltipLines.add(Text.translatable(
-                    "message.mcde.levels_required",
-                    EnchantmentUtils.getCost(enchantment, level)
-            ).formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
+                    "message.mcde.lapis_required",
+                    EnchantmentUtils.getCost(enchantment, level)).formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
         }
         renderTooltip(matrices, tooltipLines, mouseX, mouseY);
 
