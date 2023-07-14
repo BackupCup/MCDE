@@ -136,13 +136,17 @@ public class EnchantmentUtils {
         return EnchantmentSlots.EMPTY;
     }
 
-    public static Identifier generateEnchantment(ItemStack itemStack, EnchantmentSlot chosenSlot) {
-        EnchantmentSlots enchantmentSlots = EnchantmentSlots.fromItemStack(itemStack);
-
-
-        MCDEnchantments.LOGGER.info("Utils:");
-        MCDEnchantments.LOGGER.info(String.valueOf(enchantmentSlots));
-        MCDEnchantments.LOGGER.info(String.valueOf(chosenSlot));
-        return null;
+    public static Optional<Identifier> generateEnchantment(ItemStack itemStack, EnchantmentSlots slots) {
+        var present = slots.stream()
+            .flatMap(slot -> slot.choices().stream())
+            .map(choice -> choice.getEnchantment())
+            .collect(Collectors.toSet());
+        var newEnchantments = getEnchantmentsForItem(itemStack).stream()
+            .filter(id -> !present.contains(id)).toList();
+        if (newEnchantments.isEmpty()) {
+            return Optional.empty();
+        }
+        Random random = new Random(System.nanoTime());
+        return Optional.of(newEnchantments.get(random.nextInt(newEnchantments.size())));
     }
 }
