@@ -69,6 +69,7 @@ public class RunicTableScreenHandler extends ScreenHandler {
     public boolean onButtonClick(PlayerEntity player, int id) {
         ItemStack itemStack = inventory.getStack(0);
         EnchantmentSlots slots = EnchantmentSlots.fromItemStack(itemStack);
+
         var slotsSize = Slots.values().length;
         var clickedSlot = slots.getSlot(Slots.values()[id / slotsSize]).get();
         var chosen = clickedSlot.getChosen();
@@ -93,8 +94,7 @@ public class RunicTableScreenHandler extends ScreenHandler {
                 nbt.putShort("lvl", level);
                 break;
             }
-        }
-        else {
+        } else {
             int choiceSlot = id % slotsSize;
             enchantmentId = clickedSlot.getChoice(Slots.values()[choiceSlot]).get();
             if (!canEnchant(player, enchantmentId, level)) {

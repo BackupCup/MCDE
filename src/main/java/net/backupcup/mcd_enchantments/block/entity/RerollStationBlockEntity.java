@@ -18,7 +18,7 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 public class RerollStationBlockEntity extends BlockEntity implements NamedScreenHandlerFactory, ImplementedInventory {
-    private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(1, ItemStack.EMPTY);
+    private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(2, ItemStack.EMPTY);
     //private boolean slotsRead = false;
 
     public DefaultedList<ItemStack> getInventory() {

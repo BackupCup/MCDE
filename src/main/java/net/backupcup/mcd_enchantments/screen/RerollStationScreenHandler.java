@@ -1,5 +1,6 @@
 package net.backupcup.mcd_enchantments.screen;
 
+import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
 import net.backupcup.mcd_enchantments.util.EnchantmentUtils;
 import net.backupcup.mcd_enchantments.util.Slots;
@@ -80,16 +81,34 @@ public class RerollStationScreenHandler extends ScreenHandler {
         var slotsSize = Slots.values().length;
         var clickedSlot = slots.getSlot(Slots.values()[id / slotsSize]).get();
         var chosen = clickedSlot.getChosen();
-
-        if (itemStack.isEmpty() || canReroll(player, chosen.get().getEnchantment(), chosen.get().getLevel())) {
-            return super.onButtonClick(player, id);
-        }
+        short level = 1;
+        Identifier enchantmentId;
 
         if (chosen.isPresent()) {
-            clickedSlot.clearChoice();
-        }
+            enchantmentId = chosen.get().getEnchantment();
+            level = chosen.get().getLevel();
 
-        EnchantmentUtils.generateEnchantment(itemStack, clickedSlot);
+            MCDEnchantments.LOGGER.info(String.valueOf(enchantmentId));
+
+            if (!canReroll(player, enchantmentId, level)) {
+                return super.onButtonClick(player, id);
+            }
+            clickedSlot.clearChoice();
+
+        } else {
+            int choiceSlot = id % slotsSize;
+            enchantmentId = clickedSlot.getChoice(Slots.values()[choiceSlot]).get();
+
+            MCDEnchantments.LOGGER.info(String.valueOf(choiceSlot));
+            MCDEnchantments.LOGGER.info(String.valueOf(enchantmentId));
+
+            EnchantmentUtils.generateEnchantment(itemStack, clickedSlot);
+
+            if (!canReroll(player, enchantmentId, level)) {
+                return super.onButtonClick(player, id);
+            }
+
+        }
 
         slots.updateItemStack(itemStack);
 

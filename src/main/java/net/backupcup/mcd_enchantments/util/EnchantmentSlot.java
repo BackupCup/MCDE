@@ -1,13 +1,13 @@
 package net.backupcup.mcd_enchantments.util;
 
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 
 public class EnchantmentSlot {
     private Slots slot;
@@ -145,5 +145,9 @@ public class EnchantmentSlot {
             newSlot.setChosen(Slots.valueOf(nbt.getString("Chosen")), nbt.getShort("Level"));
         }
         return newSlot;
+    }
+
+    public void changeEnchanment() {
+        enchantments.put(Slots.FIRST, new Identifier("minecraft", "sharpness"));
     }
 }

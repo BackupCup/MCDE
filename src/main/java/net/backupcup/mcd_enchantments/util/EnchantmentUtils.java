@@ -135,4 +135,14 @@ public class EnchantmentUtils {
         MCDEnchantments.LOGGER.warn("Empty slots generated");
         return EnchantmentSlots.EMPTY;
     }
+
+    public static Identifier generateEnchantment(ItemStack itemStack, EnchantmentSlot chosenSlot) {
+        EnchantmentSlots enchantmentSlots = EnchantmentSlots.fromItemStack(itemStack);
+
+
+        MCDEnchantments.LOGGER.info("Utils:");
+        MCDEnchantments.LOGGER.info(String.valueOf(enchantmentSlots));
+        MCDEnchantments.LOGGER.info(String.valueOf(chosenSlot));
+        return null;
+    }
 }

@@ -1,15 +1,6 @@
 package net.backupcup.mcd_enchantments.screen;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
 import com.mojang.blaze3d.systems.RenderSystem;
-
 import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.screen.EnchantmentTextureMapper.TexturePos;
 import net.backupcup.mcd_enchantments.util.EnchantmentClassifier;
@@ -28,6 +19,14 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
     private Inventory inventory;
@@ -57,7 +56,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
         var slotPos = Arrays.stream(Slots.values())
             .collect(Collectors.toMap(
                         Function.identity(),
-                        s -> new TexturePos(posX + 17 + 35 * s.ordinal(), posY + 38)
+                        s -> new TexturePos(posX + 18 + 35 * s.ordinal(), posY + 38)
                         ));
         int[] enchantOffsetX = {6, 38, 22};
         int[] enchantOffsetY = {22, 22, 6};
