@@ -14,6 +14,8 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 
 public class RerollStationScreenHandler extends ScreenHandler {
@@ -112,7 +114,10 @@ public class RerollStationScreenHandler extends ScreenHandler {
         clickedSlot.changeEnchantment(toChange, newEnchantment.get());
         slots.updateItemStack(itemStack);
         MCDEnchantments.LOGGER.info("Decrementing lapis by {} items", EnchantmentUtils.getCost(enchantmentId, level));
-        lapisLazuliStack.decrement(EnchantmentUtils.getCost(enchantmentId, level));
+        if (!player.isCreative()) {
+            lapisLazuliStack.decrement(EnchantmentUtils.getCost(enchantmentId, level));
+        }
+        player.playSound(SoundEvents.BLOCK_GRINDSTONE_USE, SoundCategory.BLOCKS, 0.5f, 1f);
 
         return super.onButtonClick(player, id);
     }
