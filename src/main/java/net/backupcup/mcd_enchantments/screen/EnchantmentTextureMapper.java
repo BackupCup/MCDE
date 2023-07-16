@@ -1,5 +1,9 @@
 package net.backupcup.mcd_enchantments.screen;
 
+import net.backupcup.mcd_enchantments.MCDEnchantments;
+import net.backupcup.mcd_enchantments.util.EnchantmentUtils;
+import net.minecraft.util.Identifier;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -7,21 +11,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import net.backupcup.mcd_enchantments.MCDEnchantments;
-import net.backupcup.mcd_enchantments.util.EnchantmentUtils;
-import net.minecraft.util.Identifier;
-
 public class EnchantmentTextureMapper {
     private static Map<String, Map<String, Integer>> iconMap = null;
     private static Map<String, Identifier> textureMap = Map.of(
         "minecraft", Identifier.of(MCDEnchantments.MOD_ID, "textures/gui/enchantment_icons_vanilla.png"),
         "mcda", Identifier.of(MCDEnchantments.MOD_ID, "textures/gui/enchantment_icons_mcda.png"),
-        "mcdw", Identifier.of(MCDEnchantments.MOD_ID, "textures/gui/enchantment_icons_mcdw.png")
+        "mcdw", Identifier.of(MCDEnchantments.MOD_ID, "textures/gui/enchantment_icons_mcdw.png"),
+        "enchantmentsplus", Identifier.of(MCDEnchantments.MOD_ID, "textures/gui/enchantment_icons_enchantmentsplus.png"),
+        "qu-enchantments", Identifier.of(MCDEnchantments.MOD_ID, "textures/gui/enchantment_icons_qu-enchantments.png")
     );
 
     private static Map<String, Map<String, Integer>> getIconMap() {
         if (iconMap == null) {
-            Map<String, AtomicInteger> counters = List.of("minecraft", "mcda", "mcdw")
+            Map<String, AtomicInteger> counters = List.of("minecraft", "mcda", "mcdw", "enchantmentsplus", "qu-enchantments")
                 .stream().collect(Collectors.toMap(Function.identity(), ns -> new AtomicInteger()));
             iconMap = EnchantmentUtils.getEnchantmentStream()
                 .sorted(Comparator.naturalOrder())

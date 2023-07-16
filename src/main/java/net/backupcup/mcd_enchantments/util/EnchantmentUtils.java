@@ -1,5 +1,6 @@
 package net.backupcup.mcd_enchantments.util;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentTarget;
@@ -8,23 +9,24 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
-import net.minecraft.util.math.random.*;
+import net.minecraft.util.math.random.LocalRandom;
 import net.minecraft.util.math.random.Random;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import static net.backupcup.mcd_enchantments.util.Slots.*;
 import static net.minecraft.enchantment.Enchantments.*;
 import static net.minecraft.util.registry.Registry.ENCHANTMENT;
 
 public class EnchantmentUtils {
-    private static Predicate<String> namespaceMatcher = Pattern.compile("minecraft|mcd[aw]").asPredicate();
+    private static Predicate<String> namespaceMatcher = Pattern.compile("minecraft|mcd[aw]|enchantmentsplus").asPredicate(); //ADD "|qu-enchantments" TO IT WHEN THE BUG IS FIXED
 
     public static Stream<Identifier> getEnchantmentStream() {
         return ENCHANTMENT.getIds().stream()
@@ -43,7 +45,8 @@ public class EnchantmentUtils {
                      ENCHANTMENT.get(id).type.isAcceptableItem(itemStack.getItem())) &&
                     !(ENCHANTMENT.get(id).isCursed() ||
                         ENCHANTMENT.getId(MENDING).equals(id) ||
-                        ENCHANTMENT.getId(UNBREAKING).equals(id)));
+                        ENCHANTMENT.getId(UNBREAKING).equals(id) ||
+                        EnchantmentClassifier.bannedEnchantments.contains(id)));
     }
 
     public static List<EnchantmentTarget> getEnchantmentTargets(Item item) {
