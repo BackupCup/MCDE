@@ -10,7 +10,9 @@ This mod is a **work in progress**. As such, some aspects may feel unbalanced.
 
 
 # Content
-As of right now, the mod adds only one block - the Runic Table. It has a crafting recipes, shows up in both REI and Recipe Book. There are plans to add a Rerolling Station and Golden Infuser for rerolling enchantments and creating gilded weapons/tools/armor respectively.
+As of right now, the mod adds only two blocks: 
+ - Runic Table - the main block, acts as a new enchanting table. Randomly generates a list of enchantments that one Item can take. There are plans to add a Golding Foundry for gilding the weapons/tools/armor.
+ - Roll Bench - an additional block which rerolls a single enchantment per use, costs lapis lazuli. The cost is respective of the level you'd spend to activate this enchantment.
 
 # FAQ
 ### Can I use your mod in my modpack?
