@@ -1,8 +1,8 @@
 package net.backupcup.mcd_enchantments.block.entity;
 
-import org.jetbrains.annotations.Nullable;
-
+import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.screen.GildingFoundryScreenHandler;
+import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
 import net.backupcup.mcd_enchantments.util.EnchantmentUtils;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -20,12 +20,14 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
 public class GildingFoundryBlockEntity extends BlockEntity implements NamedScreenHandlerFactory, ImplementedInventory {
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(2, ItemStack.EMPTY);
     private int gilding_progress;
     private int gilding_tick_counter;
     private static final int TICKS_PER_PROGRESS_STEP = 1;
+    private boolean slotsRead = false;
 
     public DefaultedList<ItemStack> getInventory() {
         return inventory;
@@ -88,10 +90,15 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
     }
 
     public static void tick(World world, BlockPos blockPos, BlockState state, GildingFoundryBlockEntity entity) {
-        if (world.isClient() || entity.gilding_progress == 0) {
+        if (world.isClient()) {
             return;
         }
-        if (entity.inventory.get(0).isEmpty() || entity.inventory.get(1).isEmpty()) {
+        entity.generateEnchantments(entity);
+
+        if (entity.gilding_progress == 0) {
+            return;
+        }
+        if (entity.inventory.get(0).isEmpty() || entity.inventory.get(1).getCount() < 8) {
             entity.resetProgress();
             markDirty(world, blockPos, state);
             return;
@@ -107,10 +114,33 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
         markDirty(world, blockPos, state);
     }
 
+    private void generateEnchantments(GildingFoundryBlockEntity entity) {
+        DefaultedList<ItemStack> inventory = entity.getItems();
+        ItemStack itemStack = inventory.get(0);
+
+        if (itemStack.isEmpty()) {
+            entity.slotsRead = false;
+            return;
+        }
+        if (!itemStack.getNbt().contains("Slots")) {
+            EnchantmentSlots slots = EnchantmentUtils.generateEnchantments(itemStack);
+            slots.updateItemStack(itemStack);
+            MCDEnchantments.LOGGER.info("Generated slots for [{}]: {}", Registry.ITEM.getId(itemStack.getItem()), slots);
+        }
+        else if (!entity.slotsRead) {
+            EnchantmentSlots slots = EnchantmentSlots.fromItemStack(itemStack);
+            MCDEnchantments.LOGGER.info("Read slots [{}]: {}", Registry.ITEM.getId(itemStack.getItem()), slots);
+            entity.slotsRead = true;
+            for (var nbt : itemStack.getEnchantments()) {
+                MCDEnchantments.LOGGER.info("Existing: {}", nbt.asString());
+            }
+        }
+    }
+
     private void finishGilding() {
         gilding_progress = 0;
         gilding_tick_counter = 0;
-        inventory.get(1).decrement(1);
+        inventory.get(1).decrement(8);
         var weaponStack = inventory.get(0);
         var gildedEnchantment = EnchantmentUtils.generateEnchantment(weaponStack);
         if (gildedEnchantment.isEmpty()) {

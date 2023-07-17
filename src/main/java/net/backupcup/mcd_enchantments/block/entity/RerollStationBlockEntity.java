@@ -1,6 +1,9 @@
 package net.backupcup.mcd_enchantments.block.entity;
 
+import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.screen.RerollStationScreenHandler;
+import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
+import net.backupcup.mcd_enchantments.util.EnchantmentUtils;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -13,11 +16,13 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 public class RerollStationBlockEntity extends BlockEntity implements NamedScreenHandlerFactory, ImplementedInventory {
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(2, ItemStack.EMPTY);
+    private boolean slotsRead = false;
 
     public DefaultedList<ItemStack> getInventory() {
         return inventory;
@@ -56,5 +61,32 @@ public class RerollStationBlockEntity extends BlockEntity implements NamedScreen
     }
 
     public static void tick(World world, BlockPos blockPos, BlockState state, RerollStationBlockEntity entity) {
+        if (world.isClient()) {
+            return;
+        }
+        entity.generateEnchantments(entity);
+    }
+
+    private void generateEnchantments(RerollStationBlockEntity entity) {
+        DefaultedList<ItemStack> inventory = entity.getItems();
+        ItemStack itemStack = inventory.get(0);
+
+        if (itemStack.isEmpty()) {
+            entity.slotsRead = false;
+            return;
+        }
+        if (!itemStack.getNbt().contains("Slots")) {
+            EnchantmentSlots slots = EnchantmentUtils.generateEnchantments(itemStack);
+            slots.updateItemStack(itemStack);
+            MCDEnchantments.LOGGER.info("Generated slots for [{}]: {}", Registry.ITEM.getId(itemStack.getItem()), slots);
+        }
+        else if (!entity.slotsRead) {
+            EnchantmentSlots slots = EnchantmentSlots.fromItemStack(itemStack);
+            MCDEnchantments.LOGGER.info("Read slots [{}]: {}", Registry.ITEM.getId(itemStack.getItem()), slots);
+            entity.slotsRead = true;
+            for (var nbt : itemStack.getEnchantments()) {
+                MCDEnchantments.LOGGER.info("Existing: {}", nbt.asString());
+            }
+        }
     }
 }

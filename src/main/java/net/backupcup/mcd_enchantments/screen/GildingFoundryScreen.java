@@ -91,7 +91,7 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
 
     private boolean isGildingButtonClickable() {
         return !inventory.getStack(0).isEmpty() &&
-            !inventory.getStack(1).isEmpty() &&
+            !(inventory.getStack(1).getCount() < 8) &&
             !handler.hasProgress() &&
             !inventory.getStack(0).getNbt().contains("Gilding");
     }

@@ -3,6 +3,7 @@ package net.backupcup.mcd_enchantments.screen;
 import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
 import net.backupcup.mcd_enchantments.util.EnchantmentUtils;
+import net.backupcup.mcd_enchantments.util.ModTags;
 import net.backupcup.mcd_enchantments.util.Slots;
 import net.minecraft.enchantment.EnchantmentTarget;
 import net.minecraft.entity.player.PlayerEntity;
@@ -38,12 +39,13 @@ public class RerollStationScreenHandler extends ScreenHandler {
         this.addSlot(new Slot(inventory, 0, 145, 33) {
             @Override
             public boolean canInsert(ItemStack stack) {
-                var slots = EnchantmentSlots.fromItemStack(stack);
-                return (slots != null &&
-                        !EnchantmentTarget.TRIDENT.isAcceptableItem(stack.getItem()) &&
-                        !EnchantmentTarget.DIGGER.isAcceptableItem(stack.getItem()) &&
-                        !EnchantmentTarget.FISHING_ROD.isAcceptableItem(stack.getItem()) &&
-                        EnchantmentUtils.getEnchantmentsForItem(stack).count() != slots.stream().flatMap(s -> s.choices().stream()).count());
+                return (stack.isIn(ModTags.Items.WEAPONS) ||
+                        EnchantmentTarget.TRIDENT.isAcceptableItem(stack.getItem()) ||
+                        EnchantmentTarget.BOW.isAcceptableItem(stack.getItem()) ||
+                        EnchantmentTarget.CROSSBOW.isAcceptableItem(stack.getItem()) ||
+                        EnchantmentTarget.ARMOR.isAcceptableItem(stack.getItem()) ||
+                        EnchantmentTarget.WEAPON.isAcceptableItem(stack.getItem()) ||
+                        EnchantmentTarget.DIGGER.isAcceptableItem(stack.getItem()));
             }
 
             @Override
@@ -54,9 +56,7 @@ public class RerollStationScreenHandler extends ScreenHandler {
 
         this.addSlot(new Slot(inventory, 1, 145, 52) {
             @Override
-            public boolean canInsert(ItemStack stack) {
-                return (stack.getItem() == Items.LAPIS_LAZULI);
-            }
+            public boolean canInsert(ItemStack stack) {return (stack.getItem() == Items.LAPIS_LAZULI);}
 
             @Override
             public int getMaxItemCount() {

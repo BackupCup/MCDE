@@ -1,7 +1,5 @@
 package net.backupcup.mcd_enchantments.block.entity;
 
-import org.jetbrains.annotations.Nullable;
-
 import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.screen.RunicTableScreenHandler;
 import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
@@ -20,6 +18,7 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
 public class RunicTableBlockEntity extends BlockEntity implements NamedScreenHandlerFactory, ImplementedInventory {
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(1, ItemStack.EMPTY);
@@ -65,6 +64,9 @@ public class RunicTableBlockEntity extends BlockEntity implements NamedScreenHan
         if (world.isClient()) {
             return;
         }
+        entity.generateEnchantments(entity);
+    }
+    private void generateEnchantments(RunicTableBlockEntity entity) {
         DefaultedList<ItemStack> inventory = entity.getItems();
         ItemStack itemStack = inventory.get(0);
 
