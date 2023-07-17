@@ -3,6 +3,7 @@ package net.backupcup.mcd_enchantments.util;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.EnchantmentTarget;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -11,11 +12,13 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.random.LocalRandom;
 import net.minecraft.util.math.random.Random;
+import net.minecraft.util.registry.Registry;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -34,12 +37,16 @@ public class EnchantmentUtils {
     }
 
     public static Stream<Identifier> getEnchantmentsForItem(ItemStack itemStack) {
-        var existing = itemStack.getEnchantments().stream()
-            .map(nbt -> Identifier.tryParse(((NbtCompound)nbt).getString("id")))
+        var existing = EnchantmentHelper.get(itemStack).keySet().stream()
+            .map(e -> ENCHANTMENT.getId(e))
             .collect(Collectors.toSet());
+        return getAllEnchantmentsForItem(itemStack)
+            .filter(id -> !existing.contains(id));
+    }
+
+    public static Stream<Identifier> getAllEnchantmentsForItem(ItemStack itemStack) {
         return ENCHANTMENT.getIds().stream()
             .filter(id -> namespaceMatcher.test(id.getNamespace()) &&
-                    !existing.contains(id) &&
                     (itemStack.isIn(ModTags.Items.WEAPONS) &&
                      ENCHANTMENT.get(id).type.equals(EnchantmentTarget.WEAPON) ||
                      ENCHANTMENT.get(id).type.isAcceptableItem(itemStack.getItem())) &&
@@ -167,24 +174,35 @@ public class EnchantmentUtils {
         return EnchantmentSlots.EMPTY;
     }
 
+    public static boolean canGenerateEnchantment(ItemStack itemStack) {
+        return !getEnchantmentsNotInItem(itemStack).isEmpty();
+    }
+
     public static Optional<Identifier> generateEnchantment(ItemStack itemStack) {
         return generateEnchantment(itemStack, new LocalRandom(System.nanoTime()));
     }
 
     public static Optional<Identifier> generateEnchantment(ItemStack itemStack, Random random) {
-        var slots = EnchantmentSlots.fromItemStack(itemStack);
-        var gilded = itemStack.getNbt().contains("Gilding") ?
-            Optional.of(Identifier.tryParse(itemStack.getNbt().getString("Gilding"))) :
-            Optional.empty();
-        var present = slots.stream()
-            .flatMap(slot -> slot.choices().stream())
-            .map(choice -> choice.getEnchantment())
-            .collect(Collectors.toSet());
-        var newEnchantments = getEnchantmentsForItem(itemStack)
-            .filter(id -> !present.contains(id) || gilded.isPresent() && gilded.get().equals(id)).toList();
+        var newEnchantments = getEnchantmentsNotInItem(itemStack);
         if (newEnchantments.isEmpty()) {
             return Optional.empty();
         }
         return Optional.of(newEnchantments.get(random.nextInt(newEnchantments.size())));
+    }
+
+    public static Set<Identifier> getAllEnchantmentsInItem(ItemStack itemStack) {
+        var present = EnchantmentHelper.get(itemStack).keySet().stream()
+            .map(key -> Registry.ENCHANTMENT.getId(key))
+            .collect(Collectors.toSet());
+        EnchantmentSlots.fromItemStack(itemStack).stream()
+            .flatMap(s -> s.choices().stream())
+            .map(c -> c.getEnchantment()).forEach(id -> present.add(id));
+        return present;
+    }
+
+    private static List<Identifier> getEnchantmentsNotInItem(ItemStack itemStack) {
+        var present = getAllEnchantmentsInItem(itemStack);
+         return getAllEnchantmentsForItem(itemStack)
+            .filter(id -> !present.contains(id)).toList();
     }
 }
