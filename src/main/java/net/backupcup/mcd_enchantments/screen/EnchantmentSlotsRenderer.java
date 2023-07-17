@@ -84,6 +84,10 @@ public class EnchantmentSlotsRenderer {
         drawEnchantmentIcon(matrices, drawPos, slot, choice);
     }
 
+    public Predicate<Choice> getDimPredicate() {
+        return dimPredicate;
+    }
+
     public boolean isInSlotBounds(Slots slot, int mouseX, int mouseY) {
         var pos = slotPos.get(slot).add(TexturePos.of(-1, -1));
         boolean ButtonBox1 = isInBounds(pos.x(), pos.y(), mouseX, mouseY, 13, 18, 0, 31);

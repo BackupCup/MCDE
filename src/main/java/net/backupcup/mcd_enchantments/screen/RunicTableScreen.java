@@ -68,10 +68,10 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
         slotsRenderer = EnchantmentSlotsRenderer.builder()
             .withHelper(this)
             .withDimPredicate(choice -> {
-                short level = 1;
+                int level = 1;
                 boolean isMaxedOut = false;
                 if (choice instanceof ChoiceWithLevel withLevel) {
-                    level = (short)(withLevel.getLevel() + 1);
+                    level = (int)(withLevel.getLevel() + 1);
                     isMaxedOut = withLevel.isMaxedOut();
                 }
                 return isMaxedOut || !handler.canEnchant(client.player, choice.getEnchantment(), level);
@@ -199,7 +199,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
         Identifier enchantment = hoveredChoice.get().getEnchantment();
         String translationKey = enchantment.toTranslationKey("enchantment");
         List<Text> tooltipLines = new ArrayList<>();
-        short level = 1;
+        int level = 1;
         boolean enoughLevels = handler.canEnchant(client.player, enchantment, level);
         MutableText enchantmentName = Text.translatable(translationKey)
             .formatted(EnchantmentClassifier.isEnchantmentPowerful(enchantment) ? Formatting.RED : Formatting.LIGHT_PURPLE);
@@ -214,7 +214,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
                     .append(Text.translatable("enchantment.level." + withLevel.getLevel()))
                     .append(" → ")
                     .append(Text.translatable("enchantment.level." + (withLevel.getLevel() + 1)));
-                level = (short)(withLevel.getLevel() + 1);
+                level = (int)(withLevel.getLevel() + 1);
                 enoughLevels = handler.canEnchant(client.player, enchantment, level);
 
             }

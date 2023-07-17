@@ -3,6 +3,7 @@ package net.backupcup.mcd_enchantments.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.backupcup.mcd_enchantments.MCDEnchantments;
+import net.backupcup.mcd_enchantments.util.EnchantmentUtils;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
@@ -93,7 +94,8 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
         return !inventory.getStack(0).isEmpty() &&
             !(inventory.getStack(1).getCount() < 8) &&
             !handler.hasProgress() &&
-            !inventory.getStack(0).getNbt().contains("Gilding");
+            !inventory.getStack(0).getNbt().contains("Gilding") &&
+            EnchantmentUtils.canGenerateEnchantment(inventory.getStack(0));
     }
 
     private void drawProgress(MatrixStack matrices, int progress) {

@@ -18,7 +18,6 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
@@ -148,7 +147,6 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
         }
         var id = gildedEnchantment.get();
         weaponStack.setSubNbt("Gilding", NbtString.of(id.toString()));
-        weaponStack.addEnchantment(Registry.ENCHANTMENT.get(id), 1);
     }
 
     private void resetProgress() {

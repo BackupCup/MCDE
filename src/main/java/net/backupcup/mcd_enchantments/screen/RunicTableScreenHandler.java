@@ -10,13 +10,11 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 
 public class RunicTableScreenHandler extends ScreenHandler {
     private final Inventory inventory;
@@ -66,7 +64,7 @@ public class RunicTableScreenHandler extends ScreenHandler {
         var slotsSize = Slots.values().length;
         var clickedSlot = slots.getSlot(Slots.values()[id / slotsSize]).get();
         var chosen = clickedSlot.getChosen();
-        short level = 1;
+        int level = 1;
         Identifier enchantmentId;
         if (chosen.isPresent()) {
             if (chosen.get().isMaxedOut()) {
@@ -78,15 +76,6 @@ public class RunicTableScreenHandler extends ScreenHandler {
             if (!canEnchant(player, enchantmentId, level)) {
                 return super.onButtonClick(player, id);
             }
-            var enchantments = itemStack.getNbt().getList("Enchantments", NbtElement.COMPOUND_TYPE);
-            for (int i = 0; i < enchantments.size(); i++) {
-                var nbt = enchantments.getCompound(i);
-                if (!nbt.getString("id").equals(enchantmentId.toString())) {
-                    continue;
-                }
-                nbt.putShort("lvl", level);
-                break;
-            }
         } else {
             int choiceSlot = id % slotsSize;
             enchantmentId = clickedSlot.getChoice(Slots.values()[choiceSlot]).get();
@@ -94,13 +83,13 @@ public class RunicTableScreenHandler extends ScreenHandler {
                 return super.onButtonClick(player, id);
             }
             clickedSlot.setChosen(Slots.values()[choiceSlot], level);
-            itemStack.addEnchantment(Registry.ENCHANTMENT.get(enchantmentId), level);
         }
         slots.updateItemStack(itemStack);
         player.playSound(SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, SoundCategory.BLOCKS, 0.5f, 1f);
         if (!player.isCreative()) {
             player.addExperienceLevels(-EnchantmentUtils.getCost(enchantmentId, level));
         }
+        inventory.markDirty();
         return super.onButtonClick(player, id);
     }
 
@@ -148,7 +137,7 @@ public class RunicTableScreenHandler extends ScreenHandler {
         }
     }
 
-    public boolean canEnchant(PlayerEntity player, Identifier enchantmentId, short level) {
+    public boolean canEnchant(PlayerEntity player, Identifier enchantmentId, int level) {
         if (!player.isCreative()) {return player.experienceLevel >= EnchantmentUtils.getCost(enchantmentId, level);}
         else {return true;}
     }

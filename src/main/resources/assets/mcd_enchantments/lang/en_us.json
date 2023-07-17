@@ -50,5 +50,6 @@
   "message.mcde.not_enough_levels": "Not enough experience levels",
   "message.mcde.lapis_required": "(%d lapis required)",
   "message.mcde.not_enough_lapis": "Not enough lapis",
-  "item.tooltip.gilded": "[Gilded] - %s"
+  "item.tooltip.gilded": "[Gilded] - %s",
+  "message.mcde.cant_generate": "Can't generate a new enchantment"
 }

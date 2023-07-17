@@ -1,6 +1,7 @@
 package net.backupcup.mcd_enchantments.screen;
 
-import net.backupcup.mcd_enchantments.util.ModTags;
+import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
+import net.backupcup.mcd_enchantments.util.EnchantmentUtils;
 import net.minecraft.enchantment.EnchantmentTarget;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -37,13 +38,12 @@ public class GildingFoundryScreenHandler extends ScreenHandler {
 
             @Override
             public boolean canInsert(ItemStack stack) {
-                return (stack.isIn(ModTags.Items.WEAPONS) ||
-                        EnchantmentTarget.TRIDENT.isAcceptableItem(stack.getItem()) ||
-                        EnchantmentTarget.BOW.isAcceptableItem(stack.getItem()) ||
-                        EnchantmentTarget.CROSSBOW.isAcceptableItem(stack.getItem()) ||
-                        EnchantmentTarget.ARMOR.isAcceptableItem(stack.getItem()) ||
-                        EnchantmentTarget.WEAPON.isAcceptableItem(stack.getItem()) ||
-                        EnchantmentTarget.DIGGER.isAcceptableItem(stack.getItem()));
+                return (EnchantmentSlots.fromItemStack(stack) != null &&
+                        !EnchantmentTarget.TRIDENT.isAcceptableItem(stack.getItem()) &&
+                        !EnchantmentTarget.DIGGER.isAcceptableItem(stack.getItem()) &&
+                        !EnchantmentTarget.FISHING_ROD.isAcceptableItem(stack.getItem()) &&
+                        EnchantmentUtils.canGenerateEnchantment(stack) &&
+                        !stack.getNbt().contains("Gilding"));
             }
 
             @Override
