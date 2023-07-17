@@ -167,17 +167,21 @@ public class EnchantmentUtils {
         return EnchantmentSlots.EMPTY;
     }
 
-    public static Optional<Identifier> generateEnchantment(ItemStack itemStack, EnchantmentSlots slots) {
-        return generateEnchantment(itemStack, slots, new LocalRandom(System.nanoTime()));
+    public static Optional<Identifier> generateEnchantment(ItemStack itemStack) {
+        return generateEnchantment(itemStack, new LocalRandom(System.nanoTime()));
     }
 
-    public static Optional<Identifier> generateEnchantment(ItemStack itemStack, EnchantmentSlots slots, Random random) {
+    public static Optional<Identifier> generateEnchantment(ItemStack itemStack, Random random) {
+        var slots = EnchantmentSlots.fromItemStack(itemStack);
+        var gilded = itemStack.getNbt().contains("Gilding") ?
+            Optional.of(Identifier.tryParse(itemStack.getNbt().getString("Gilding"))) :
+            Optional.empty();
         var present = slots.stream()
             .flatMap(slot -> slot.choices().stream())
             .map(choice -> choice.getEnchantment())
             .collect(Collectors.toSet());
         var newEnchantments = getEnchantmentsForItem(itemStack)
-            .filter(id -> !present.contains(id)).toList();
+            .filter(id -> !present.contains(id) || gilded.isPresent() && gilded.get().equals(id)).toList();
         if (newEnchantments.isEmpty()) {
             return Optional.empty();
         }

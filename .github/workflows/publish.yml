@@ -1,19 +1,32 @@
 name: Publish on GitHub, CurseForge & Modrinth
 
 env:
-  MINECRAFT_VERSION: 1.19.2
   JAVA_VERSION: 17
 
 permissions:
   contents: write
 
-on: release
+on:
+  release:
+    types: [published]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: Kir-Antipov/mc-publish@v3.3
+      - uses: actions/checkout@v3
+      - name: Set up JAVA ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v3
         with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@v2.6.0
+        with:
+          arguments: build
+      - name: Publish
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          github-token: ${{ github.token }}
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}

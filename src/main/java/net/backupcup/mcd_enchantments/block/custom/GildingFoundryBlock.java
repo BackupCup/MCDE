@@ -98,7 +98,6 @@ public class GildingFoundryBlock extends BlockWithEntity {
                 ItemScatterer.spawn(world, pos, (GildingFoundryBlockEntity)blockEntity);
                 world.updateComparators(pos,this);
             }
-            super.onStateReplaced(state, world, pos, newState, moved);
         }
     }
 

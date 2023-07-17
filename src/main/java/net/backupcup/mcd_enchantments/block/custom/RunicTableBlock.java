@@ -105,7 +105,6 @@ public class RunicTableBlock extends BlockWithEntity {
                 ItemScatterer.spawn(world, pos, (RunicTableBlockEntity)blockEntity);
                 world.updateComparators(pos,this);
             }
-            super.onStateReplaced(state, world, pos, newState, moved);
         }
     }
 

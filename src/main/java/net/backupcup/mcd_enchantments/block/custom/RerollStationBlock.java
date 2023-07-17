@@ -98,7 +98,6 @@ public class RerollStationBlock extends BlockWithEntity {
                 ItemScatterer.spawn(world, pos, (RerollStationBlockEntity)blockEntity);
                 world.updateComparators(pos,this);
             }
-            super.onStateReplaced(state, world, pos, newState, moved);
         }
     }
 

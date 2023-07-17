@@ -2,7 +2,6 @@ package net.backupcup.mcd_enchantments.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
-import net.backupcup.mcd_enchantments.MCDEClient;
 import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.util.*;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
