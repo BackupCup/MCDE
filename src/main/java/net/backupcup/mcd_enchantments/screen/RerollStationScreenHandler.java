@@ -4,6 +4,7 @@ import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
 import net.backupcup.mcd_enchantments.util.EnchantmentUtils;
 import net.backupcup.mcd_enchantments.util.Slots;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.EnchantmentTarget;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -17,6 +18,7 @@ import net.minecraft.screen.slot.Slot;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 
 public class RerollStationScreenHandler extends ScreenHandler {
     private final Inventory inventory;
@@ -42,8 +44,7 @@ public class RerollStationScreenHandler extends ScreenHandler {
                 return (slots != null &&
                         !EnchantmentTarget.TRIDENT.isAcceptableItem(stack.getItem()) &&
                         !EnchantmentTarget.DIGGER.isAcceptableItem(stack.getItem()) &&
-                        !EnchantmentTarget.FISHING_ROD.isAcceptableItem(stack.getItem()) &&
-                        EnchantmentUtils.getEnchantmentsForItem(stack).count() != slots.stream().flatMap(s -> s.choices().stream()).count());
+                        !EnchantmentTarget.FISHING_ROD.isAcceptableItem(stack.getItem()));
             }
 
             @Override
@@ -77,7 +78,7 @@ public class RerollStationScreenHandler extends ScreenHandler {
         var slotsSize = Slots.values().length;
         var clickedSlot = slots.getSlot(Slots.values()[id / slotsSize]).get();
         Slots toChange;
-        short level = 1;
+        int level = 1;
         Identifier enchantmentId;
         var newEnchantment = EnchantmentUtils.generateEnchantment(itemStack);
         if (newEnchantment.isEmpty()) {
@@ -94,14 +95,6 @@ public class RerollStationScreenHandler extends ScreenHandler {
             }
             clickedSlot.clearChoice();
             toChange = chosen.getSlot();
-            var list = itemStack.getNbt().getList("Enchantments", NbtElement.COMPOUND_TYPE);
-            for (int i = 0; i < list.size(); i++) {
-                var compound = list.getCompound(i);
-                if (enchantmentId.toString().equals(compound.getString("id"))) {
-                    list.remove(i);
-                }
-            }
-
         } else {
             toChange = Slots.values()[id % slotsSize];
             enchantmentId = clickedSlot.getChoice(toChange).get();
@@ -122,13 +115,12 @@ public class RerollStationScreenHandler extends ScreenHandler {
         return super.onButtonClick(player, id);
     }
 
-    public boolean canReroll(PlayerEntity player, Identifier enchantmentId, short level) {
-        ItemStack lapisLazuliStack = inventory.getStack(1);
-        if (!player.isCreative()) {
-            return lapisLazuliStack.getCount() >= EnchantmentUtils.getCost(enchantmentId, level);
-        } else {
+    public boolean canReroll(PlayerEntity player, Identifier enchantmentId, int level) {
+        if (player.isCreative()) {
             return true;
         }
+        ItemStack lapisLazuliStack = inventory.getStack(1);
+        return lapisLazuliStack.getCount() >= EnchantmentUtils.getCost(enchantmentId, level);
     }
 
     @Override
