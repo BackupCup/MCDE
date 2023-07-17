@@ -1,19 +1,15 @@
 package net.backupcup.mcd_enchantments.screen;
 
-import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
-import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.screen.EnchantmentTextureMapper.TexturePos;
 import net.backupcup.mcd_enchantments.util.EnchantmentClassifier;
-import net.backupcup.mcd_enchantments.util.Slots;
 import net.backupcup.mcd_enchantments.util.EnchantmentSlot.Choice;
 import net.backupcup.mcd_enchantments.util.EnchantmentSlot.ChoiceWithLevel;
+import net.backupcup.mcd_enchantments.util.Slots;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;

@@ -79,7 +79,7 @@ public class RerollStationScreenHandler extends ScreenHandler {
         Slots toChange;
         short level = 1;
         Identifier enchantmentId;
-        var newEnchantment = EnchantmentUtils.generateEnchantment(itemStack, slots);
+        var newEnchantment = EnchantmentUtils.generateEnchantment(itemStack);
         if (newEnchantment.isEmpty()) {
             return super.onButtonClick(player, id);
         }

@@ -70,7 +70,8 @@ public class GildingFoundryScreenHandler extends ScreenHandler {
 
     @Override
     public boolean onButtonClick(PlayerEntity player, int id) {
-        return super.onButtonClick(player, id);
+        startProgress();
+        return false;
     }
 
     @Override
@@ -96,6 +97,18 @@ public class GildingFoundryScreenHandler extends ScreenHandler {
         }
 
         return newStack;
+    }
+
+    public int getProgress() {
+        return propertyDelegate.get(0);
+    }
+
+    public void startProgress() {
+        propertyDelegate.set(0, 1);
+    }
+
+    public boolean hasProgress() {
+        return getProgress() != 0;
     }
 
     @Override
