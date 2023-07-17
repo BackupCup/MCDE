@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 public class EnchantmentSlot {
     private Slots slot;
     private Map<Slots, Identifier> enchantments;
-    private short level = 0;
+    private int level = 0;
 
     private Optional<Slots> chosen = Optional.empty();
 
@@ -26,7 +26,7 @@ public class EnchantmentSlot {
             Optional.of(new ChoiceWithLevel(chosen.get(), enchantments.get(chosen.get()), level)) : Optional.empty();
     }
 
-    public boolean setChosen(Slots chosen, short level) {
+    public boolean setChosen(Slots chosen, int level) {
         if (enchantments.containsKey(chosen)) {
             this.chosen = Optional.of(chosen);
             this.level = level;
@@ -77,14 +77,14 @@ public class EnchantmentSlot {
     }
 
     public class ChoiceWithLevel extends Choice {
-        private short level;
+        private int level;
 
-        private ChoiceWithLevel(Slots slot, Identifier enchantment, short level) {
+        private ChoiceWithLevel(Slots slot, Identifier enchantment, int level) {
             super(slot, enchantment);
             this.level = level;
         }
 
-        public short getLevel() {
+        public int getLevel() {
             return level;
         }
 
@@ -100,7 +100,7 @@ public class EnchantmentSlot {
         }
     }
 
-    private static boolean isMaxedOut(Identifier enchantmentId, short level) {
+    private static boolean isMaxedOut(Identifier enchantmentId, int level) {
         return level >= Registry.ENCHANTMENT.get(enchantmentId).getMaxLevel();
     }
 
@@ -129,7 +129,7 @@ public class EnchantmentSlot {
         root.put("Choices", choices);
         if (chosen.isPresent()) {
             root.putString("Chosen", chosen.get().name());
-            root.putShort("Level", level);
+            root.putInt("Level", level);
         }
         return root;
     }

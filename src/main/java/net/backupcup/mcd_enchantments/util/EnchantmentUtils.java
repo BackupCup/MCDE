@@ -54,7 +54,7 @@ public class EnchantmentUtils {
             .filter(target -> target.isAcceptableItem(item)).toList();
     }
 
-    public static int getCost(Identifier enchantmentId, short level) {
+    public static int getCost(Identifier enchantmentId, int level) {
         return (EnchantmentClassifier.isEnchantmentPowerful(enchantmentId) ? 5 : 3) * level;
     }
 

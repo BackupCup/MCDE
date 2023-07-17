@@ -118,7 +118,6 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
         }
         var id = gildedEnchantment.get();
         weaponStack.setSubNbt("Gilding", NbtString.of(id.toString()));
-        weaponStack.addEnchantment(Registry.ENCHANTMENT.get(id), 1);
     }
 
     private void resetProgress() {
