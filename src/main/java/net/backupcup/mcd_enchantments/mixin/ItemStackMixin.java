@@ -125,7 +125,7 @@ public abstract class ItemStackMixin {
         return newList;
     }
 
-    @Inject(method = "hasEnchantments", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "hasGlint", at = @At("HEAD"), cancellable = true)
     private void hasEnchantments(CallbackInfoReturnable<Boolean> cir) {
         if (!hasNbt() || !nbt.contains("Slots")) {
             return;
