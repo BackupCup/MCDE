@@ -28,7 +28,7 @@ import static net.minecraft.enchantment.Enchantments.*;
 import static net.minecraft.util.registry.Registry.ENCHANTMENT;
 
 public class EnchantmentUtils {
-    private static Predicate<String> namespaceMatcher = Pattern.compile("minecraft|mcd[aw]|enchantmentsplus").asPredicate(); //ADD "|qu-enchantments" TO IT WHEN THE BUG IS FIXED
+    private static Predicate<String> namespaceMatcher = Pattern.compile("minecraft|mcd[aw]|enchantmentsplus|qu-enchantments").asPredicate();
 
     public static Stream<Identifier> getEnchantmentStream() {
         return ENCHANTMENT.getIds().stream()
