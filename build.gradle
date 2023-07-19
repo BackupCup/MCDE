@@ -7,12 +7,16 @@ version = project.mod_version
 group = project.maven_group
 
 repositories {
-	// Add repositories to retrieve artifacts from in here.
-	// You should only use this when depending on other mods because
-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
-	// for more information about repositories.
-    maven { url 'https://jitpack.io' }
+    // Add repositories to retrieve artifacts from in here.
+    // You should only use this when depending on other mods because
+    // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
+    // See https://docs.gradle.org/current/userguide/declaring_repositories.html
+    // for more information about repositories.
+    maven {
+        name = "Jitpack"
+            url 'https://jitpack.io'
+    }
+    maven { url = "https://www.cursemaven.com" }
 }
 
 dependencies {
@@ -29,9 +33,9 @@ dependencies {
 
 	// modImplementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
 
-    implementation "com.github.LlamaLad7:MixinExtras:0.1.1" 
-    annotationProcessor "com.github.LlamaLad7:MixinExtras:0.1.1" 
-    include "com.github.LlamaLad7:MixinExtras:0.1.1" 
+    implementation "com.github.LlamaLad7:MixinExtras:${project.mixin_extras_version}" 
+    annotationProcessor "com.github.LlamaLad7:MixinExtras:${project.mixin_extras_version}" 
+    include "com.github.LlamaLad7:MixinExtras:${project.mixin_extras_version}" 
 }
 
 base {
