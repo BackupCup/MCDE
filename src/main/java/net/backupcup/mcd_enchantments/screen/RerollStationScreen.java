@@ -67,7 +67,7 @@ public class RerollStationScreen extends HandledScreen<RerollStationScreenHandle
                     if (choice instanceof EnchantmentSlot.ChoiceWithLevel withLevel) {
                         level = (int) (withLevel.getLevel() + 1);
                     }
-                    return !handler.canReroll(client.player, choice.getEnchantment(), level) || !EnchantmentUtils.canGenerateEnchantment(inventory.getStack(0));
+                    return !handler.canReroll(client.player, choice.getEnchantmentId(), level) || !EnchantmentUtils.canGenerateEnchantment(inventory.getStack(0));
                 })
                 .withSlotTexturePos(187, 105)
                 .withOutlinePos(187, 138)
@@ -196,7 +196,7 @@ public class RerollStationScreen extends HandledScreen<RerollStationScreenHandle
             return;
         }
 
-        Identifier enchantment = hoveredChoice.get().getEnchantment();
+        Identifier enchantment = hoveredChoice.get().getEnchantmentId();
         String translationKey = enchantment.toTranslationKey("enchantment");
         List<Text> tooltipLines = new ArrayList<>();
         int level = 1;

@@ -74,7 +74,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
                     level = (int)(withLevel.getLevel() + 1);
                     isMaxedOut = withLevel.isMaxedOut();
                 }
-                return isMaxedOut || !handler.canEnchant(client.player, choice.getEnchantment(), level);
+                return isMaxedOut || !handler.canEnchant(client.player, choice.getEnchantmentId(), level);
             })
             .withSlotTexturePos(187, 105)
             .withOutlinePos(187, 138)
@@ -196,7 +196,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
             return;
         }
 
-        Identifier enchantment = hoveredChoice.get().getEnchantment();
+        Identifier enchantment = hoveredChoice.get().getEnchantmentId();
         String translationKey = enchantment.toTranslationKey("enchantment");
         List<Text> tooltipLines = new ArrayList<>();
         int level = 1;

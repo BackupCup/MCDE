@@ -195,7 +195,7 @@ public class EnchantmentUtils {
             .collect(Collectors.toSet());
         EnchantmentSlots.fromItemStack(itemStack).stream()
             .flatMap(s -> s.choices().stream())
-            .map(c -> c.getEnchantment()).forEach(id -> present.add(id));
+            .map(c -> c.getEnchantmentId()).forEach(id -> present.add(id));
         return present;
     }
 

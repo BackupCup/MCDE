@@ -84,7 +84,7 @@ public class RerollStationScreenHandler extends ScreenHandler {
 
         if (clickedSlot.getChosen().isPresent()) {
             var chosen = clickedSlot.getChosen().get();
-            enchantmentId = chosen.getEnchantment();
+            enchantmentId = chosen.getEnchantmentId();
             level = chosen.getLevel();
 
             if (!canReroll(player, enchantmentId, level)) {

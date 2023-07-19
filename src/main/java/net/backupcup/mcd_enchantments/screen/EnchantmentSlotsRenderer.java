@@ -58,7 +58,7 @@ public class EnchantmentSlotsRenderer {
     }
 
     public void drawEnchantmentIconInSlot(MatrixStack matrices, Slots slot, ChoiceWithLevel choice) {
-        var texPos = EnchantmentClassifier.isEnchantmentPowerful(choice.getEnchantment()) ?
+        var texPos = EnchantmentClassifier.isEnchantmentPowerful(choice.getEnchantmentId()) ?
             powerfulOutlinePos : outlinePos;
         var pos = slotPos.get(slot);
         helper.drawTexture(matrices, pos.x(), pos.y(), texPos.x(), texPos.y(), 31, 31);
@@ -67,12 +67,12 @@ public class EnchantmentSlotsRenderer {
 
     public void drawEnchantmentIconOutline(MatrixStack matrices, Slots slot, Choice choice, int mouseX, int mouseY) {
         var drawPos = slotPos.get(slot).add(choicePosOffset).add(choiceOffsets.get(choice.getSlot()));
-        RenderSystem.setShaderTexture(0, EnchantmentTextureMapper.getTexture(choice.getEnchantment()));
+        RenderSystem.setShaderTexture(0, EnchantmentTextureMapper.getTexture(choice.getEnchantmentId()));
         if (isInChoiceBounds(slot, choice.getSlot(), mouseX, mouseY)) {
             helper.drawTexture(matrices, drawPos.x() - 1, drawPos.y() - 1, 226, 225, 25, 25);
             return;
         }
-        if (EnchantmentClassifier.isEnchantmentPowerful(choice.getEnchantment())) {
+        if (EnchantmentClassifier.isEnchantmentPowerful(choice.getEnchantmentId())) {
             helper.drawTexture(matrices, drawPos.x() - 1, drawPos.y() - 1, 199, 225, 25, 25);
             return;
         }
@@ -119,7 +119,7 @@ public class EnchantmentSlotsRenderer {
     }
 
     private void drawEnchantmentIcon(MatrixStack matrices, TexturePos drawPos, Slots slot, Choice choice) {
-        Identifier enchantmentID = choice.getEnchantment();
+        Identifier enchantmentID = choice.getEnchantmentId();
         RenderSystem.setShaderTexture(0, EnchantmentTextureMapper.getTexture(enchantmentID));
         var pos = EnchantmentTextureMapper.getPos(enchantmentID);
         if (dimPredicate.test(choice)) {

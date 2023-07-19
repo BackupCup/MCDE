@@ -1,5 +1,6 @@
 package net.backupcup.mcd_enchantments.util;
 
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
@@ -71,8 +72,11 @@ public class EnchantmentSlot {
         public int ordinal() {
             return slot.ordinal();
         }
-        public Identifier getEnchantment() {
+        public Identifier getEnchantmentId() {
             return enchantment;
+        }
+        public Enchantment getEnchantment() {
+            return Registry.ENCHANTMENT.get(enchantment);
         }
     }
 
@@ -96,7 +100,7 @@ public class EnchantmentSlot {
         }
 
         public boolean isMaxedOut() {
-            return EnchantmentSlot.isMaxedOut(getEnchantment(), level);
+            return EnchantmentSlot.isMaxedOut(getEnchantmentId(), level);
         }
     }
 
