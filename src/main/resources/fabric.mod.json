@@ -44,6 +44,7 @@
     "mcdw": ">=5.0.12-1.19",
     "mcda": ">=2.4.4",
     "qu-enchantments": ">=1.2.4-1.19"
+    "enchantments-plus": ">=1.1.11.19.2"
   },
   "custom": {
     "mc-publish": {
