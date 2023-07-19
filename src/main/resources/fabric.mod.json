@@ -15,7 +15,7 @@
     "sources": "https://github.com/EndLone/MCDE"
   },
 
-  "license": "Custom License",
+  "license": "MIT License",
   "icon": "assets/mcd_enchantments/icon.png",
 
   "environment": "*",
@@ -42,7 +42,8 @@
   },
   "suggests": {
     "mcdw": ">=5.0.12-1.19",
-    "mcda": ">=2.4.4"
+    "mcda": ">=2.4.4",
+    "qu-enchantments": ">=1.2.4-1.19"
   },
   "custom": {
     "mc-publish": {
