@@ -12,6 +12,7 @@ import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -19,27 +20,27 @@ import net.minecraft.util.Identifier;
 
 public class RerollStationScreenHandler extends ScreenHandler {
     private final Inventory inventory;
+    private final ScreenHandlerContext context;
     public Inventory getInventory() {
         return inventory;
     }
 
     public RerollStationScreenHandler(int syncId, PlayerInventory inventory) {
-        this(syncId, inventory, new SimpleInventory(2));
+        this(syncId, inventory, new SimpleInventory(2), ScreenHandlerContext.EMPTY);
     }
 
-    public RerollStationScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory) {
+    public RerollStationScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, ScreenHandlerContext context) {
         super(ModScreenHandlers.REROLL_STATION_SCREEN_HANDLER, syncId);
 
         checkSize(inventory, 1);
         this.inventory = inventory;
+        this.context = context;
         inventory.onOpen(playerInventory.player);
 
         this.addSlot(new Slot(inventory, 0, 145, 33) {
             @Override
             public boolean canInsert(ItemStack stack) {
-                var slots = EnchantmentSlots.fromItemStack(stack);
-                return (slots != null &&
-                        !EnchantmentTarget.TRIDENT.isAcceptableItem(stack.getItem()) &&
+                return (!EnchantmentTarget.TRIDENT.isAcceptableItem(stack.getItem()) &&
                         !EnchantmentTarget.DIGGER.isAcceptableItem(stack.getItem()) &&
                         !EnchantmentTarget.FISHING_ROD.isAcceptableItem(stack.getItem()));
             }
@@ -108,7 +109,7 @@ public class RerollStationScreenHandler extends ScreenHandler {
             lapisLazuliStack.decrement(EnchantmentUtils.getCost(enchantmentId, level));
         }
         player.playSound(SoundEvents.BLOCK_GRINDSTONE_USE, SoundCategory.BLOCKS, 0.5f, 1f);
-
+        inventory.markDirty();
         return super.onButtonClick(player, id);
     }
 
@@ -148,6 +149,14 @@ public class RerollStationScreenHandler extends ScreenHandler {
     @Override
     public boolean canUse(PlayerEntity player) {
         return this.inventory.canPlayerUse(player);
+    }
+
+    @Override
+    public void close(PlayerEntity player) {
+        super.close(player);
+        context.run((world, pos) -> {
+            dropInventory(player, inventory);
+        });
     }
 
     private void addPlayerInventory(PlayerInventory playerInventory) {

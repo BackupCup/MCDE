@@ -13,6 +13,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
@@ -45,7 +46,7 @@ public class RunicTableBlockEntity extends BlockEntity implements NamedScreenHan
     @Nullable
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
-        return new RunicTableScreenHandler(syncId, inv, this);
+        return new RunicTableScreenHandler(syncId, inv, this, ScreenHandlerContext.create(world, pos));
     }
 
     @Override
