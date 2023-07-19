@@ -193,7 +193,11 @@ public class EnchantmentUtils {
         var present = EnchantmentHelper.get(itemStack).keySet().stream()
             .map(key -> Registry.ENCHANTMENT.getId(key))
             .collect(Collectors.toSet());
-        EnchantmentSlots.fromItemStack(itemStack).stream()
+        var slots = EnchantmentSlots.fromItemStack(itemStack);
+        if (slots == null) {
+            return present;
+        }
+        slots.stream()
             .flatMap(s -> s.choices().stream())
             .map(c -> c.getEnchantmentId()).forEach(id -> present.add(id));
         return present;
