@@ -3,11 +3,9 @@ package net.backupcup.mcd_enchantments.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.screen.EnchantmentTextureMapper.TexturePos;
-import net.backupcup.mcd_enchantments.util.EnchantmentClassifier;
 import net.backupcup.mcd_enchantments.util.EnchantmentSlot.Choice;
 import net.backupcup.mcd_enchantments.util.EnchantmentSlot.ChoiceWithLevel;
 import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
-import net.backupcup.mcd_enchantments.util.EnchantmentUtils;
 import net.backupcup.mcd_enchantments.util.Slots;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.render.GameRenderer;
@@ -202,7 +200,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
         int level = 1;
         boolean enoughLevels = handler.canEnchant(client.player, enchantment, level);
         MutableText enchantmentName = Text.translatable(translationKey)
-            .formatted(EnchantmentClassifier.isEnchantmentPowerful(enchantment) ? Formatting.RED : Formatting.LIGHT_PURPLE);
+            .formatted(MCDEnchantments.getConfig().isEnchantmentPowerful(enchantment) ? Formatting.RED : Formatting.LIGHT_PURPLE);
         if (hoveredChoice.get() instanceof ChoiceWithLevel withLevel) {
             enchantmentName.append(" ");
             if (withLevel.isMaxedOut()) {
@@ -230,7 +228,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
             tooltipLines.add(Text.translatable("message.mcde.not_enough_levels").formatted(Formatting.DARK_RED, Formatting.ITALIC));
             tooltipLines.add(Text.translatable(
                         "message.mcde.levels_required",
-                        EnchantmentUtils.getCost(enchantment, level)
+                        RunicTableScreenHandler.getEnchantCost(enchantment, level)
                         ).formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
         }
         renderTooltip(matrices, tooltipLines, mouseX, mouseY);

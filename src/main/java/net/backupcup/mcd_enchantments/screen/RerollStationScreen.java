@@ -202,7 +202,7 @@ public class RerollStationScreen extends HandledScreen<RerollStationScreenHandle
         int level = 1;
         boolean canReroll = handler.canReroll(client.player, enchantment, level);
         MutableText enchantmentName = Text.translatable(translationKey)
-                .formatted(EnchantmentClassifier.isEnchantmentPowerful(enchantment) ? Formatting.RED
+                .formatted(MCDEnchantments.getConfig().isEnchantmentPowerful(enchantment) ? Formatting.RED
                         : Formatting.LIGHT_PURPLE);
         if (hoveredChoice.get() instanceof EnchantmentSlot.ChoiceWithLevel withLevel) {
             enchantmentName.append(" ")
@@ -223,7 +223,7 @@ public class RerollStationScreen extends HandledScreen<RerollStationScreenHandle
                     Formatting.ITALIC));
             tooltipLines.add(Text.translatable(
                     "message.mcde.lapis_required",
-                    EnchantmentUtils.getCost(enchantment, level)).formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
+                    RerollStationScreenHandler.getRerollCost(enchantment, level)).formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
         }
         if (!EnchantmentUtils.canGenerateEnchantment(itemStack)) {
             tooltipLines.add(Text.translatable("message.mcde.cant_generate").formatted(Formatting.DARK_RED, Formatting.ITALIC));

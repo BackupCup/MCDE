@@ -18,8 +18,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,11 +26,8 @@ import static net.minecraft.enchantment.Enchantments.*;
 import static net.minecraft.util.registry.Registry.ENCHANTMENT;
 
 public class EnchantmentUtils {
-    private static Predicate<String> namespaceMatcher = Pattern.compile("minecraft|mcd[aw]|enchantmentsplus|qu-enchantments").asPredicate();
-
     public static Stream<Identifier> getEnchantmentStream() {
-        return ENCHANTMENT.getIds().stream()
-            .filter(id -> namespaceMatcher.test(id.getNamespace()));
+        return ENCHANTMENT.getIds().stream();
     }
 
     public static Stream<Identifier> getEnchantmentsForItem(ItemStack itemStack) {
@@ -45,23 +40,17 @@ public class EnchantmentUtils {
 
     public static Stream<Identifier> getAllEnchantmentsForItem(ItemStack itemStack) {
         return ENCHANTMENT.getIds().stream()
-            .filter(id -> namespaceMatcher.test(id.getNamespace()) &&
-                    (itemStack.isIn(ModTags.Items.WEAPONS) &&
-                     ENCHANTMENT.get(id).type.equals(EnchantmentTarget.WEAPON) ||
-                     ENCHANTMENT.get(id).type.isAcceptableItem(itemStack.getItem())) &&
-                    !(ENCHANTMENT.get(id).isCursed() ||
-                        ENCHANTMENT.getId(MENDING).equals(id) ||
-                        ENCHANTMENT.getId(UNBREAKING).equals(id) ||
-                        EnchantmentClassifier.bannedEnchantments.contains(id)));
+            .filter(id -> MCDEnchantments.getConfig().isEnchantmentAllowed(id) &&
+                          (!ENCHANTMENT.get(id).isCursed() ||
+                               MCDEnchantments.getConfig().areCursedEnchantmentsAllowed()) &&
+                          (itemStack.isIn(ModTags.Items.WEAPONS) &&
+                               ENCHANTMENT.get(id).type.equals(EnchantmentTarget.WEAPON) ||
+                               ENCHANTMENT.get(id).type.isAcceptableItem(itemStack.getItem())));
     }
 
     public static List<EnchantmentTarget> getEnchantmentTargets(Item item) {
         return Arrays.stream(EnchantmentTarget.values())
             .filter(target -> target.isAcceptableItem(item)).toList();
-    }
-
-    public static int getCost(Identifier enchantmentId, int level) {
-        return (EnchantmentClassifier.isEnchantmentPowerful(enchantmentId) ? 5 : 3) * level;
     }
 
     public static Identifier getEnchantmentId(Enchantment enchantment) {

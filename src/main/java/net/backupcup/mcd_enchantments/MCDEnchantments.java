@@ -139,6 +139,14 @@ public class MCDEnchantments implements ModInitializer {
             return allowAnvilItemMixing;
         }
 
+        public int getGildingCost() {
+            return gildingCost;
+        }
+
+        public int getTicksPerGildingProcessStep() {
+            return ticksPerGildingProcessStep;
+        }
+
         @Comment("Has two possible values:\n" +
                  "ALLOW - Only allow enchantments specified in 'list' to appear\n" +
                  "DENY - Make enchantments specified in 'list' to never appear")
@@ -177,12 +185,19 @@ public class MCDEnchantments implements ModInitializer {
         @Comment("Sets amount of lapis needed for reroll per level for powerful enchantments")
         private int rerollCostPowerful = 5;
 
-        @Comment("Set whether villagers sell enchanted books only with unbreaking\n" +
+        @Comment("Sets whether villagers sell enchanted books only with unbreaking\n" +
                  "On false, villagers have vanilla trades")
         private boolean villagersSellOnlyUnbreaking = true;
 
         @Comment("Allow mixing items in anvil\n" +
                  "On true, vanilla anvil behaviour is applied")
         private boolean allowAnvilItemMixing = false;
+
+        @Comment("Sets cost of gilding")
+        private int gildingCost = 8;
+
+        @Comment("Each n-th tick (where n is this setting) would increment progress of gilding.\n" +
+                 "The process consists of 33 steps (frames). So, overall process would take n * 33 ticks.")
+        private int ticksPerGildingProcessStep = 1;
     }
 }

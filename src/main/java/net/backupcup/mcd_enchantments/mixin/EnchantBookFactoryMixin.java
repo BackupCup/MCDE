@@ -19,7 +19,9 @@ import net.minecraft.village.TradeOffers;
 public class EnchantBookFactoryMixin {
     @Inject(method = "create", at = @At("HEAD"), cancellable = true)
     private void changeTrade(Entity entity, Random random, CallbackInfoReturnable<TradeOffer> cir) {
-        MCDEnchantments.LOGGER.info("changeTrade in mixin called");
+        if (!MCDEnchantments.getConfig().areVillagersSellOnlyUnbreaking()) {
+            return;
+        }
         var book = new ItemStack(Items.ENCHANTED_BOOK);
         book.addEnchantment(Enchantments.UNBREAKING, random.nextBetween(1, 3));
         cir.setReturnValue(new TradeOffer(

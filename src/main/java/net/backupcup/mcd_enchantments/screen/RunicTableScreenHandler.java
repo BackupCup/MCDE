@@ -1,7 +1,7 @@
 package net.backupcup.mcd_enchantments.screen;
 
+import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
-import net.backupcup.mcd_enchantments.util.EnchantmentUtils;
 import net.backupcup.mcd_enchantments.util.ModTags;
 import net.backupcup.mcd_enchantments.util.Slots;
 import net.minecraft.enchantment.EnchantmentTarget;
@@ -59,6 +59,10 @@ public class RunicTableScreenHandler extends ScreenHandler {
         addPlayerHotbar(playerInventory);
     }
 
+    public static int getEnchantCost(Identifier enchantmentId, int level) {
+        return MCDEnchantments.getConfig().getEnchantCostPerLevel(enchantmentId) * level;
+    }
+
     @Override
     public boolean onButtonClick(PlayerEntity player, int id) {
         ItemStack itemStack = inventory.getStack(0);
@@ -90,7 +94,7 @@ public class RunicTableScreenHandler extends ScreenHandler {
         slots.updateItemStack(itemStack);
         player.playSound(SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, SoundCategory.BLOCKS, 0.5f, 1f);
         if (!player.isCreative()) {
-            player.addExperienceLevels(-EnchantmentUtils.getCost(enchantmentId, level));
+            player.addExperienceLevels(-RunicTableScreenHandler.getEnchantCost(enchantmentId, level));
         }
         inventory.markDirty();
         return super.onButtonClick(player, id);
@@ -149,7 +153,7 @@ public class RunicTableScreenHandler extends ScreenHandler {
     }
 
     public boolean canEnchant(PlayerEntity player, Identifier enchantmentId, int level) {
-        if (!player.isCreative()) {return player.experienceLevel >= EnchantmentUtils.getCost(enchantmentId, level);}
+        if (!player.isCreative()) {return player.experienceLevel >= RunicTableScreenHandler.getEnchantCost(enchantmentId, level);}
         else {return true;}
     }
 }

@@ -26,7 +26,6 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(2, ItemStack.EMPTY);
     private int gilding_progress;
     private int gilding_tick_counter;
-    private static final int TICKS_PER_PROGRESS_STEP = 1;
     private boolean slotsRead = false;
 
     public DefaultedList<ItemStack> getInventory() {
@@ -51,7 +50,6 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
         }
 
     };
-
 
     public GildingFoundryBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.GILDING_FOUNDRY, pos, state);
@@ -98,13 +96,13 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
         if (entity.gilding_progress == 0) {
             return;
         }
-        if (entity.inventory.get(0).isEmpty() || entity.inventory.get(1).getCount() < 8) {
+        if (entity.inventory.get(0).isEmpty() || entity.inventory.get(1).getCount() < MCDEnchantments.getConfig().getGildingCost()) {
             entity.resetProgress();
             markDirty(world, blockPos, state);
             return;
         }
         entity.gilding_tick_counter++;
-        entity.gilding_tick_counter %= TICKS_PER_PROGRESS_STEP;
+        entity.gilding_tick_counter %= MCDEnchantments.getConfig().getTicksPerGildingProcessStep();
         if (entity.gilding_tick_counter == 0) {
             entity.gilding_progress++;
             if (entity.gilding_progress >= 34) {
@@ -140,7 +138,7 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
     private void finishGilding() {
         gilding_progress = 0;
         gilding_tick_counter = 0;
-        inventory.get(1).decrement(8);
+        inventory.get(1).decrement(MCDEnchantments.getConfig().getGildingCost());
         var weaponStack = inventory.get(0);
         var gildedEnchantment = EnchantmentUtils.generateEnchantment(weaponStack);
         if (gildedEnchantment.isEmpty()) {

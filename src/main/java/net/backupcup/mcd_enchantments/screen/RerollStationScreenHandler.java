@@ -67,6 +67,10 @@ public class RerollStationScreenHandler extends ScreenHandler {
         addPlayerHotbar(playerInventory);
     }
 
+    public static int getRerollCost(Identifier enchantmentId, int level) {
+        return MCDEnchantments.getConfig().getRerollCostPerLevel(enchantmentId) * level;
+    }
+
     @Override
     public boolean onButtonClick(PlayerEntity player, int id) {
         ItemStack itemStack = inventory.getStack(0);
@@ -104,9 +108,9 @@ public class RerollStationScreenHandler extends ScreenHandler {
 
         clickedSlot.changeEnchantment(toChange, newEnchantment.get());
         slots.updateItemStack(itemStack);
-        MCDEnchantments.LOGGER.info("Decrementing lapis by {} items", EnchantmentUtils.getCost(enchantmentId, level));
+        MCDEnchantments.LOGGER.info("Decrementing lapis by {} items", getRerollCost(enchantmentId, level));
         if (!player.isCreative()) {
-            lapisLazuliStack.decrement(EnchantmentUtils.getCost(enchantmentId, level));
+            lapisLazuliStack.decrement(getRerollCost(enchantmentId, level));
         }
         player.playSound(SoundEvents.BLOCK_GRINDSTONE_USE, SoundCategory.BLOCKS, 0.5f, 1f);
         inventory.markDirty();
@@ -118,7 +122,7 @@ public class RerollStationScreenHandler extends ScreenHandler {
             return true;
         }
         ItemStack lapisLazuliStack = inventory.getStack(1);
-        return lapisLazuliStack.getCount() >= EnchantmentUtils.getCost(enchantmentId, level);
+        return lapisLazuliStack.getCount() >= getRerollCost(enchantmentId, level);
     }
 
     @Override
