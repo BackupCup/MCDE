@@ -1,15 +1,15 @@
 package net.backupcup.mcd_enchantments.mixin;
 
-import net.backupcup.mcd_enchantments.MCDEnchantments;
-import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.AnvilScreenHandler;
-import net.minecraft.screen.slot.Slot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import net.backupcup.mcd_enchantments.MCDEnchantments;
+import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
+import net.minecraft.item.ItemStack;
+import net.minecraft.screen.AnvilScreenHandler;
+import net.minecraft.screen.slot.Slot;
 
 @Mixin(AnvilScreenHandler.class)
 public abstract class AnvilScreenHandlerMixin {
@@ -17,8 +17,8 @@ public abstract class AnvilScreenHandlerMixin {
         return ((AnvilScreenHandler)(Object)this).getSlot(index);
     }
 
-    @Inject(method = "canTakeOutput", at = @At("HEAD"), cancellable = true)
-    protected void canTakeOutputProxy(PlayerEntity player, boolean present, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "updateResult", at = @At("HEAD"), cancellable = true)
+    private void setEmptyResultOnMixing(CallbackInfo ci) {
         if (MCDEnchantments.getConfig().isAnvilItemMixingAllowed()) {
             return;
         }
@@ -28,7 +28,8 @@ public abstract class AnvilScreenHandlerMixin {
             return;
         }
         if (EnchantmentSlots.fromItemStack(input1) != null || EnchantmentSlots.fromItemStack(input2) != null) {
-            cir.setReturnValue(false);
+            screenGetSlot(2).setStack(ItemStack.EMPTY);
+            ci.cancel();
         }
     }
 }
