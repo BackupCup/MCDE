@@ -13,8 +13,6 @@ repositories {
     // See https://docs.gradle.org/current/userguide/declaring_repositories.html
     // for more information about repositories.
     maven { url = 'https://jitpack.io' }
-    maven { url = "https://www.cursemaven.com" }
-    maven { url = "https://maven.modmuss50.me/" }
 }
 
 dependencies {
@@ -31,7 +29,7 @@ dependencies {
 
 	// modImplementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
 
-    implementation 'org.spongepowered:configurate-hocon:${project.configurate_version}'
+    implementation "org.spongepowered:configurate-hocon:${project.configurate_version}"
 
     implementation "com.github.LlamaLad7:MixinExtras:${project.mixin_extras_version}" 
     annotationProcessor "com.github.LlamaLad7:MixinExtras:${project.mixin_extras_version}" 
