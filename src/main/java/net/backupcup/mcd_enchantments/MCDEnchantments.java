@@ -2,8 +2,8 @@ package net.backupcup.mcd_enchantments;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.configurate.ConfigurateException;
@@ -24,6 +24,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 
 public class MCDEnchantments implements ModInitializer {
 	public static final String MOD_ID = "mcd_enchantments";
@@ -43,9 +44,9 @@ public class MCDEnchantments implements ModInitializer {
         config = Config.load();
 
         ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
-            if (entity.isPlayer()) {
+            if (entity.isPlayer() && Config.lastError != null) {
                 entity.sendMessage(Text.literal("[MCDEnchantments]: ")
-                        .append(Config.lastError()).formatted(Formatting.RED));
+                        .append(Config.lastError).formatted(Formatting.RED));
             }
         });
 	}
@@ -53,10 +54,6 @@ public class MCDEnchantments implements ModInitializer {
 
     @ConfigSerializable
     public static class Config {
-        public enum ConstraintType {
-            ALLOW, DENY
-        }
-
         private static final HoconConfigurationLoader loader = HoconConfigurationLoader.builder()
             .path(getConfigFile())
             .defaultOptions(opts -> 
@@ -77,19 +74,6 @@ public class MCDEnchantments implements ModInitializer {
 
         private static Text lastError;
 
-        public static @Nullable Text lastError() {
-            return lastError;
-        }
-
-        @Comment("Determines whether constraints should allow or deny listed enchantments")
-        private ConstraintType constraintType = ConstraintType.DENY;
-
-        @Comment("Lists all enchantments that should (not)\nbe included when using blocks from this mod")
-        private IdentifierGlobbedList constraintList = new IdentifierGlobbedList(List.of(
-            "minecraft:mending",
-            "minecraft:unbreaking"
-        ));
-
         public static Config load() {
             var defaults = new Config();
             try {
@@ -97,9 +81,7 @@ public class MCDEnchantments implements ModInitializer {
                     lastError = null;
                     return loader.load().get(Config.class);
                 }
-                var root = loader.load();
-                root.set(Config.class, defaults);
-                loader.save(root);
+                loader.save(loader.load().set(Config.class, defaults));
                 lastError = null;
                 return defaults;
             } catch (ConfigurateException e) {
@@ -121,5 +103,86 @@ public class MCDEnchantments implements ModInitializer {
                 return defaults;
             }
         }
+
+        public enum ListType {
+            ALLOW, DENY
+        }
+
+        public boolean isEnchantmentAllowed(Identifier id) {
+            return switch (listKind) {
+                case ALLOW -> list.contains(id);
+                case DENY -> !list.contains(id);
+            };
+        }
+
+        public boolean areCursedEnchantmentsAllowed() {
+            return allowCursed;
+        }
+
+        public boolean isEnchantmentPowerful(Identifier id) {
+            return powerful.contains(id);
+        }
+
+        public int getEnchantCostPerLevel(Identifier id) {
+            return isEnchantmentPowerful(id) ? enchantCostPowerful : enchantCost;
+        }
+
+        public int getRerollCostPerLevel(Identifier id) {
+            return isEnchantmentPowerful(id) ? rerollCostPowerful : rerollCost;
+        }
+
+        public boolean areVillagersSellOnlyUnbreaking() {
+            return villagersSellOnlyUnbreaking;
+        }
+
+        public boolean isAnvilItemMixingAllowed() {
+            return allowAnvilItemMixing;
+        }
+
+        @Comment("Has two possible values:\n" +
+                 "ALLOW - Only allow enchantments specified in 'list' to appear\n" +
+                 "DENY - Make enchantments specified in 'list' to never appear")
+        private ListType listKind = ListType.DENY;
+
+        @Comment("Lists all enchantments to be excluded (or included) when using blocks from this mod")
+        private IdentifierGlobbedList list = new IdentifierGlobbedList(List.of(
+            "minecraft:mending",
+            "minecraft:unbreaking"
+        ));
+
+        @Comment("Allow cursed enchantments to appear")
+        private boolean allowCursed = false;
+
+        @Comment("All enchantments from this list is considered 'powerful'.\n" + 
+                 "Generally, it means increased cost for enchanting and rerolling.")
+        private IdentifierGlobbedList powerful = new IdentifierGlobbedList(Map.of("minecraft", List.of(
+            "protection",
+            "sharpness",
+            "sweeping",
+            "riptide",
+            "channeling",
+            "infinity",
+            "fortune",
+            "silk_touch",
+            "multishot"
+        ))); 
+
+        @Comment("Sets cost of enchanting in xp levels per level")
+        private int enchantCost = 3;
+        @Comment("Sets cost of enchanting in xp levels per level for powerful enchantments")
+        private int enchantCostPowerful = 5;
+
+        @Comment("Sets amount of lapis needed for reroll per level")
+        private int rerollCost = 3;
+        @Comment("Sets amount of lapis needed for reroll per level for powerful enchantments")
+        private int rerollCostPowerful = 5;
+
+        @Comment("Set whether villagers sell enchanted books only with unbreaking\n" +
+                 "On false, villagers have vanilla trades")
+        private boolean villagersSellOnlyUnbreaking = true;
+
+        @Comment("Allow mixing items in anvil\n" +
+                 "On true, vanilla anvil behaviour is applied")
+        private boolean allowAnvilItemMixing = false;
     }
 }
