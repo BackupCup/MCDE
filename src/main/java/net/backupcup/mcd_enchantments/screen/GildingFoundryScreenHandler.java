@@ -1,7 +1,5 @@
 package net.backupcup.mcd_enchantments.screen;
 
-import net.backupcup.mcd_enchantments.util.EnchantmentUtils;
-import net.minecraft.enchantment.EnchantmentTarget;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -37,11 +35,7 @@ public class GildingFoundryScreenHandler extends ScreenHandler {
 
             @Override
             public boolean canInsert(ItemStack stack) {
-                return (!EnchantmentTarget.TRIDENT.isAcceptableItem(stack.getItem()) &&
-                        !EnchantmentTarget.DIGGER.isAcceptableItem(stack.getItem()) &&
-                        !EnchantmentTarget.FISHING_ROD.isAcceptableItem(stack.getItem()) &&
-                        EnchantmentUtils.canGenerateEnchantment(stack) &&
-                        !stack.getNbt().contains("Gilding"));
+                return stack.isDamageable();
             }
 
             @Override

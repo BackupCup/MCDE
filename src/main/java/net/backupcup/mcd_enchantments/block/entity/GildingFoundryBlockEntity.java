@@ -26,7 +26,6 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(2, ItemStack.EMPTY);
     private int gilding_progress;
     private int gilding_tick_counter;
-    private boolean slotsRead = false;
 
     public DefaultedList<ItemStack> getInventory() {
         return inventory;
@@ -91,7 +90,9 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
         if (world.isClient()) {
             return;
         }
-        entity.generateEnchantments(entity);
+        if (!entity.inventory.get(0).isEmpty()) {
+            entity.generateEnchantments();
+        }
 
         if (entity.gilding_progress == 0) {
             return;
@@ -112,26 +113,14 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
         markDirty(world, blockPos, state);
     }
 
-    private void generateEnchantments(GildingFoundryBlockEntity entity) {
-        DefaultedList<ItemStack> inventory = entity.getItems();
+    private void generateEnchantments() {
+        DefaultedList<ItemStack> inventory = getItems();
         ItemStack itemStack = inventory.get(0);
 
-        if (itemStack.isEmpty()) {
-            entity.slotsRead = false;
-            return;
-        }
-        if (!itemStack.getNbt().contains("Slots")) {
+        if (EnchantmentSlots.fromItemStack(itemStack) == null) {
             EnchantmentSlots slots = EnchantmentUtils.generateEnchantments(itemStack);
             slots.updateItemStack(itemStack);
             MCDEnchantments.LOGGER.info("Generated slots for [{}]: {}", Registry.ITEM.getId(itemStack.getItem()), slots);
-        }
-        else if (!entity.slotsRead) {
-            EnchantmentSlots slots = EnchantmentSlots.fromItemStack(itemStack);
-            MCDEnchantments.LOGGER.info("Read slots [{}]: {}", Registry.ITEM.getId(itemStack.getItem()), slots);
-            entity.slotsRead = true;
-            for (var nbt : itemStack.getEnchantments()) {
-                MCDEnchantments.LOGGER.info("Existing: {}", nbt.asString());
-            }
         }
     }
 

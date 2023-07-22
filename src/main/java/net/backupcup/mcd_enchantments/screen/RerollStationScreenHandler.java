@@ -4,7 +4,6 @@ import net.backupcup.mcd_enchantments.MCDEnchantments;
 import net.backupcup.mcd_enchantments.util.EnchantmentSlots;
 import net.backupcup.mcd_enchantments.util.EnchantmentUtils;
 import net.backupcup.mcd_enchantments.util.Slots;
-import net.minecraft.enchantment.EnchantmentTarget;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -40,9 +39,7 @@ public class RerollStationScreenHandler extends ScreenHandler {
         this.addSlot(new Slot(inventory, 0, 145, 33) {
             @Override
             public boolean canInsert(ItemStack stack) {
-                return (!EnchantmentTarget.TRIDENT.isAcceptableItem(stack.getItem()) &&
-                        !EnchantmentTarget.DIGGER.isAcceptableItem(stack.getItem()) &&
-                        !EnchantmentTarget.FISHING_ROD.isAcceptableItem(stack.getItem()));
+                return stack.isDamageable();
             }
 
             @Override

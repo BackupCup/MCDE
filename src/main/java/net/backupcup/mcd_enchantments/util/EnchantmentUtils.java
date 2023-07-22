@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static net.backupcup.mcd_enchantments.util.Slots.*;
-import static net.minecraft.enchantment.Enchantments.*;
 import static net.minecraft.util.registry.Registry.ENCHANTMENT;
 
 public class EnchantmentUtils {
@@ -62,104 +61,67 @@ public class EnchantmentUtils {
     }
 
     public static EnchantmentSlots generateEnchantments(ItemStack itemStack, Random random) {
-        var item = itemStack.getItem();
-        if (EnchantmentTarget.TRIDENT.isAcceptableItem(item)) {
-            return EnchantmentSlots.builder()
-                    .withSlot(FIRST,
-                            getEnchantmentId(IMPALING),
-                            getEnchantmentId(LOYALTY)
-                    )
-                    .withSlot(SECOND,
-                            getEnchantmentId(RIPTIDE),
-                            getEnchantmentId(CHANNELING)
-                    )
-                    .build();
+        var builder = EnchantmentSlots.builder();
+        var enchantmentList = getEnchantmentsForItem(itemStack).collect(ObjectArrayList.toList());
+        Util.shuffle(enchantmentList, random);
+        var enchantments = new ArrayDeque<>(enchantmentList);
+        boolean isTwoChoiceGenerated = false;
+        boolean isSecondSlotGenerated = false;
+        float threeChoiceChance = 0.5f;
+        float secondSlotChance = 0.5f;
+        float thirdSlotChance = 0.25f;
+
+        if (enchantmentList.isEmpty()) {
+            return EnchantmentSlots.EMPTY;
         }
-        else if (itemStack.isIn(ModTags.Items.WEAPONS) ||
-                EnchantmentTarget.WEAPON.isAcceptableItem(item) ||
-                EnchantmentTarget.BOW.isAcceptableItem(item) || EnchantmentTarget.CROSSBOW.isAcceptableItem(item) ||
-                EnchantmentTarget.ARMOR_FEET.isAcceptableItem(item) || EnchantmentTarget.ARMOR_LEGS.isAcceptableItem(item) ||
-                EnchantmentTarget.ARMOR_CHEST.isAcceptableItem(item) || EnchantmentTarget.ARMOR_HEAD.isAcceptableItem(item)) {
-            var builder = EnchantmentSlots.builder();
-            var enchantmentList = getEnchantmentsForItem(itemStack).collect(ObjectArrayList.toList());
-            Util.shuffle(enchantmentList, random);
-            var enchantments = new ArrayDeque<>(enchantmentList);
-            boolean isTwoChoiceGenerated = false;
-            boolean isSecondSlotGenerated = false;
-            float threeChoiceChance = 0.5f;
-            float secondSlotChance = 0.5f;
-            float thirdSlotChance = 0.25f;
 
-            if (enchantmentList.isEmpty()) {
-                return EnchantmentSlots.EMPTY;
-            }
+        if (random.nextFloat() < threeChoiceChance && enchantments.size() >= 3) {
+            builder.withSlot(FIRST, enchantments.pop(), enchantments.pop(), enchantments.pop());
+        }
+        else if (enchantments.size() >= 2) {
+            builder.withSlot(FIRST, enchantments.pop(), enchantments.pop());
+            isTwoChoiceGenerated = true;
+        }
+        else {
+            builder.withSlot(FIRST, enchantmentList.pop());
+        }
 
-            if (random.nextFloat() < threeChoiceChance && enchantments.size() >= 3) {
-                builder.withSlot(FIRST, enchantments.pop(), enchantments.pop(), enchantments.pop());
+        if (enchantments.isEmpty()) {
+            return builder.build();
+        }
+
+        if (random.nextFloat() < secondSlotChance) {
+            if (!isTwoChoiceGenerated && random.nextFloat() < threeChoiceChance && enchantments.size() >= 3) {
+                builder.withSlot(SECOND, enchantments.pop(), enchantments.pop(), enchantments.pop());
             }
             else if (enchantments.size() >= 2) {
-                builder.withSlot(FIRST, enchantments.pop(), enchantments.pop());
+                builder.withSlot(SECOND, enchantments.pop(), enchantments.pop());
                 isTwoChoiceGenerated = true;
             }
             else {
-                builder.withSlot(FIRST, enchantmentList.pop());
+                builder.withSlot(SECOND, enchantments.pop());
             }
+            isSecondSlotGenerated = true;
+        }
 
-            if (enchantments.isEmpty()) {
-                return builder.build();
-            }
-
-            if (random.nextFloat() < secondSlotChance) {
-                if (!isTwoChoiceGenerated && random.nextFloat() < threeChoiceChance && enchantments.size() >= 3) {
-                    builder.withSlot(SECOND, enchantments.pop(), enchantments.pop(), enchantments.pop());
-                }
-                else if (enchantments.size() >= 2) {
-                    builder.withSlot(SECOND, enchantments.pop(), enchantments.pop());
-                    isTwoChoiceGenerated = true;
-                }
-                else {
-                    builder.withSlot(SECOND, enchantments.pop());
-                }
-                isSecondSlotGenerated = true;
-            }
-
-            if (enchantments.isEmpty()) {
-                return builder.build();
-            }
-
-            if (isSecondSlotGenerated && random.nextFloat() < thirdSlotChance) {
-                if (!isTwoChoiceGenerated && random.nextFloat() < threeChoiceChance && enchantments.size() >= 3) {
-                    builder.withSlot(THIRD, enchantments.pop(), enchantments.pop(), enchantments.pop());
-                }
-                else if (enchantments.size() >= 2) {
-                    builder.withSlot(THIRD, enchantments.pop(), enchantments.pop());
-                    isTwoChoiceGenerated = true;
-                }
-                else {
-                    builder.withSlot(THIRD, enchantments.pop());
-                }
-            }
-
+        if (enchantments.isEmpty()) {
             return builder.build();
         }
-        else if (EnchantmentTarget.DIGGER.isAcceptableItem(item)) {
-            return EnchantmentSlots.builder()
-                .withSlot(FIRST, getEnchantmentId(EFFICIENCY))
-                .withSlot(SECOND,
-                    getEnchantmentId(FORTUNE),
-                    getEnchantmentId(SILK_TOUCH)
-                )
-                .build();
+
+        if (isSecondSlotGenerated && random.nextFloat() < thirdSlotChance) {
+            if (!isTwoChoiceGenerated && random.nextFloat() < threeChoiceChance && enchantments.size() >= 3) {
+                builder.withSlot(THIRD, enchantments.pop(), enchantments.pop(), enchantments.pop());
+            }
+            else if (enchantments.size() >= 2) {
+                builder.withSlot(THIRD, enchantments.pop(), enchantments.pop());
+                isTwoChoiceGenerated = true;
+            }
+            else {
+                builder.withSlot(THIRD, enchantments.pop());
+            }
         }
-        else if (EnchantmentTarget.FISHING_ROD.isAcceptableItem(item)) {
-            return EnchantmentSlots.builder()
-                .withSlot(FIRST, getEnchantmentId(LURE))
-                .withSlot(SECOND, getEnchantmentId(LUCK_OF_THE_SEA))
-                .build();
-        }
-        else
-        MCDEnchantments.LOGGER.warn("Empty slots generated");
-        return EnchantmentSlots.EMPTY;
+
+        return builder.build();
     }
 
     public static boolean canGenerateEnchantment(ItemStack itemStack) {
