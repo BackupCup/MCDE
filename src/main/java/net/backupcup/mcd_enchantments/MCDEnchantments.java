@@ -3,14 +3,19 @@ package net.backupcup.mcd_enchantments;
 import java.nio.file.Path;
 import java.util.List;
 
+import javax.management.RuntimeErrorException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
+import org.spongepowered.configurate.loader.ParsingException;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 import org.spongepowered.configurate.util.NamingSchemes;
+
+import com.typesafe.config.ConfigException;
 
 import net.backupcup.mcd_enchantments.block.ModBlocks;
 import net.backupcup.mcd_enchantments.block.entity.ModBlockEntities;
@@ -23,13 +28,19 @@ import net.fabricmc.loader.api.FabricLoader;
 public class MCDEnchantments implements ModInitializer {
 	public static final String MOD_ID = "mcd_enchantments";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    private static Config config;
+	public static Config getConfig() {
+        return config;
+    }
 
-	@Override
+
+    @Override
 	public void onInitialize() {
 		ModBlocks.RegisterModBlocks();
 
 		ModScreenHandlers.registerAllScreenHandlers();
 		ModBlockEntities.registerBlockEntities();
+        config = Config.load();
 	}
 
 
@@ -67,23 +78,31 @@ public class MCDEnchantments implements ModInitializer {
         ));
 
         public static Config load() {
-            if (!getConfigFile().toFile().exists()) {
-                try {
-                    var root = loader.load();
-                    var defaults = new Config();
-                    root.set(Config.class, defaults);
-                    loader.save(root);
-                    return defaults;
-                } catch (ConfigurateException e) {
-                    e.printStackTrace();
-                }
-            }
             try {
-                return loader.load().get(Config.class);
+                if (getConfigFile().toFile().exists()) {
+                    return loader.load().get(Config.class);
+                }
+                var root = loader.load();
+                var defaults = new Config();
+                root.set(Config.class, defaults);
+                loader.save(root);
+                return defaults;
             } catch (ConfigurateException e) {
-                LOGGER.trace("Marker", "Configurate", e);
+                if (e instanceof ParsingException pe) {
+                    var parse = (ConfigException.Parse)pe.getCause();
+                    // Parse exception message is prefixed by origin description + ": "
+                    // So I get rid of it
+                    var origin = parse.origin().description();
+                    LOGGER.error(
+                            "Config syntax error at line {}: {}",
+                            pe.line(),
+                            parse.getMessage().substring(origin.length() + 2)
+                            );
+                    throw new RuntimeException(pe);
+                }
+                LOGGER.error("Error while loading config: {}", e.getMessage());
+                throw new RuntimeException(e);
             }
-            return new Config();
         }
     }
 }
