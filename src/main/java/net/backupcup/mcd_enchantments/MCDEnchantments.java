@@ -147,6 +147,10 @@ public class MCDEnchantments implements ModInitializer {
             return ticksPerGildingProcessStep;
         }
 
+        public boolean isUsingEnchantingTableAllowed() {
+            return allowUsingEnchantingTable;
+        }
+
         @Comment("Has two possible values:\n" +
                  "ALLOW - Only allow enchantments specified in 'list' to appear\n" +
                  "DENY - Make enchantments specified in 'list' to never appear")
@@ -161,7 +165,7 @@ public class MCDEnchantments implements ModInitializer {
         @Comment("Allow cursed enchantments to appear")
         private boolean allowCursed = false;
 
-        @Comment("All enchantments from this list is considered 'powerful'.\n" + 
+        @Comment("All enchantments from this list are considered 'powerful'.\n" + 
                  "Generally, it means increased cost for enchanting and rerolling.")
         private IdentifierGlobbedList powerful = new IdentifierGlobbedList(Map.of("minecraft", List.of(
             "protection",
@@ -192,6 +196,10 @@ public class MCDEnchantments implements ModInitializer {
         @Comment("Allow mixing items in anvil\n" +
                  "On true, vanilla anvil behaviour is applied")
         private boolean allowAnvilItemMixing = false;
+
+        @Comment("Whether to allow players to use enchanting table.\n" +
+                 "Creative players can still use it.")
+        private boolean allowUsingEnchantingTable = false;
 
         @Comment("Sets cost of gilding")
         private int gildingCost = 8;

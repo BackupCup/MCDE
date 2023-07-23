@@ -7,6 +7,7 @@
       "ItemStackMixin",
       "EnchantBookFactoryMixin",
       "AnvilScreenHandlerMixin",
+      "EnchantingTableBlockMixin"
   ],
   "injectors": {
     "defaultRequire": 1
