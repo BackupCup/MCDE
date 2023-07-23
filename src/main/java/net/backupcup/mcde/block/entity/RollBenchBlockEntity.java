@@ -1,6 +1,6 @@
 package net.backupcup.mcde.block.entity;
 
-import net.backupcup.mcde.screen.RerollStationScreenHandler;
+import net.backupcup.mcde.screen.RollBenchScreenHandler;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.minecraft.block.BlockState;
@@ -19,15 +19,15 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public class RerollStationBlockEntity extends BlockEntity implements NamedScreenHandlerFactory, ImplementedInventory {
+public class RollBenchBlockEntity extends BlockEntity implements NamedScreenHandlerFactory, ImplementedInventory {
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(2, ItemStack.EMPTY);
 
     public DefaultedList<ItemStack> getInventory() {
         return inventory;
     }
 
-    public RerollStationBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.REROLL_STATION, pos, state);
+    public RollBenchBlockEntity(BlockPos pos, BlockState state) {
+        super(ModBlockEntities.ROLL_BENCH, pos, state);
     }
 
     @Override
@@ -37,13 +37,13 @@ public class RerollStationBlockEntity extends BlockEntity implements NamedScreen
 
     @Override
     public Text getDisplayName() {
-        return Text.translatable("block.mcde.reroll_station");
+        return Text.translatable("block.mcde.roll_bench");
     }
 
     @Nullable
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
-        return new RerollStationScreenHandler(syncId, inv, this, ScreenHandlerContext.create(world, pos));
+        return new RollBenchScreenHandler(syncId, inv, this, ScreenHandlerContext.create(world, pos));
     }
 
     @Override
@@ -58,7 +58,7 @@ public class RerollStationBlockEntity extends BlockEntity implements NamedScreen
         super.readNbt(nbt);
     }
 
-    public static void tick(World world, BlockPos blockPos, BlockState state, RerollStationBlockEntity entity) {
+    public static void tick(World world, BlockPos blockPos, BlockState state, RollBenchBlockEntity entity) {
         if (world.isClient()) {
             return;
         }

@@ -17,19 +17,19 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 
-public class RerollStationScreenHandler extends ScreenHandler {
+public class RollBenchScreenHandler extends ScreenHandler {
     private final Inventory inventory;
     private final ScreenHandlerContext context;
     public Inventory getInventory() {
         return inventory;
     }
 
-    public RerollStationScreenHandler(int syncId, PlayerInventory inventory) {
+    public RollBenchScreenHandler(int syncId, PlayerInventory inventory) {
         this(syncId, inventory, new SimpleInventory(2), ScreenHandlerContext.EMPTY);
     }
 
-    public RerollStationScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, ScreenHandlerContext context) {
-        super(ModScreenHandlers.REROLL_STATION_SCREEN_HANDLER, syncId);
+    public RollBenchScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, ScreenHandlerContext context) {
+        super(ModScreenHandlers.ROLL_BENCH_SCREEN_HANDLER, syncId);
 
         checkSize(inventory, 1);
         this.inventory = inventory;

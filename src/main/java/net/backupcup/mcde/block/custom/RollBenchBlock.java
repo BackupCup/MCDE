@@ -1,7 +1,7 @@
 package net.backupcup.mcde.block.custom;
 
 import net.backupcup.mcde.block.entity.ModBlockEntities;
-import net.backupcup.mcde.block.entity.RerollStationBlockEntity;
+import net.backupcup.mcde.block.entity.RollBenchBlockEntity;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -24,10 +24,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.Stream;
 
-public class RerollStationBlock extends BlockWithEntity {
+public class RollBenchBlock extends BlockWithEntity {
     public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
 
-    public RerollStationBlock(Settings settings) {
+    public RollBenchBlock(Settings settings) {
         super(settings);
     }
 
@@ -94,8 +94,8 @@ public class RerollStationBlock extends BlockWithEntity {
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
         if (state.getBlock() != newState.getBlock()) {
             BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (blockEntity instanceof RerollStationBlockEntity) {
-                ItemScatterer.spawn(world, pos, (RerollStationBlockEntity)blockEntity);
+            if (blockEntity instanceof RollBenchBlockEntity) {
+                ItemScatterer.spawn(world, pos, (RollBenchBlockEntity)blockEntity);
                 world.updateComparators(pos,this);
             }
         }
@@ -118,12 +118,12 @@ public class RerollStationBlock extends BlockWithEntity {
     @Nullable
     @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return new RerollStationBlockEntity(pos, state);
+        return new RollBenchBlockEntity(pos, state);
     }
 
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return checkType(type, ModBlockEntities.REROLL_STATION, RerollStationBlockEntity::tick);
+        return checkType(type, ModBlockEntities.ROLL_BENCH, RollBenchBlockEntity::tick);
     }
 }

@@ -9,7 +9,7 @@ import net.minecraft.util.registry.Registry;
 
 public class ModBlockEntities {
     public static BlockEntityType<RunicTableBlockEntity> RUNIC_TABLE;
-    public static BlockEntityType<RerollStationBlockEntity> REROLL_STATION;
+    public static BlockEntityType<RollBenchBlockEntity> ROLL_BENCH;
     public static BlockEntityType<GildingFoundryBlockEntity> GILDING_FOUNDRY;
 
     public static void registerBlockEntities() {
@@ -18,10 +18,10 @@ public class ModBlockEntities {
                 FabricBlockEntityTypeBuilder.create(RunicTableBlockEntity::new,
                         ModBlocks.RUNIC_TABLE).build());
 
-        REROLL_STATION = Registry.register(
-                Registry.BLOCK_ENTITY_TYPE, new Identifier(MCDEnchantments.MOD_ID, "reroll_station"),
-                FabricBlockEntityTypeBuilder.create(RerollStationBlockEntity::new,
-                        ModBlocks.REROLL_STATION).build());
+        ROLL_BENCH = Registry.register(
+                Registry.BLOCK_ENTITY_TYPE, new Identifier(MCDEnchantments.MOD_ID, "roll_bench"),
+                FabricBlockEntityTypeBuilder.create(RollBenchBlockEntity::new,
+                        ModBlocks.ROLL_BENCH).build());
 
         GILDING_FOUNDRY = Registry.register(
                 Registry.BLOCK_ENTITY_TYPE, new Identifier(MCDEnchantments.MOD_ID, "gilding_foundry"),

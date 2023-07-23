@@ -17,7 +17,7 @@
               "source": "block_entity"
             }
           ],
-          "name": "mcde:reroll_station"
+          "name": "mcde:roll_bench"
         }
       ],
       "rolls": 1.0

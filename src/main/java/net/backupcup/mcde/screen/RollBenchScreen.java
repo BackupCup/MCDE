@@ -23,18 +23,18 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class RerollStationScreen extends HandledScreen<RerollStationScreenHandler> {
+public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> {
     private Inventory inventory;
 
     private static Pattern wrap = Pattern.compile("(\\b.{1,40})(?:\\s+|$)");
 
     private Optional<Slots> opened = Optional.empty();
 
-    private static final Identifier TEXTURE = new Identifier(MCDEnchantments.MOD_ID, "textures/gui/reroll_station.png");
+    private static final Identifier TEXTURE = new Identifier(MCDEnchantments.MOD_ID, "textures/gui/roll_bench.png");
 
     private EnchantmentSlotsRenderer slotsRenderer;
 
-    public RerollStationScreen(RerollStationScreenHandler handler, PlayerInventory inventory, Text title) {
+    public RollBenchScreen(RollBenchScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
         this.inventory = handler.getInventory();
     }
@@ -223,7 +223,7 @@ public class RerollStationScreen extends HandledScreen<RerollStationScreenHandle
                     Formatting.ITALIC));
             tooltipLines.add(Text.translatable(
                     "message.mcde.lapis_required",
-                    RerollStationScreenHandler.getRerollCost(enchantment, level)).formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
+                    RollBenchScreenHandler.getRerollCost(enchantment, level)).formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
         }
         if (!EnchantmentUtils.canGenerateEnchantment(itemStack)) {
             tooltipLines.add(Text.translatable("message.mcde.cant_generate").formatted(Formatting.DARK_RED, Formatting.ITALIC));

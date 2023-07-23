@@ -2,7 +2,7 @@ package net.backupcup.mcde.block;
 
 import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.block.custom.GildingFoundryBlock;
-import net.backupcup.mcde.block.custom.RerollStationBlock;
+import net.backupcup.mcde.block.custom.RollBenchBlock;
 import net.backupcup.mcde.block.custom.RunicTableBlock;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
@@ -19,8 +19,8 @@ public class ModBlocks {
     public static final Block RUNIC_TABLE = registerBlock("runic_table",
             new RunicTableBlock(FabricBlockSettings.of(Material.WOOD).strength(2f).nonOpaque()), ItemGroup.DECORATIONS);
 
-    public static final Block REROLL_STATION = registerBlock("reroll_station",
-            new RerollStationBlock(FabricBlockSettings.of(Material.STONE).strength(2f).nonOpaque()), ItemGroup.DECORATIONS);
+    public static final Block ROLL_BENCH = registerBlock("roll_bench",
+            new RollBenchBlock(FabricBlockSettings.of(Material.STONE).strength(2f).nonOpaque()), ItemGroup.DECORATIONS);
     public static final Block GILDING_FOUNDRY = registerBlock("gilding_foundry",
             new GildingFoundryBlock(FabricBlockSettings.of(Material.STONE).strength(2f).nonOpaque()), ItemGroup.DECORATIONS);
 

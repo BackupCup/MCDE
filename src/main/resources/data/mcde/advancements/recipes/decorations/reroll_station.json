@@ -15,7 +15,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "mcde:reroll_station"
+        "recipe": "mcde:roll_bench"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -28,7 +28,7 @@
   ],
   "rewards": {
     "recipes": [
-      "mcde:reroll_station"
+      "mcde:roll_bench"
     ]
   }
 }

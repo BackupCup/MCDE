@@ -1,18 +1,18 @@
 {
   "variants": {
     "facing=north": {
-      "model": "mcde:block/reroll_station"
+      "model": "mcde:block/roll_bench"
     },
     "facing=south": {
-      "model": "mcde:block/reroll_station",
+      "model": "mcde:block/roll_bench",
       "y": 180
     },
     "facing=west": {
-      "model": "mcde:block/reroll_station",
+      "model": "mcde:block/roll_bench",
       "y": 270
     },
     "facing=east": {
-      "model": "mcde:block/reroll_station",
+      "model": "mcde:block/roll_bench",
       "y": 90
     }
   }
