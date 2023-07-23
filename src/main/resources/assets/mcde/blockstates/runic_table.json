@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "mcde:block/runic_table"
+    },
+    "facing=south": {
+      "model": "mcde:block/runic_table",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "mcde:block/runic_table",
+      "y": 270
+    },
+    "facing=east": {
+      "model": "mcde:block/runic_table",
+      "y": 90
+    }
+  }
+}

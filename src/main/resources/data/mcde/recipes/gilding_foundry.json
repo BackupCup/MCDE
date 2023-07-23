@@ -1,0 +1,29 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "#R ",
+        "#BT",
+        "##i"
+    ],
+    "key": {
+        "#": {
+            "item": "minecraft:nether_brick"
+        },
+        "R": {
+            "item": "minecraft:raw_gold"
+        },
+        "B": {
+            "item": "minecraft:blast_furnace"
+        },
+        "T": {
+            "item": "minecraft:blaze_powder"
+        },
+        "i": {
+            "item": "minecraft:iron_ingot"
+        }
+    },
+    "result": {
+        "item": "mcde:gilding_foundry",
+        "count": 1
+    }
+}

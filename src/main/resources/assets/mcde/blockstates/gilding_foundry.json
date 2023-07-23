@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "mcde:block/gilding_foundry"
+    },
+    "facing=south": {
+      "model": "mcde:block/gilding_foundry",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "mcde:block/gilding_foundry",
+      "y": 270
+    },
+    "facing=east": {
+      "model": "mcde:block/gilding_foundry",
+      "y": 90
+    }
+  }
+}

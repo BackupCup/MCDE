@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "mcd_enchantments",
+  "id": "mcde",
   "version": "${version}",
 
   "name": "Minecraft Dungeons: Enchantments",
@@ -16,22 +16,22 @@
   },
 
   "license": "MIT License",
-  "icon": "assets/mcd_enchantments/icon.png",
+  "icon": "assets/mcde/icon.png",
 
   "environment": "*",
   "entrypoints": {
-    "mcd_enchantments:init": [
-      "net.backupcup.mcd_enchantments.MCDEnchantments"
+    "mcde:init": [
+      "net.backupcup.mcde.MCDEnchantments"
     ],
     "main": [
-      "net.backupcup.mcd_enchantments.MCDEnchantments"
+      "net.backupcup.mcde.MCDEnchantments"
     ],
     "client": [
-      "net.backupcup.mcd_enchantments.MCDEClient"
+      "net.backupcup.mcde.MCDEClient"
     ]
   },
   "mixins": [
-    "mcd_enchantments.mixins.json"
+    "mcde.mixins.json"
   ],
 
   "depends": {
