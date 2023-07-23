@@ -62,16 +62,15 @@ public class EnchantmentUtils {
 
     public static EnchantmentSlots generateEnchantments(ItemStack itemStack, Random random) {
         var builder = EnchantmentSlots.builder();
-        var enchantmentList = getEnchantmentsForItem(itemStack).collect(ObjectArrayList.toList());
-        Util.shuffle(enchantmentList, random);
-        var enchantments = new ArrayDeque<>(enchantmentList);
+        var enchantments = getEnchantmentsForItem(itemStack).collect(ObjectArrayList.toList());
+        Util.shuffle(enchantments, random);
         boolean isTwoChoiceGenerated = false;
         boolean isSecondSlotGenerated = false;
         float threeChoiceChance = 0.5f;
         float secondSlotChance = 0.5f;
         float thirdSlotChance = 0.25f;
 
-        if (enchantmentList.isEmpty()) {
+        if (enchantments.isEmpty()) {
             return EnchantmentSlots.EMPTY;
         }
 
@@ -83,7 +82,7 @@ public class EnchantmentUtils {
             isTwoChoiceGenerated = true;
         }
         else {
-            builder.withSlot(FIRST, enchantmentList.pop());
+            builder.withSlot(FIRST, enchantments.pop());
         }
 
         if (enchantments.isEmpty()) {
