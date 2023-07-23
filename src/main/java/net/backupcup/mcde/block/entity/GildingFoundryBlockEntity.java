@@ -121,7 +121,6 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
         if (EnchantmentSlots.fromItemStack(itemStack) == null) {
             EnchantmentSlots slots = EnchantmentUtils.generateEnchantments(itemStack);
             slots.updateItemStack(itemStack);
-            MCDEnchantments.LOGGER.info("Generated slots for [{}]: {}", Registry.ITEM.getId(itemStack.getItem()), slots);
         }
     }
 

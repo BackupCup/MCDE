@@ -105,7 +105,6 @@ public class RollBenchScreenHandler extends ScreenHandler {
 
         clickedSlot.changeEnchantment(toChange, newEnchantment.get());
         slots.updateItemStack(itemStack);
-        MCDEnchantments.LOGGER.info("Decrementing lapis by {} items", getRerollCost(enchantmentId, level));
         if (!player.isCreative()) {
             lapisLazuliStack.decrement(getRerollCost(enchantmentId, level));
         }
