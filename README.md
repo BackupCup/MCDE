@@ -11,8 +11,9 @@ This mod is a **work in progress**. As such, some aspects may feel unbalanced.
 
 # Content
 As of right now, the mod adds only two blocks: 
- - Runic Table - the main block, acts as a new enchanting table. Randomly generates a list of enchantments that one Item can take. There are plans to add a Golding Foundry for gilding the weapons/tools/armor.
+ - Runic Table - the main block, acts as a new enchanting table. Randomly generates a list of enchantments that one Item can take.
  - Roll Bench - an additional block which rerolls a single enchantment per use, costs lapis lazuli. The cost is respective of the level you'd spend to activate this enchantment.
+ - Gilding Foundry - at cost of gold ingots applies a random permanent enchantment to the item.
 
 # FAQ
 ### Can I use your mod in my modpack?
@@ -26,6 +27,17 @@ No, just no.
 
 ### Forge?
 Same as 1.12.2
+
+### Compatibility with other mods
+Oficially, we support only mcdw, mcda and mcdar. But our mod already can work with virtually any other mod which adds its own enchantments.
+The one thing you should be aware of is that icons for enchantments should be added by a third party (included with that other mod or added via a resourcepack).
+
+#### Adding your own icons
+We have `example-mesh.png` at root of this project if you are willing to create your own set of icons.
+There are two rules you should follow:
+ - Texture for icons should have this identifier `mcde:textures/gui/icons/<namespace>.png` where `<namespace>` is the namespace of enchantments you want to support.
+ - Second is to order them alphabetically from left to right and from top to bottom. Currently, hard limit for amount of enchantments per namespace is 100. That is, one file per namespace.
+Once the texture is loaded, everything should work just fine.
 
 # Attributions/Special Thanks
 - Iamnotagenius - For developing most of the logic and code behind this enchanting system. Without him, this mod wouldn't exist.
