@@ -92,11 +92,12 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
     }
 
     private boolean isGildingButtonClickable() {
-        return !inventory.getStack(0).isEmpty() &&
-            !(inventory.getStack(1).getCount() < 8) &&
+        var weapon = inventory.getStack(0);
+        return !weapon.isEmpty() &&
+            !(inventory.getStack(1).getCount() < MCDEnchantments.getConfig().getGildingCost()) &&
             !handler.hasProgress() &&
-            !inventory.getStack(0).getNbt().contains("Gilding") &&
-            EnchantmentUtils.canGenerateEnchantment(inventory.getStack(0));
+            !(weapon.hasNbt() && weapon.getNbt().contains("Gilding")) &&
+            EnchantmentUtils.canGenerateEnchantment(weapon);
     }
 
     private void drawProgress(MatrixStack matrices, int progress) {
