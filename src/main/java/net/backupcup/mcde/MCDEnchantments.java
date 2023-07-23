@@ -16,7 +16,7 @@ import org.spongepowered.configurate.util.NamingSchemes;
 
 import net.backupcup.mcde.block.ModBlocks;
 import net.backupcup.mcde.block.entity.ModBlockEntities;
-import net.backupcup.mcde.screen.ModScreenHandlers;
+import net.backupcup.mcde.screen.handler.ModScreenHandlers;
 import net.backupcup.mcde.util.IdentifierGlobbedList;
 import net.backupcup.mcde.util.IdentifierGlobbedListSerializer;
 import net.fabricmc.api.ModInitializer;

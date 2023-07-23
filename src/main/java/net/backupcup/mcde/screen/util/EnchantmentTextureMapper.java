@@ -1,4 +1,4 @@
-package net.backupcup.mcde.screen;
+package net.backupcup.mcde.screen.util;
 
 import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.util.EnchantmentUtils;

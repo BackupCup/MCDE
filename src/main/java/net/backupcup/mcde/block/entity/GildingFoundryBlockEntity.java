@@ -1,7 +1,9 @@
 package net.backupcup.mcde.block.entity;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.backupcup.mcde.MCDEnchantments;
-import net.backupcup.mcde.screen.GildingFoundryScreenHandler;
+import net.backupcup.mcde.screen.handler.GildingFoundryScreenHandler;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.minecraft.block.BlockState;
@@ -20,7 +22,6 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
 
 public class GildingFoundryBlockEntity extends BlockEntity implements NamedScreenHandlerFactory, ImplementedInventory {
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(2, ItemStack.EMPTY);

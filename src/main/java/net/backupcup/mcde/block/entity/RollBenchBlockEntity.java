@@ -1,6 +1,8 @@
 package net.backupcup.mcde.block.entity;
 
-import net.backupcup.mcde.screen.RollBenchScreenHandler;
+import org.jetbrains.annotations.Nullable;
+
+import net.backupcup.mcde.screen.handler.RollBenchScreenHandler;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.minecraft.block.BlockState;
@@ -17,7 +19,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
 
 public class RollBenchBlockEntity extends BlockEntity implements NamedScreenHandlerFactory, ImplementedInventory {
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(2, ItemStack.EMPTY);

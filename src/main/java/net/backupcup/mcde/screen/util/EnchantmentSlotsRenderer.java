@@ -1,4 +1,4 @@
-package net.backupcup.mcde.screen;
+package net.backupcup.mcde.screen.util;
 
 import java.util.Map;
 import java.util.function.Predicate;
@@ -6,7 +6,7 @@ import java.util.function.Predicate;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.backupcup.mcde.MCDEnchantments;
-import net.backupcup.mcde.screen.EnchantmentTextureMapper.TexturePos;
+import net.backupcup.mcde.screen.util.EnchantmentTextureMapper.TexturePos;
 import net.backupcup.mcde.util.EnchantmentSlot.Choice;
 import net.backupcup.mcde.util.EnchantmentSlot.ChoiceWithLevel;
 import net.backupcup.mcde.util.Slots;

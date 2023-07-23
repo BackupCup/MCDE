@@ -2,9 +2,9 @@ package net.backupcup.mcde;
 
 import net.backupcup.mcde.block.ModBlocks;
 import net.backupcup.mcde.screen.GildingFoundryScreen;
-import net.backupcup.mcde.screen.ModScreenHandlers;
 import net.backupcup.mcde.screen.RollBenchScreen;
 import net.backupcup.mcde.screen.RunicTableScreen;
+import net.backupcup.mcde.screen.handler.ModScreenHandlers;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;

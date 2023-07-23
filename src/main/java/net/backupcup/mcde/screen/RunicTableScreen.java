@@ -1,8 +1,19 @@
 package net.backupcup.mcde.screen;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import com.mojang.blaze3d.systems.RenderSystem;
+
 import net.backupcup.mcde.MCDEnchantments;
-import net.backupcup.mcde.screen.EnchantmentTextureMapper.TexturePos;
+import net.backupcup.mcde.screen.handler.RunicTableScreenHandler;
+import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
+import net.backupcup.mcde.screen.util.EnchantmentTextureMapper.TexturePos;
 import net.backupcup.mcde.util.EnchantmentSlot.Choice;
 import net.backupcup.mcde.util.EnchantmentSlot.ChoiceWithLevel;
 import net.backupcup.mcde.util.EnchantmentSlots;
@@ -17,14 +28,6 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
     private Inventory inventory;

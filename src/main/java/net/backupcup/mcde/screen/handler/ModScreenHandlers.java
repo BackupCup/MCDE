@@ -1,4 +1,4 @@
-package net.backupcup.mcde.screen;
+package net.backupcup.mcde.screen.handler;
 
 import net.minecraft.screen.ScreenHandlerType;
 

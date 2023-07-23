@@ -1,9 +1,23 @@
 package net.backupcup.mcde.screen;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.backupcup.mcde.MCDEnchantments;
-import net.backupcup.mcde.util.*;
+import net.backupcup.mcde.screen.handler.RollBenchScreenHandler;
+import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
+import net.backupcup.mcde.screen.util.EnchantmentTextureMapper;
+import net.backupcup.mcde.util.EnchantmentSlot;
+import net.backupcup.mcde.util.EnchantmentSlots;
+import net.backupcup.mcde.util.EnchantmentUtils;
+import net.backupcup.mcde.util.Slots;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
@@ -14,14 +28,6 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> {
     private Inventory inventory;

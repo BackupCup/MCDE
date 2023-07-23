@@ -1,4 +1,4 @@
-package net.backupcup.mcde.screen;
+package net.backupcup.mcde.screen.handler;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
