@@ -167,17 +167,48 @@ public class MCDEnchantments implements ModInitializer {
 
         @Comment("All enchantments from this list are considered 'powerful'.\n" + 
                  "Generally, it means increased cost for enchanting and rerolling.")
-        private IdentifierGlobbedList powerful = new IdentifierGlobbedList(Map.of("minecraft", List.of(
-            "protection",
-            "sharpness",
-            "sweeping",
-            "riptide",
-            "channeling",
-            "infinity",
-            "fortune",
-            "silk_touch",
-            "multishot"
-        ))); 
+        private IdentifierGlobbedList powerful = new IdentifierGlobbedList(Map.of(
+            "minecraft",
+            List.of(
+                "protection",
+                "sharpness",
+                "sweeping",
+                "riptide",
+                "channeling",
+                "infinity",
+                "fortune",
+                "silk_touch",
+                "multishot",
+                "mending"
+            ),
+            "mcdw",
+            List.of(
+                "critical_hit",
+                "exploding",
+                "gravity",
+                "radiance",
+                "refreshment",
+                "shockwave",
+                "swirling",
+                "void_strike",
+                "chain_reaction",
+                "levitation_shot",
+                "overcharge",
+                "tempo_theft",
+                "void_shot",
+                "shared_pain",
+                "chilling",
+                "death_barter",
+                "fire_focus"
+            ),
+            "mcda",
+            List.of(
+                "chilling",
+                "death_barter",
+                "fire_focus",
+                "poison_focus"
+            )
+        )); 
 
         @Comment("Sets cost of enchanting in xp levels per level")
         private int enchantCost = 3;
