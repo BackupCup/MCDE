@@ -1,20 +1,16 @@
 package net.backupcup.mcde.screen;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.screen.handler.RunicTableScreenHandler;
 import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
-import net.backupcup.mcde.screen.util.EnchantmentTextureMapper.TexturePos;
-import net.backupcup.mcde.util.EnchantmentSlot.Choice;
+import net.backupcup.mcde.screen.util.ScreenWithSlots;
 import net.backupcup.mcde.util.EnchantmentSlot.ChoiceWithLevel;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.Slots;
@@ -29,7 +25,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
-public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
+public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> implements ScreenWithSlots {
     private Inventory inventory;
 
     private static Pattern wrap = Pattern.compile("(\\b.{1,40})(?:\\s+|$)");
@@ -54,20 +50,10 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
 
         int posX = ((width - backgroundWidth) / 2) - 2;
         int posY = (height - backgroundHeight) / 2;
-        var slotPos = Arrays.stream(Slots.values())
-            .collect(Collectors.toMap(
-                        Function.identity(),
-                        s -> new TexturePos(posX + 18 + 35 * s.ordinal(), posY + 38)
-                        ));
-        int[] enchantOffsetX = {6, 38, 22};
-        int[] enchantOffsetY = {22, 22, 6};
-        var choiceOffsets = Arrays.stream(Slots.values())
-            .collect(Collectors.toMap(
-                        Function.identity(),
-                        s -> new TexturePos(enchantOffsetX[s.ordinal()], enchantOffsetY[s.ordinal()])
-                        ));
         slotsRenderer = EnchantmentSlotsRenderer.builder()
-            .withHelper(this)
+            .withScreen(this)
+            .withDefaultGuiTexture(TEXTURE)
+            .withDefaultSlotPositions(posX, posY)
             .withDimPredicate(choice -> {
                 int level = 1;
                 boolean isMaxedOut = false;
@@ -77,14 +63,6 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
                 }
                 return isMaxedOut || !handler.canEnchant(client.player, choice.getEnchantmentId(), level);
             })
-            .withSlotTexturePos(187, 105)
-            .withOutlinePos(187, 138)
-            .withPowerfulOutlinePos(221, 138)
-            .withChoiceTexturePos(186, 0)
-            .withChoicePosOffset(-17, -38)
-            .withHoverOutlinePos(220, 104)
-            .withSlotPositions(slotPos)
-            .withChoiceOffsets(choiceOffsets)
             .build();
     }
 
@@ -124,7 +102,8 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
 
             if (opened.isPresent() && opened.get() == slot.getSlot()) {
                 for (var choice : slot.choices()) {
-                    if (slotsRenderer.isInChoiceBounds(slot.getSlot(), choice.getSlot(), (int) mouseX, (int) mouseY)) {
+                    if (slotsRenderer.isInChoiceBounds(slot.getSlot(), choice.getSlot(), (int) mouseX, (int) mouseY) &&
+                            !slotsRenderer.getDimPredicate().test(choice)) {
                         client.interactionManager.clickButton(handler.syncId, Slots.values().length * slot.ordinal() + choice.ordinal());
                         opened = Optional.empty();
                         return super.mouseClicked(mouseX, mouseY, button);
@@ -150,47 +129,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
             return;
         }
 
-        EnchantmentSlots slots = EnchantmentSlots.fromItemStack(itemStack);
-        if (slots == null) {
-            return;
-        }
-        Optional<Choice> hoveredChoice = Optional.empty();
-
-        for (var slot : slots) {
-            slotsRenderer.drawSlot(matrices, slot.getSlot());
-            if (slot.getChosen().isPresent()) {
-                var chosen = slot.getChosen().get();
-                slotsRenderer.drawEnchantmentIconInSlot(matrices, slot.getSlot(), chosen);
-                if (slotsRenderer.isInSlotBounds(slot.getSlot(), mouseX, mouseY))
-                    hoveredChoice = Optional.of(chosen);
-                RenderSystem.setShaderTexture(0, TEXTURE);
-            }
-            if (slotsRenderer.isInSlotBounds(slot.getSlot(), mouseX, mouseY))
-                slotsRenderer.drawHoverOutline(matrices, slot.getSlot());
-
-            if (opened.isPresent() && opened.get() == slot.getSlot()) {
-                slotsRenderer.drawChoices(matrices, slot.getSlot());
-
-                for (var choice : slot.choices()) {
-                    slotsRenderer.drawEnchantmentIconOutline(matrices, slot.getSlot(), choice, mouseX, mouseY);
-                    slotsRenderer.drawEnchantmentIconInChoice(matrices, slot.getSlot(), choice);
-                }
-                RenderSystem.setShaderTexture(0, TEXTURE);
-            }
-        }
-
-        if (hoveredChoice.isEmpty()) {
-            for (var slot : slots) {
-                if (opened.isEmpty() || opened.get() != slot.getSlot()) {
-                    continue;
-                }
-                for (var choice : slot.choices()) {
-                    if (slotsRenderer.isInChoiceBounds(slot.getSlot(), choice.getSlot(), mouseX, mouseY)) {
-                        hoveredChoice = Optional.of(choice);
-                    }
-                }
-            }
-        }
+        var hoveredChoice = slotsRenderer.render(matrices, itemStack, mouseX, mouseY);
 
         if (hoveredChoice.isEmpty()) {
             drawMouseoverTooltip(matrices, mouseX, mouseY);
@@ -237,5 +176,15 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> {
         renderTooltip(matrices, tooltipLines, mouseX, mouseY);
 
         drawMouseoverTooltip(matrices, mouseX, mouseY);
+    }
+
+    @Override
+    public Optional<Slots> getOpened() {
+        return opened;
+    }
+
+    @Override
+    public void setOpened(Optional<Slots> opened) {
+        this.opened = opened;
     }
 }

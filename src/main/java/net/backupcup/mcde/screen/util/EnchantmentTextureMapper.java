@@ -52,7 +52,7 @@ public class EnchantmentTextureMapper {
 
     public static TexturePos getPos(Identifier id) {
         int ordinal = getIconMap().get(id.getNamespace()).get(id.getPath());
-        return new TexturePos(1 + 25 * (ordinal % 10), 1 + 25 * (ordinal / 10));
+        return new TexturePos(24 * (ordinal % 10), 24 * (ordinal / 10));
     }
 
     public static Identifier getTextureId(Identifier id) {

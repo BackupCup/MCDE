@@ -1,20 +1,19 @@
 package net.backupcup.mcde.screen;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.screen.handler.RollBenchScreenHandler;
 import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
-import net.backupcup.mcde.screen.util.EnchantmentTextureMapper;
+import net.backupcup.mcde.screen.util.ScreenWithSlots;
 import net.backupcup.mcde.util.EnchantmentSlot;
+import net.backupcup.mcde.util.EnchantmentSlot.Choice;
+import net.backupcup.mcde.util.EnchantmentSlot.ChoiceWithLevel;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.Slots;
@@ -29,7 +28,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
-public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> {
+public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> implements ScreenWithSlots {
     private Inventory inventory;
 
     private static Pattern wrap = Pattern.compile("(\\b.{1,40})(?:\\s+|$)");
@@ -55,34 +54,18 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> {
 
         int posX = ((width - backgroundWidth) / 2) - 2;
         int posY = (height - backgroundHeight) / 2;
-        var slotPos = Arrays.stream(Slots.values())
-                .collect(Collectors.toMap(
-                        Function.identity(),
-                        s -> new EnchantmentTextureMapper.TexturePos(posX + 18 + 35 * s.ordinal(), posY + 38)));
-        int[] enchantOffsetX = { 6, 38, 22 };
-        int[] enchantOffsetY = { 22, 22, 6 };
-        var choiceOffsets = Arrays.stream(Slots.values())
-                .collect(Collectors.toMap(
-                        Function.identity(),
-                        s -> new EnchantmentTextureMapper.TexturePos(enchantOffsetX[s.ordinal()],
-                                enchantOffsetY[s.ordinal()])));
         slotsRenderer = EnchantmentSlotsRenderer.builder()
-                .withHelper(this)
+                .withScreen(this)
+                .withDefaultGuiTexture(TEXTURE)
+                .withDefaultSlotPositions(posX, posY)
                 .withDimPredicate(choice -> {
                     int level = 1;
                     if (choice instanceof EnchantmentSlot.ChoiceWithLevel withLevel) {
                         level = (int) (withLevel.getLevel() + 1);
                     }
-                    return !handler.canReroll(client.player, choice.getEnchantmentId(), level) || !EnchantmentUtils.canGenerateEnchantment(inventory.getStack(0));
+                    return !handler.canReroll(client.player, choice.getEnchantmentId(), level) ||
+                        !EnchantmentUtils.canGenerateEnchantment(inventory.getStack(0));
                 })
-                .withSlotTexturePos(187, 105)
-                .withOutlinePos(187, 138)
-                .withPowerfulOutlinePos(221, 138)
-                .withChoiceTexturePos(186, 0)
-                .withChoicePosOffset(-17, -38)
-                .withHoverOutlinePos(220, 104)
-                .withSlotPositions(slotPos)
-                .withChoiceOffsets(choiceOffsets)
                 .build();
     }
 
@@ -155,47 +138,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> {
             return;
         }
 
-        EnchantmentSlots slots = EnchantmentSlots.fromItemStack(itemStack);
-        if (slots == null) {
-            return;
-        }
-        Optional<EnchantmentSlot.Choice> hoveredChoice = Optional.empty();
-
-        for (var slot : slots) {
-            slotsRenderer.drawSlot(matrices, slot.getSlot());
-            if (slot.getChosen().isPresent()) {
-                var chosen = slot.getChosen().get();
-                slotsRenderer.drawEnchantmentIconInSlot(matrices, slot.getSlot(), chosen);
-                if (slotsRenderer.isInSlotBounds(slot.getSlot(), mouseX, mouseY))
-                    hoveredChoice = Optional.of(chosen);
-                RenderSystem.setShaderTexture(0, TEXTURE);
-            }
-            if (slotsRenderer.isInSlotBounds(slot.getSlot(), mouseX, mouseY))
-                slotsRenderer.drawHoverOutline(matrices, slot.getSlot());
-
-            if (opened.isPresent() && opened.get() == slot.getSlot()) {
-                slotsRenderer.drawChoices(matrices, slot.getSlot());
-
-                for (var choice : slot.choices()) {
-                    slotsRenderer.drawEnchantmentIconOutline(matrices, slot.getSlot(), choice, mouseX, mouseY);
-                    slotsRenderer.drawEnchantmentIconInChoice(matrices, slot.getSlot(), choice);
-                }
-                RenderSystem.setShaderTexture(0, TEXTURE);
-            }
-        }
-
-        if (hoveredChoice.isEmpty()) {
-            for (var slot : slots) {
-                if (opened.isEmpty() || opened.get() != slot.getSlot()) {
-                    continue;
-                }
-                for (var choice : slot.choices()) {
-                    if (slotsRenderer.isInChoiceBounds(slot.getSlot(), choice.getSlot(), mouseX, mouseY)) {
-                        hoveredChoice = Optional.of(choice);
-                    }
-                }
-            }
-        }
+        Optional<Choice> hoveredChoice = slotsRenderer.render(matrices, itemStack, mouseX, mouseY);
 
         if (hoveredChoice.isEmpty()) {
             drawMouseoverTooltip(matrices, mouseX, mouseY);
@@ -210,26 +153,27 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> {
         MutableText enchantmentName = Text.translatable(translationKey)
                 .formatted(MCDEnchantments.getConfig().isEnchantmentPowerful(enchantment) ? Formatting.RED
                         : Formatting.LIGHT_PURPLE);
-        if (hoveredChoice.get() instanceof EnchantmentSlot.ChoiceWithLevel withLevel) {
+        if (hoveredChoice.get() instanceof ChoiceWithLevel withLevel &&
+                withLevel.getEnchantment().getMaxLevel() > 1) {
             enchantmentName.append(" ")
                     .append(Text.translatable("enchantment.level." + withLevel.getLevel()));
             level = (int) (withLevel.getLevel() + 1);
             canReroll = handler.canReroll(client.player, enchantment, level);
-
         }
         tooltipLines.add(enchantmentName);
 
         Text enchantmentDescription = Text.translatable(translationKey + ".desc");
         List<MutableText> desc = wrap.matcher(enchantmentDescription.getString())
-                .results().map(res -> Text.literal(res.group(1)).formatted(Formatting.GRAY))
-                .toList();
+            .results().map(res -> Text.literal(res.group(1)).formatted(Formatting.GRAY))
+            .toList();
         tooltipLines.addAll(desc);
         if (!canReroll) {
-            tooltipLines.add(Text.translatable("message.mcde.not_enough_lapis").formatted(Formatting.DARK_RED,
-                    Formatting.ITALIC));
+            tooltipLines.add(Text.translatable("message.mcde.not_enough_lapis")
+                    .formatted(Formatting.DARK_RED, Formatting.ITALIC));
             tooltipLines.add(Text.translatable(
                     "message.mcde.lapis_required",
-                    RollBenchScreenHandler.getRerollCost(enchantment, level)).formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
+                    RollBenchScreenHandler.getRerollCost(enchantment, level))
+                .formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
         }
         if (!EnchantmentUtils.canGenerateEnchantment(itemStack)) {
             tooltipLines.add(Text.translatable("message.mcde.cant_generate").formatted(Formatting.DARK_RED, Formatting.ITALIC));
@@ -237,5 +181,15 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> {
         renderTooltip(matrices, tooltipLines, mouseX, mouseY);
 
         drawMouseoverTooltip(matrices, mouseX, mouseY);
+    }
+
+    @Override
+    public Optional<Slots> getOpened() {
+        return opened;
+    }
+
+    @Override
+    public void setOpened(Optional<Slots> opened) {
+        this.opened = opened;
     }
 }
