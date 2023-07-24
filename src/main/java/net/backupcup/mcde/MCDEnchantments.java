@@ -20,8 +20,12 @@ import net.backupcup.mcde.screen.handler.ModScreenHandlers;
 import net.backupcup.mcde.util.IdentifierGlobbedList;
 import net.backupcup.mcde.util.IdentifierGlobbedListSerializer;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.resource.ResourceManager;
+import net.minecraft.resource.ResourceType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
@@ -34,23 +38,31 @@ public class MCDEnchantments implements ModInitializer {
         return config;
     }
 
-
     @Override
 	public void onInitialize() {
 		ModBlocks.RegisterModBlocks();
 
 		ModScreenHandlers.registerAllScreenHandlers();
 		ModBlockEntities.registerBlockEntities();
-        config = Config.load();
 
-        ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
+        ResourceManagerHelper.get(ResourceType.SERVER_DATA)
+            .registerReloadListener(new SimpleSynchronousResourceReloadListener() {
+            @Override
+            public Identifier getFabricId() {
+                return Identifier.of(MOD_ID, "config");
+            }
+            @Override
+            public void reload(ResourceManager manager) {
+                config = Config.load();
+            }
+        });
+        ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((entity, joined) -> {
             if (entity.isPlayer() && Config.lastError != null) {
                 entity.sendMessage(Text.literal("[MCDEnchantments]: ")
                         .append(Config.lastError).formatted(Formatting.RED));
             }
         });
 	}
-
 
     @ConfigSerializable
     public static class Config {
