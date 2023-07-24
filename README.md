@@ -33,11 +33,12 @@ Oficially, we support only mcdw, mcda and mcdar. But our mod already can work wi
 The one thing you should be aware of is that icons for enchantments should be added by a third party (included with that other mod or added via a resourcepack).
 
 #### Adding your own icons
-We have `example-mesh.png` at root of this project if you are willing to create your own set of icons.
-There are two rules you should follow:
- - Texture for icons should have this identifier `mcde:textures/gui/icons/<namespace>.png` where `<namespace>` is the namespace of enchantments you want to support.
- - Second is to order them alphabetically from left to right and from top to bottom. Currently, hard limit for amount of enchantments per namespace is 100. That is, one file per namespace.
-Once the texture is loaded, everything should work just fine.
+We have [`icon_template.png`](icon_template.png) at root of this project if you are willing to create your own set of icons. (You can also check out actual [textures](/src/main/resources/assets/mcde/textures/gui/icons) provided by MCDE).
+
+There are two rules you should be aware of:
+ - Texture for icons should have this identifier `mcde:textures/gui/icons/<namespace>/<path>.png`. For example, icon for enchantment with id `minecraft:sharpness` should have this identifier `mcde:textures/gui/icons/minecraft/sharpness.png`.
+ - Everything in red is ignored (i.e. only the most top-left 23x23 area will actually be rendered).
+Once the textures are loaded, everything should work just fine.
 
 # Attributions/Special Thanks
 - Iamnotagenius - For developing most of the logic and code behind this enchanting system. Without him, this mod wouldn't exist.
