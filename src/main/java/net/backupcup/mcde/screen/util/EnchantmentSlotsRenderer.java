@@ -10,11 +10,11 @@ import java.util.stream.Collectors;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.backupcup.mcde.MCDEnchantments;
-import net.backupcup.mcde.screen.util.EnchantmentTextureMapper.TexturePos;
 import net.backupcup.mcde.util.EnchantmentSlot.Choice;
 import net.backupcup.mcde.util.EnchantmentSlot.ChoiceWithLevel;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.Slots;
+import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
@@ -188,17 +188,27 @@ public class EnchantmentSlotsRenderer {
 
     private void drawIcon(MatrixStack matrices, TexturePos drawPos, Slots slot, Choice choice) {
         Identifier enchantmentID = choice.getEnchantmentId();
-        RenderSystem.setShaderTexture(0, EnchantmentTextureMapper.getTextureId(enchantmentID));
-        var pos = EnchantmentTextureMapper.getPos(enchantmentID);
+        RenderSystem.setShaderTexture(0, getTextureId(enchantmentID));
         if (dimPredicate.test(choice)) {
             RenderSystem.setShaderColor(dimColorMultiplier, dimColorMultiplier, dimColorMultiplier, 1.0f);
         }
-        screen.drawTexture(matrices, drawPos.x(), drawPos.y(), pos.x(), pos.y(), 23, 23);
+        DrawableHelper.drawTexture(matrices, drawPos.x(), drawPos.y(), 0f, 0f, 23, 23, 32, 32);
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    public static Identifier getTextureId(Identifier enchantmentID) {
+        return Identifier.of(
+            MCDEnchantments.MOD_ID,
+            String.format(
+                "textures/gui/icons/%s/%s.png",
+                enchantmentID.getNamespace(),
+                enchantmentID.getPath()
+            )
+        );
     }
 
     public static class Builder {
