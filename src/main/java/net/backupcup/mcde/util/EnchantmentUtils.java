@@ -37,13 +37,17 @@ public class EnchantmentUtils {
     }
 
     public static Stream<Identifier> getAllEnchantmentsForItem(ItemStack itemStack) {
-        return ENCHANTMENT.getIds().stream()
-            .filter(id -> MCDEnchantments.getConfig().isEnchantmentAllowed(id) &&
-                          (!ENCHANTMENT.get(id).isCursed() ||
-                               MCDEnchantments.getConfig().areCursedEnchantmentsAllowed()) &&
-                          (itemStack.isIn(ModTags.Items.WEAPONS) &&
-                               ENCHANTMENT.get(id).type.equals(EnchantmentTarget.WEAPON) ||
-                               ENCHANTMENT.get(id).type.isAcceptableItem(itemStack.getItem())));
+        Predicate<Enchantment> target = itemStack.isIn(ModTags.Items.WEAPONS) ?
+            e -> e.type.equals(EnchantmentTarget.WEAPON) :
+            e -> e.isAcceptableItem(itemStack);
+
+        return ENCHANTMENT.stream()
+            .filter(MCDEnchantments.getConfig()::isEnchantmentAllowed)
+            .filter(e -> e.isAvailableForRandomSelection() || !MCDEnchantments.getConfig().isAvailabilityForRandomSelectionRespected())
+            .filter(e -> !e.isTreasure() || MCDEnchantments.getConfig().isTreasureAllowed())
+            .filter(e -> !e.isCursed() || MCDEnchantments.getConfig().areCursedAllowed())
+            .filter(target)
+            .map(Registry.ENCHANTMENT::getId);
     }
 
     public static List<EnchantmentTarget> getEnchantmentTargets(Item item) {

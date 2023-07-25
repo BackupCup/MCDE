@@ -120,6 +120,10 @@ public class MCDEnchantments implements ModInitializer {
             ALLOW, DENY
         }
 
+        public boolean isEnchantmentAllowed(Enchantment enchantment) {
+            return isEnchantmentAllowed(Registry.ENCHANTMENT.getId(enchantment));
+        }
+
         public boolean isEnchantmentAllowed(Identifier id) {
             return switch (listKind) {
                 case ALLOW -> list.contains(id);
@@ -127,7 +131,7 @@ public class MCDEnchantments implements ModInitializer {
             };
         }
 
-        public boolean areCursedEnchantmentsAllowed() {
+        public boolean areCursedAllowed() {
             return allowCursed;
         }
 
@@ -163,6 +167,14 @@ public class MCDEnchantments implements ModInitializer {
             return allowUsingEnchantingTable;
         }
 
+        public boolean isAvailabilityForRandomSelectionRespected() {
+            return respectAvailabilityForRandomSelection;
+        }
+
+        public boolean isTreasureAllowed() {
+            return allowTreasure;
+        }
+
         @Comment("Has two possible values:\n" +
                  "ALLOW - Only allow enchantments specified in 'list' to appear\n" +
                  "DENY - Make enchantments specified in 'list' to never appear")
@@ -176,6 +188,12 @@ public class MCDEnchantments implements ModInitializer {
 
         @Comment("Allow cursed enchantments to appear")
         private boolean allowCursed = false;
+
+        @Comment("Generate enchantments only if they are available for random selection.")
+        private boolean respectAvailabilityForRandomSelection = true;
+
+        @Comment("Allow treasure enchantments to appear")
+        private boolean allowTreasure = true;
 
         @Comment("Sets cost of enchanting in xp levels per level")
         private int enchantCost = 3;
