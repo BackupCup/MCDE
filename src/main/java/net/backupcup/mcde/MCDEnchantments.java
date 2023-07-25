@@ -2,7 +2,6 @@ package net.backupcup.mcde;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +18,7 @@ import net.backupcup.mcde.block.entity.ModBlockEntities;
 import net.backupcup.mcde.screen.handler.ModScreenHandlers;
 import net.backupcup.mcde.util.IdentifierGlobbedList;
 import net.backupcup.mcde.util.IdentifierGlobbedListSerializer;
+import net.backupcup.mcde.util.ModTags;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
@@ -132,7 +132,7 @@ public class MCDEnchantments implements ModInitializer {
         }
 
         public boolean isEnchantmentPowerful(Identifier id) {
-            return powerful.contains(id);
+            return ModTags.isIn(id, ModTags.Enchantments.POWERFUL);
         }
 
         public int getEnchantCostPerLevel(Identifier id) {
@@ -176,51 +176,6 @@ public class MCDEnchantments implements ModInitializer {
 
         @Comment("Allow cursed enchantments to appear")
         private boolean allowCursed = false;
-
-        @Comment("All enchantments from this list are considered 'powerful'.\n" + 
-                 "Generally, it means increased cost for enchanting and rerolling.")
-        private IdentifierGlobbedList powerful = new IdentifierGlobbedList(Map.of(
-            "minecraft",
-            List.of(
-                "protection",
-                "sharpness",
-                "sweeping",
-                "riptide",
-                "channeling",
-                "infinity",
-                "fortune",
-                "silk_touch",
-                "multishot",
-                "mending"
-            ),
-            "mcdw",
-            List.of(
-                "critical_hit",
-                "exploding",
-                "gravity",
-                "radiance",
-                "refreshment",
-                "shockwave",
-                "swirling",
-                "void_strike",
-                "chain_reaction",
-                "levitation_shot",
-                "overcharge",
-                "tempo_theft",
-                "void_shot",
-                "shared_pain",
-                "chilling",
-                "death_barter",
-                "fire_focus"
-            ),
-            "mcda",
-            List.of(
-                "chilling",
-                "death_barter",
-                "fire_focus",
-                "poison_focus"
-            )
-        )); 
 
         @Comment("Sets cost of enchanting in xp levels per level")
         private int enchantCost = 3;
