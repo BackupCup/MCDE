@@ -24,11 +24,13 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 
 public class MCDEnchantments implements ModInitializer {
 	public static final String MOD_ID = "mcde";
@@ -175,6 +177,10 @@ public class MCDEnchantments implements ModInitializer {
             return allowTreasure;
         }
 
+        public boolean isCompatibilityRequired() {
+            return requireCompatibility;
+        }
+
         @Comment("Has two possible values:\n" +
                  "ALLOW - Only allow enchantments specified in 'list' to appear\n" +
                  "DENY - Make enchantments specified in 'list' to never appear")
@@ -194,6 +200,10 @@ public class MCDEnchantments implements ModInitializer {
 
         @Comment("Allow treasure enchantments to appear")
         private boolean allowTreasure = true;
+
+        @Comment("Require compatibility of enchantments in different slots.\n" +
+        "For example, if this is false, you can enchant an armor both for protection and fire protection simultaneously.")
+        private boolean requireCompatibility = true;
 
         @Comment("Sets cost of enchanting in xp levels per level")
         private int enchantCost = 3;

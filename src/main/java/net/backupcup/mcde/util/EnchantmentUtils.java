@@ -1,5 +1,19 @@
 package net.backupcup.mcde.util;
 
+import static net.backupcup.mcde.util.Slots.FIRST;
+import static net.backupcup.mcde.util.Slots.SECOND;
+import static net.backupcup.mcde.util.Slots.THIRD;
+import static net.minecraft.util.registry.Registry.ENCHANTMENT;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.backupcup.mcde.MCDEnchantments;
 import net.minecraft.enchantment.Enchantment;
@@ -11,17 +25,6 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.random.LocalRandom;
 import net.minecraft.util.math.random.Random;
-import net.minecraft.util.registry.Registry;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static net.backupcup.mcde.util.Slots.*;
-import static net.minecraft.util.registry.Registry.ENCHANTMENT;
 
 public class EnchantmentUtils {
     public static Stream<Identifier> getEnchantmentStream() {
@@ -47,7 +50,7 @@ public class EnchantmentUtils {
             .filter(e -> !e.isTreasure() || MCDEnchantments.getConfig().isTreasureAllowed())
             .filter(e -> !e.isCursed() || MCDEnchantments.getConfig().areCursedAllowed())
             .filter(target)
-            .map(Registry.ENCHANTMENT::getId);
+            .map(ENCHANTMENT::getId);
     }
 
     public static List<EnchantmentTarget> getEnchantmentTargets(Item item) {
@@ -63,63 +66,86 @@ public class EnchantmentUtils {
         return generateEnchantments(itemStack, new LocalRandom(System.nanoTime()));
     }
 
+    public static boolean isCompatible(Collection<Identifier> present, Identifier enchantment) {
+        return present.stream().allMatch(id -> ENCHANTMENT.get(enchantment).canCombine(ENCHANTMENT.get(id)));
+    }
+
+    public static void removeIncompatible(List<Identifier> pool, EnchantmentSlots.Builder builder) {
+        var it = pool.iterator();
+        while (it.hasNext()) {
+            var enchantment = it.next();
+            if (isCompatible(builder.getAdded().stream().map(c -> c.getEnchantmentId()).toList(), enchantment)) {
+                it.remove();
+            }
+        }
+    }
+
     public static EnchantmentSlots generateEnchantments(ItemStack itemStack, Random random) {
         var builder = EnchantmentSlots.builder();
-        var enchantments = getEnchantmentsForItem(itemStack).collect(ObjectArrayList.toList());
-        Util.shuffle(enchantments, random);
+        var pool = getEnchantmentsForItem(itemStack).collect(ObjectArrayList.toList());
         boolean isTwoChoiceGenerated = false;
         boolean isSecondSlotGenerated = false;
         float threeChoiceChance = 0.5f;
         float secondSlotChance = 0.5f;
         float thirdSlotChance = 0.25f;
 
-        if (enchantments.isEmpty()) {
+        if (pool.isEmpty()) {
             return EnchantmentSlots.EMPTY;
         }
 
-        if (random.nextFloat() < threeChoiceChance && enchantments.size() >= 3) {
-            builder.withSlot(FIRST, enchantments.pop(), enchantments.pop(), enchantments.pop());
+        Util.shuffle(pool, random);
+
+        if (random.nextFloat() < threeChoiceChance && pool.size() >= 3) {
+            builder.withSlot(FIRST, pool.pop(), pool.pop(), pool.pop());
         }
-        else if (enchantments.size() >= 2) {
-            builder.withSlot(FIRST, enchantments.pop(), enchantments.pop());
+        else if (pool.size() >= 2) {
+            builder.withSlot(FIRST, pool.pop(), pool.pop());
             isTwoChoiceGenerated = true;
         }
         else {
-            builder.withSlot(FIRST, enchantments.pop());
+            builder.withSlot(FIRST, pool.pop());
         }
 
-        if (enchantments.isEmpty()) {
+        if (pool.isEmpty()) {
             return builder.build();
         }
 
+        if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
+            removeIncompatible(pool, builder);
+        }
+
         if (random.nextFloat() < secondSlotChance) {
-            if (!isTwoChoiceGenerated && random.nextFloat() < threeChoiceChance && enchantments.size() >= 3) {
-                builder.withSlot(SECOND, enchantments.pop(), enchantments.pop(), enchantments.pop());
+            if (!isTwoChoiceGenerated && random.nextFloat() < threeChoiceChance && pool.size() >= 3) {
+                builder.withSlot(SECOND, pool.pop(), pool.pop(), pool.pop());
             }
-            else if (enchantments.size() >= 2) {
-                builder.withSlot(SECOND, enchantments.pop(), enchantments.pop());
+            else if (pool.size() >= 2) {
+                builder.withSlot(SECOND, pool.pop(), pool.pop());
                 isTwoChoiceGenerated = true;
             }
             else {
-                builder.withSlot(SECOND, enchantments.pop());
+                builder.withSlot(SECOND, pool.pop());
             }
             isSecondSlotGenerated = true;
         }
 
-        if (enchantments.isEmpty()) {
+        if (pool.isEmpty()) {
             return builder.build();
         }
 
+        if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
+            removeIncompatible(pool, builder);
+        }
+
         if (isSecondSlotGenerated && random.nextFloat() < thirdSlotChance) {
-            if (!isTwoChoiceGenerated && random.nextFloat() < threeChoiceChance && enchantments.size() >= 3) {
-                builder.withSlot(THIRD, enchantments.pop(), enchantments.pop(), enchantments.pop());
+            if (!isTwoChoiceGenerated && random.nextFloat() < threeChoiceChance && pool.size() >= 3) {
+                builder.withSlot(THIRD, pool.pop(), pool.pop(), pool.pop());
             }
-            else if (enchantments.size() >= 2) {
-                builder.withSlot(THIRD, enchantments.pop(), enchantments.pop());
+            else if (pool.size() >= 2) {
+                builder.withSlot(THIRD, pool.pop(), pool.pop());
                 isTwoChoiceGenerated = true;
             }
             else {
-                builder.withSlot(THIRD, enchantments.pop());
+                builder.withSlot(THIRD, pool.pop());
             }
         }
 
@@ -127,24 +153,27 @@ public class EnchantmentUtils {
     }
 
     public static boolean canGenerateEnchantment(ItemStack itemStack) {
-        return !getEnchantmentsNotInItem(itemStack).isEmpty();
+        return !getPossibleCandidates(itemStack).isEmpty();
     }
 
     public static Optional<Identifier> generateEnchantment(ItemStack itemStack) {
-        return generateEnchantment(itemStack, new LocalRandom(System.nanoTime()));
+        return generateEnchantment(itemStack, new LocalRandom(System.nanoTime()), getPossibleCandidates(itemStack));
     }
 
-    public static Optional<Identifier> generateEnchantment(ItemStack itemStack, Random random) {
-        var newEnchantments = getEnchantmentsNotInItem(itemStack);
-        if (newEnchantments.isEmpty()) {
+    public static Optional<Identifier> generateEnchantment(ItemStack itemStack, List<Identifier> candidates) {
+        return generateEnchantment(itemStack, new LocalRandom(System.nanoTime()), candidates);
+    }
+
+    public static Optional<Identifier> generateEnchantment(ItemStack itemStack, Random random, List<Identifier> candidates) {
+        if (candidates.isEmpty()) {
             return Optional.empty();
         }
-        return Optional.of(newEnchantments.get(random.nextInt(newEnchantments.size())));
+        return Optional.of(candidates.get(random.nextInt(candidates.size())));
     }
 
     public static Set<Identifier> getAllEnchantmentsInItem(ItemStack itemStack) {
         var present = EnchantmentHelper.get(itemStack).keySet().stream()
-            .map(key -> Registry.ENCHANTMENT.getId(key))
+            .map(key -> ENCHANTMENT.getId(key))
             .collect(Collectors.toSet());
         var slots = EnchantmentSlots.fromItemStack(itemStack);
         if (slots == null) {
@@ -152,13 +181,24 @@ public class EnchantmentUtils {
         }
         slots.stream()
             .flatMap(s -> s.choices().stream())
-            .map(c -> c.getEnchantmentId()).forEach(id -> present.add(id));
+            .map(c -> c.getEnchantmentId()).forEach(present::add);
         return present;
     }
 
-    private static List<Identifier> getEnchantmentsNotInItem(ItemStack itemStack) {
+    public static Stream<Identifier> getEnchantmentsNotInItem(ItemStack itemStack) {
         var present = getAllEnchantmentsInItem(itemStack);
-         return getAllEnchantmentsForItem(itemStack)
-            .filter(id -> !present.contains(id)).toList();
+        var candidates = getAllEnchantmentsForItem(itemStack)
+            .filter(id -> !present.contains(id));
+        return candidates;
+    }
+
+    private static List<Identifier> getPossibleCandidates(ItemStack itemStack) {
+        var present = getAllEnchantmentsInItem(itemStack);
+        var candidates = getAllEnchantmentsForItem(itemStack)
+            .filter(id -> !present.contains(id));
+        if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
+            candidates = candidates.filter(id -> isCompatible(present, id));
+        }
+         return candidates.toList();
     }
 }

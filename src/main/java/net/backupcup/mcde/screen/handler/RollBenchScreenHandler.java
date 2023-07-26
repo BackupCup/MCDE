@@ -1,5 +1,7 @@
 package net.backupcup.mcde.screen.handler;
 
+import java.util.List;
+
 import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
@@ -79,7 +81,7 @@ public class RollBenchScreenHandler extends ScreenHandler {
         Slots toChange;
         int level = 1;
         Identifier enchantmentId;
-        var newEnchantment = EnchantmentUtils.generateEnchantment(itemStack);
+        var newEnchantment = EnchantmentUtils.generateEnchantment(itemStack, getCandidatesForReroll(itemStack, slots, clickedSlot.getSlot()));
         if (newEnchantment.isEmpty()) {
             return super.onButtonClick(player, id);
         }
@@ -171,5 +173,20 @@ public class RollBenchScreenHandler extends ScreenHandler {
         for (int i = 0; i < 9; ++i) {
             this.addSlot(new Slot(playerInventory, i, 10 + i * 18, 142));
         }
+    }
+
+    public static List<Identifier> getCandidatesForReroll(ItemStack itemStack, EnchantmentSlots slots, Slots clickedSlot) {
+        // Mustn't be same, Doesn't have to be compatible inside slot regardless of config, Does have to be compatible for other slots if requireCompatibility is true
+        var candidates = EnchantmentUtils.getEnchantmentsNotInItem(itemStack);
+        if (!MCDEnchantments.getConfig().isCompatibilityRequired()) {
+            return candidates.toList();
+        }
+        var enchantments_not_in_clicked_slot =
+            slots.stream().filter(s -> !s.getSlot().equals(clickedSlot))
+            .flatMap(s -> s.choices().stream())
+            .map(c -> c.getEnchantmentId())
+            .toList();
+        candidates = candidates.filter(id -> EnchantmentUtils.isCompatible(enchantments_not_in_clicked_slot, id));
+        return candidates.toList();
     }
 }

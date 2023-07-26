@@ -15,7 +15,6 @@ import net.backupcup.mcde.util.EnchantmentSlot;
 import net.backupcup.mcde.util.EnchantmentSlot.Choice;
 import net.backupcup.mcde.util.EnchantmentSlot.ChoiceWithLevel;
 import net.backupcup.mcde.util.EnchantmentSlots;
-import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.Slots;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.render.GameRenderer;
@@ -64,7 +63,11 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
                         level = (int) (withLevel.getLevel() + 1);
                     }
                     return !handler.canReroll(client.player, choice.getEnchantmentId(), level) ||
-                        !EnchantmentUtils.canGenerateEnchantment(inventory.getStack(0));
+                        RollBenchScreenHandler.getCandidatesForReroll(
+                            inventory.getStack(0),
+                            EnchantmentSlots.fromItemStack(inventory.getStack(0)),
+                            choice.getSlot()
+                        ).isEmpty();
                 })
                 .build();
     }
@@ -175,7 +178,11 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
                     RollBenchScreenHandler.getRerollCost(enchantment, level))
                 .formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
         }
-        if (!EnchantmentUtils.canGenerateEnchantment(itemStack)) {
+        if (RollBenchScreenHandler.getCandidatesForReroll(
+                            itemStack,
+                            EnchantmentSlots.fromItemStack(itemStack),
+                            hoveredChoice.get().getSlot()
+                        ).isEmpty()) {
             tooltipLines.add(Text.translatable("message.mcde.cant_generate").formatted(Formatting.DARK_RED, Formatting.ITALIC));
         }
         renderTooltip(matrices, tooltipLines, mouseX, mouseY);

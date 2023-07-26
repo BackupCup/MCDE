@@ -1,13 +1,16 @@
 package net.backupcup.mcde.util;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import net.backupcup.mcde.util.EnchantmentSlot.Choice;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
@@ -35,6 +38,14 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
         public Builder withSlot(Slots slot, Identifier first, Identifier second, Identifier third) {
             slots.put(slot, EnchantmentSlot.of(slot, first, second, third));
             return this;
+        }
+
+        public List<Choice> getAdded() {
+            var added = new ArrayList<Choice>();
+            for (var slot : slots.values()) {
+                added.addAll(slot.choices());
+            }
+            return added;
         }
 
         public EnchantmentSlots build() {
