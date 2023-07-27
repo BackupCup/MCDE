@@ -27,7 +27,7 @@ jobs:
       - name: Publish
         uses: Kir-Antipov/mc-publish@v3.3
         with:
-          name: MC Dungeons Enchantments - ${{ github.event.release.tag_name }}
+          name: MC Dungeons Enchanting - ${{ github.event.release.tag_name }}
           github-token: ${{ github.token }}
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
