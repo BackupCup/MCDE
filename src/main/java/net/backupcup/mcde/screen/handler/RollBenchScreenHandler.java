@@ -176,7 +176,6 @@ public class RollBenchScreenHandler extends ScreenHandler {
     }
 
     public static List<Identifier> getCandidatesForReroll(ItemStack itemStack, EnchantmentSlots slots, Slots clickedSlot) {
-        // Mustn't be same, Doesn't have to be compatible inside slot regardless of config, Does have to be compatible for other slots if requireCompatibility is true
         var candidates = EnchantmentUtils.getEnchantmentsNotInItem(itemStack);
         if (!MCDEnchantments.getConfig().isCompatibilityRequired()) {
             return candidates.toList();

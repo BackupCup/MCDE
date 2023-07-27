@@ -74,7 +74,7 @@ public class EnchantmentUtils {
         var it = pool.iterator();
         while (it.hasNext()) {
             var enchantment = it.next();
-            if (isCompatible(builder.getAdded().stream().map(c -> c.getEnchantmentId()).toList(), enchantment)) {
+            if (!isCompatible(builder.getAdded().stream().map(c -> c.getEnchantmentId()).toList(), enchantment)) {
                 it.remove();
             }
         }
