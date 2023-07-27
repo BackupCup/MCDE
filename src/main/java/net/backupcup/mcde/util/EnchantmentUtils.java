@@ -106,12 +106,12 @@ public class EnchantmentUtils {
             builder.withSlot(FIRST, pool.pop());
         }
 
-        if (pool.isEmpty()) {
-            return builder.build();
-        }
-
         if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
             removeIncompatible(pool, builder);
+        }
+
+        if (pool.isEmpty()) {
+            return builder.build();
         }
 
         if (random.nextFloat() < secondSlotChance) {
@@ -128,12 +128,12 @@ public class EnchantmentUtils {
             isSecondSlotGenerated = true;
         }
 
-        if (pool.isEmpty()) {
-            return builder.build();
-        }
-
         if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
             removeIncompatible(pool, builder);
+        }
+
+        if (pool.isEmpty()) {
+            return builder.build();
         }
 
         if (isSecondSlotGenerated && random.nextFloat() < thirdSlotChance) {
