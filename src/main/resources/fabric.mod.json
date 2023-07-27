@@ -15,7 +15,7 @@
     "sources": "https://github.com/EndLone/MCDE"
   },
 
-  "license": "MIT License",
+  "license": "Timefall Development License 1.1",
   "icon": "assets/mcde/icon.png",
 
   "environment": "*",
