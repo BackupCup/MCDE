@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
@@ -121,6 +122,21 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
         opened = Optional.empty();
 
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    protected void drawForeground(MatrixStack matrices, int mouseX, int mouseY) {
+        int width = textRenderer.getWidth(title);
+        int height = textRenderer.fontHeight;
+        int outlineX = titleX - 4;
+        int outlineY = titleY - 4;
+        RenderSystem.setShaderTexture(0, TEXTURE);
+
+        drawTexture(matrices,  outlineX, outlineY, 0, 172, 3, height + 6);
+        IntStream.range(-1, width + 1).forEach(i ->
+                drawTexture(matrices, titleX + i, outlineY, 2, 172, 1, height + 6));
+        drawTexture(matrices, titleX + width + 1, outlineY, 3, 172, 2, height + 6);
+        super.drawForeground(matrices, mouseX, mouseY);
     }
 
     @Override

@@ -1,5 +1,7 @@
 package net.backupcup.mcde.screen;
 
+import java.util.stream.IntStream;
+
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.backupcup.mcde.MCDEnchantments;
@@ -35,8 +37,8 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
     @Override
     protected void init() {
         super.init();
-        titleX = 52;
-        titleY = 4;
+        titleX = (backgroundWidth - textRenderer.getWidth(title) + 4) / 2;
+        titleY = -3;
         playerInventoryTitleX = -200;
         playerInventoryTitleY = -200;
         backgroundX = ((width - backgroundWidth) / 2) - 2;
@@ -57,6 +59,21 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
         int posX = ((width - backgroundWidth) / 2) - 2;
         int posY = (height - backgroundHeight) / 2;
         drawTexture(matrices, posX, posY, 0, 0, backgroundWidth + 10, backgroundHeight);
+    }
+
+    @Override
+    protected void drawForeground(MatrixStack matrices, int mouseX, int mouseY) {
+        int width = textRenderer.getWidth(title);
+        int height = textRenderer.fontHeight;
+        int outlineX = titleX - 4;
+        int outlineY = titleY - 4;
+        RenderSystem.setShaderTexture(0, TEXTURE);
+
+        drawTexture(matrices,  outlineX, outlineY, 0, 204, 3, height + 6);
+        IntStream.range(-1, width + 1).forEach(i ->
+                drawTexture(matrices, titleX + i, outlineY, 2, 204, 1, height + 6));
+        drawTexture(matrices, titleX + width + 1, outlineY, 3, 204, 2, height + 6);
+        super.drawForeground(matrices, mouseX, mouseY);
     }
 
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
