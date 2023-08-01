@@ -62,6 +62,7 @@ public abstract class AnvilScreenHandlerMixin {
             levelCost.set(slots.merge(enchantmentMap));
         } else if (slots.hasGilding() && slots2.hasGilding()) {
             screenGetSlot(2).setStack(ItemStack.EMPTY);
+            ((AnvilScreenHandler)(Object)this).sendContentUpdates();
             ci.cancel();
             return;
         }
@@ -82,6 +83,7 @@ public abstract class AnvilScreenHandlerMixin {
             result.setCustomName(Text.literal(newItemName));
         }
         screenGetSlot(2).setStack(result);
+        ((AnvilScreenHandler)(Object)this).sendContentUpdates();
         ci.cancel();
     }
 }
