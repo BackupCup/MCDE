@@ -23,7 +23,6 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
 @Mixin(ItemStack.class)
@@ -54,8 +53,8 @@ public abstract class ItemStackMixin {
         for (var slot : slots) {
             slot.getChosen().ifPresent(chosen -> map.remove(chosen.getEnchantment()));
         }
-        if (nbt.contains("Gilding")) {
-            map.remove(Registry.ENCHANTMENT.get(Identifier.tryParse(nbt.getString("Gilding"))));
+        if (slots.hasGilding()) {
+            map.remove(Registry.ENCHANTMENT.get(slots.getGilding().get()));
         }
         return map.entrySet().stream()
             .map(kvp -> EnchantmentHelper.createNbt(EnchantmentHelper.getEnchantmentId(kvp.getKey()), kvp.getValue()))
@@ -89,8 +88,8 @@ public abstract class ItemStackMixin {
                 tooltip.add(name.formatted(Formatting.LIGHT_PURPLE));
             }
         }
-        if (nbt.contains("Gilding")) {
-            var gilded = Identifier.tryParse(nbt.getString("Gilding"));
+        if (slots.hasGilding()) {
+            var gilded = slots.getGilding().get();
             tooltip.add(Text.translatable("item.tooltip.gilded", Text.translatable(gilded.toTranslationKey("enchantment")))
                     .formatted(Formatting.GOLD));
         }
@@ -115,20 +114,21 @@ public abstract class ItemStackMixin {
             });
         }
 
-        if (!nbt.contains("Gilding")) {
+        if (!slots.hasGilding()) {
             return newList;
         }
-        var gilded = Identifier.tryParse(nbt.getString("Gilding"));
+        var gilded = slots.getGilding().get();
         newList.add(EnchantmentHelper.createNbt(gilded, 1));
         return newList;
     }
 
     @Inject(method = "hasGlint", at = @At("HEAD"), cancellable = true)
     private void hasEnchantments(CallbackInfoReturnable<Boolean> cir) {
-        if (!hasNbt() || !nbt.contains("Slots")) {
+        var slots = EnchantmentSlots.fromItemStack((ItemStack)(Object)this);
+        if (slots == null) {
             return;
         }
-        cir.setReturnValue(EnchantmentSlots.fromItemStack((ItemStack)(Object)this).stream()
+        cir.setReturnValue(slots.stream()
                 .anyMatch(s -> s.getChosen().isPresent()));
     }
 }

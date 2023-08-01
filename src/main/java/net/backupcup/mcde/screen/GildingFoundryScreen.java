@@ -6,6 +6,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.screen.handler.GildingFoundryScreenHandler;
+import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.render.GameRenderer;
@@ -110,10 +111,11 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
 
     private boolean isGildingButtonClickable() {
         var weapon = inventory.getStack(0);
+        var slots = EnchantmentSlots.fromItemStack(weapon);
         return !weapon.isEmpty() &&
             !(inventory.getStack(1).getCount() < MCDEnchantments.getConfig().getGildingCost()) &&
             !handler.hasProgress() &&
-            !(weapon.hasNbt() && weapon.getNbt().contains("Gilding")) &&
+            !(slots != null && slots.hasGilding()) &&
             EnchantmentUtils.canGenerateEnchantment(weapon);
     }
 

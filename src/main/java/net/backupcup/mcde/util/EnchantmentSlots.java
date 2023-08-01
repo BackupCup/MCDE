@@ -17,9 +17,31 @@ import net.minecraft.util.Identifier;
 
 public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
     private Map<Slots, EnchantmentSlot> slots;
+    private Optional<Identifier> gilding = Optional.empty();
+
+    public EnchantmentSlots(Map<Slots, EnchantmentSlot> slots, Optional<Identifier> gilding) {
+        this.gilding = gilding;
+        this.slots = slots;
+    }
 
     public EnchantmentSlots(Map<Slots, EnchantmentSlot> slots) {
         this.slots = slots;
+    }
+
+    public boolean hasGilding() {
+        return gilding.isPresent();
+    }
+
+    public Optional<Identifier> getGilding() {
+        return gilding;
+    }
+
+    public void setGilding(Identifier gilding) {
+        this.gilding = Optional.of(gilding);
+    }
+
+    public void removeGilding() {
+        gilding = Optional.empty();
     }
 
     public static class Builder {
@@ -71,25 +93,32 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
 
     public NbtCompound toNbt() {
         NbtCompound root = new NbtCompound();
+        NbtCompound slotsCompound = new NbtCompound();
         slots.entrySet().stream()
-            .forEach(kvp -> root.put(kvp.getKey().name(), kvp.getValue().toNbt()));
+            .forEach(kvp -> slotsCompound.put(kvp.getKey().name(), kvp.getValue().toNbt()));
+        root.put("Slots", slotsCompound);
+        gilding.ifPresent(id -> root.putString("Gilding", id.toString()));
         return root;
     }
 
     public static EnchantmentSlots fromNbt(NbtCompound nbt) {
-        return nbt == null ? null : new EnchantmentSlots(nbt.getKeys().stream()
+        if (nbt == null) {
+            return null;
+        }
+        var slots = nbt.getCompound("Slots");
+        return new EnchantmentSlots(slots.getKeys().stream()
                 .collect(Collectors.toMap(
                     key -> Slots.valueOf(key),
-                    key -> EnchantmentSlot.fromNbt(nbt.getCompound(key), Slots.valueOf(key))
-                )));
+                    key -> EnchantmentSlot.fromNbt(slots.getCompound(key), Slots.valueOf(key))
+                )), Optional.ofNullable(nbt.getString("Gilding")).filter(id -> !id.isEmpty()).map(Identifier::tryParse));
     }
 
     public static EnchantmentSlots fromItemStack(ItemStack itemStack) {
-        return EnchantmentSlots.fromNbt(itemStack.getSubNbt("Slots"));
+        return EnchantmentSlots.fromNbt(itemStack.getSubNbt("MCDEnchantments"));
     }
 
     public void updateItemStack(ItemStack itemStack) {
-        itemStack.setSubNbt("Slots", toNbt());
+        itemStack.setSubNbt("MCDEnchantments", toNbt());
     }
 
     @Override

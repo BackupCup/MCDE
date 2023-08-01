@@ -13,7 +13,6 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtString;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
@@ -133,7 +132,9 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
             return;
         }
         var id = gildedEnchantment.get();
-        weaponStack.setSubNbt("Gilding", NbtString.of(id.toString()));
+        var slots = EnchantmentSlots.fromItemStack(weaponStack);
+        slots.setGilding(id);
+        slots.updateItemStack(weaponStack);
     }
 
     private void resetProgress() {
