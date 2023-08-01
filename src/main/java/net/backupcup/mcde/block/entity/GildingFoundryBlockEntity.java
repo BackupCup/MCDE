@@ -113,7 +113,6 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
     }
 
     private void generateEnchantments() {
-        DefaultedList<ItemStack> inventory = getItems();
         ItemStack itemStack = inventory.get(0);
 
         if (EnchantmentSlots.fromItemStack(itemStack) == null) {
