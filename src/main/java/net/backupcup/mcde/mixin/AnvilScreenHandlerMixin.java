@@ -13,6 +13,7 @@ import net.backupcup.mcde.util.EnchantmentSlots;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.screen.AnvilScreenHandler;
 import net.minecraft.screen.Property;
 import net.minecraft.screen.slot.Slot;
@@ -45,30 +46,18 @@ public abstract class AnvilScreenHandlerMixin {
         var input2 = screenGetSlot(1).getStack();
         var slots = EnchantmentSlots.fromItemStack(input1);
         var slots2 = EnchantmentSlots.fromItemStack(input2);
+        ItemStack other = input2;
         if (slots == null && slots2 == null) {
             return;
         }
-        if (!input1.isItemEqualIgnoreDamage(input2)) {
+        if (!input1.isItemEqualIgnoreDamage(input2) && !input2.isOf(Items.ENCHANTED_BOOK)) {
             return;
         }
-        if (slots == null || slots2 == null) {
-            Map<Enchantment, Integer> enchantmentMap;
-            if (slots == null) {
-                slots = slots2;
-                enchantmentMap = EnchantmentHelper.get(input1);
-            } else {
-                enchantmentMap = EnchantmentHelper.get(input2);
-            }
-            levelCost.set(slots.merge(enchantmentMap));
-        } else if (slots.hasGilding() && slots2.hasGilding()) {
-            screenGetSlot(2).setStack(ItemStack.EMPTY);
-            ((AnvilScreenHandler)(Object)this).sendContentUpdates();
-            ci.cancel();
-            return;
+        if (slots == null) {
+            slots = slots2;
+            other = input1;
         }
-        else {
-            levelCost.set(slots.merge(slots2) + slots.merge(EnchantmentHelper.get(input2)));
-        }
+        levelCost.set(slots.merge(other));
         ItemStack result = ItemStack.EMPTY;
         if (levelCost.get() > 0) {
             result = input1.copy();

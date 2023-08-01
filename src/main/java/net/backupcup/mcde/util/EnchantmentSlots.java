@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 import net.backupcup.mcde.screen.handler.RunicTableScreenHandler;
 import net.backupcup.mcde.util.EnchantmentSlot.Choice;
 import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
@@ -166,14 +167,27 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
             if (!enchantmentMap.containsKey(enchantment)) {
                 continue;
             }
-            var other_lvl = enchantmentMap.get(enchantment);
-            if (other_lvl < chosen.getLevel()) {
+            var otherLvl = enchantmentMap.get(enchantment);
+            if (otherLvl < chosen.getLevel()) {
                 continue;
             }
-            var upgrade = chosen.getLevel() == other_lvl ? 1 : other_lvl - chosen.getLevel();
+            var upgrade = chosen.getLevel() == otherLvl ? 1 : otherLvl - chosen.getLevel();
             cost += RunicTableScreenHandler.getEnchantCost(chosen.getEnchantmentId(), upgrade);
             slot.setLevel(chosen.getLevel() + upgrade);
         }
+        return cost;
+    }
+
+    public int merge(ItemStack itemStack) {
+        var otherSlots = fromItemStack(itemStack);
+        int cost = 0;
+        if (otherSlots != null) {
+            if (hasGilding() && otherSlots.hasGilding()) {
+                return 0;
+            }
+            cost += merge(otherSlots);
+        }
+        cost += merge(EnchantmentHelper.get(itemStack));
         return cost;
     }
 }
