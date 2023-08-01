@@ -144,8 +144,10 @@ public class RunicTableScreenHandler extends ScreenHandler {
         }
     }
 
-    public boolean canEnchant(PlayerEntity player, Identifier enchantmentId, int level) {
-        if (!player.isCreative()) {return player.experienceLevel >= RunicTableScreenHandler.getEnchantCost(enchantmentId, level);}
-        else {return true;}
+    public static boolean canEnchant(PlayerEntity player, Identifier enchantmentId, int level) {
+        if (player.isCreative()) {
+            return true;
+        }
+        return player.experienceLevel >= RunicTableScreenHandler.getEnchantCost(enchantmentId, level);
     }
 }

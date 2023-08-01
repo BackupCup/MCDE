@@ -10,7 +10,9 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import net.backupcup.mcde.screen.handler.RunicTableScreenHandler;
 import net.backupcup.mcde.util.EnchantmentSlot.Choice;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
@@ -128,5 +130,50 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
 
     public Stream<EnchantmentSlot> stream() {
         return slots.values().stream();
+    }
+
+    public int merge(EnchantmentSlots other) {
+        int cost = 0;
+        for (var slot : this) {
+            if (slot.getChosen().isEmpty()) {
+                continue;
+            }
+            var chosen = slot.getChosen().get();
+            var id = chosen.getEnchantmentId();
+            var same = other.stream().filter(s -> s.getChosen().isPresent()).map(s -> s.getChosen().get()).filter(c -> c.getEnchantmentId().equals(id)).findAny();
+            if (same.isEmpty()) {
+                continue;
+            }
+            if (same.get().getLevel() < chosen.getLevel()) {
+                continue;
+            }
+            var other_lvl = same.get().getLevel();
+            var upgrade = other_lvl == chosen.getLevel() ? 1 : other_lvl - chosen.getLevel();
+            cost += RunicTableScreenHandler.getEnchantCost(chosen.getEnchantmentId(), upgrade);
+            slot.setLevel(chosen.getLevel() + upgrade);
+        }
+        return cost;
+    }
+
+    public int merge(Map<Enchantment, Integer> enchantmentMap) {
+        int cost = 0;
+        for (var slot : this) {
+            if (slot.getChosen().isEmpty()) {
+                continue;
+            }
+            var chosen = slot.getChosen().get();
+            var enchantment = chosen.getEnchantment();
+            if (!enchantmentMap.containsKey(enchantment)) {
+                continue;
+            }
+            var other_lvl = enchantmentMap.get(enchantment);
+            if (other_lvl < chosen.getLevel()) {
+                continue;
+            }
+            var upgrade = chosen.getLevel() == other_lvl ? 1 : other_lvl - chosen.getLevel();
+            cost += RunicTableScreenHandler.getEnchantCost(chosen.getEnchantmentId(), upgrade);
+            slot.setLevel(chosen.getLevel() + upgrade);
+        }
+        return cost;
     }
 }

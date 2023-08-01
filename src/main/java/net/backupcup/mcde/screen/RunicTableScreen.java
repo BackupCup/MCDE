@@ -62,7 +62,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
                     level = (int)(withLevel.getLevel() + 1);
                     isMaxedOut = withLevel.isMaxedOut();
                 }
-                return isMaxedOut || !handler.canEnchant(client.player, choice.getEnchantmentId(), level);
+                return isMaxedOut || !RunicTableScreenHandler.canEnchant(client.player, choice.getEnchantmentId(), level);
             })
         .build();
     }
@@ -163,7 +163,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
         String translationKey = enchantment.toTranslationKey("enchantment");
         List<Text> tooltipLines = new ArrayList<>();
         int level = 1;
-        boolean enoughLevels = handler.canEnchant(client.player, enchantment, level);
+        boolean enoughLevels = RunicTableScreenHandler.canEnchant(client.player, enchantment, level);
         MutableText enchantmentName = Text.translatable(translationKey)
             .formatted(MCDEnchantments.getConfig().isEnchantmentPowerful(enchantment) ? Formatting.RED : Formatting.LIGHT_PURPLE);
         if (hoveredChoice.get() instanceof ChoiceWithLevel withLevel) {
@@ -178,7 +178,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
                     .append(" → ")
                     .append(Text.translatable("enchantment.level." + (withLevel.getLevel() + 1)));
                 level = (int)(withLevel.getLevel() + 1);
-                enoughLevels = handler.canEnchant(client.player, enchantment, level);
+                enoughLevels = RunicTableScreenHandler.canEnchant(client.player, enchantment, level);
 
             }
         }

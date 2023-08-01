@@ -104,6 +104,10 @@ public class EnchantmentSlot {
         }
     }
 
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
     private static boolean isMaxedOut(Identifier enchantmentId, int level) {
         return level >= Registry.ENCHANTMENT.get(enchantmentId).getMaxLevel();
     }
