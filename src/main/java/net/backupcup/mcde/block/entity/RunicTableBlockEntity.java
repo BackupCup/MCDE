@@ -63,10 +63,10 @@ public class RunicTableBlockEntity extends BlockEntity implements NamedScreenHan
         if (world.isClient()) {
             return;
         }
-        if (entity.inventory.isEmpty()) {
+        var itemStack = entity.inventory.get(0);
+        if (itemStack.isEmpty()) {
             return;
         }
-        var itemStack = entity.inventory.get(0);
         if (EnchantmentSlots.fromItemStack(itemStack) != null) {
             return;
         }
