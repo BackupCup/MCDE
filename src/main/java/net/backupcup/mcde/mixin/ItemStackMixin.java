@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 
 import net.backupcup.mcde.util.EnchantmentSlots;
+import net.backupcup.mcde.util.EnchantmentUtils;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
@@ -85,7 +86,7 @@ public abstract class ItemStackMixin {
                     name.append(" ")
                         .append(Text.translatable("enchantment.level." + chosen.getLevel()));
                 }
-                tooltip.add(name.formatted(Formatting.LIGHT_PURPLE));
+                tooltip.add(name.formatted(EnchantmentUtils.formatEnchantment(chosen.getEnchantmentId())));
             }
         }
         if (slots.hasGilding()) {

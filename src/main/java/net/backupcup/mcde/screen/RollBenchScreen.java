@@ -16,6 +16,7 @@ import net.backupcup.mcde.util.EnchantmentSlot;
 import net.backupcup.mcde.util.EnchantmentSlot.Choice;
 import net.backupcup.mcde.util.EnchantmentSlot.ChoiceWithLevel;
 import net.backupcup.mcde.util.EnchantmentSlots;
+import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.Slots;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.render.GameRenderer;
@@ -170,8 +171,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         int level = 1;
         boolean canReroll = handler.canReroll(client.player, enchantment, level);
         MutableText enchantmentName = Text.translatable(translationKey)
-                .formatted(MCDEnchantments.getConfig().isEnchantmentPowerful(enchantment) ? Formatting.RED
-                        : Formatting.LIGHT_PURPLE);
+                .formatted(EnchantmentUtils.formatEnchantment(enchantment));
         if (hoveredChoice.get() instanceof ChoiceWithLevel withLevel &&
                 withLevel.getEnchantment().getMaxLevel() > 1) {
             enchantmentName.append(" ")

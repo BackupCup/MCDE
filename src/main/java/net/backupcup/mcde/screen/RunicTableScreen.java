@@ -14,6 +14,7 @@ import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
 import net.backupcup.mcde.screen.util.ScreenWithSlots;
 import net.backupcup.mcde.util.EnchantmentSlot.ChoiceWithLevel;
 import net.backupcup.mcde.util.EnchantmentSlots;
+import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.Slots;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.render.GameRenderer;
@@ -165,7 +166,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
         int level = 1;
         boolean enoughLevels = RunicTableScreenHandler.canEnchant(client.player, enchantment, level);
         MutableText enchantmentName = Text.translatable(translationKey)
-            .formatted(MCDEnchantments.getConfig().isEnchantmentPowerful(enchantment) ? Formatting.RED : Formatting.LIGHT_PURPLE);
+            .formatted(EnchantmentUtils.formatEnchantment(enchantment));
         if (hoveredChoice.get() instanceof ChoiceWithLevel withLevel) {
             enchantmentName.append(" ");
             if (withLevel.isMaxedOut()) {

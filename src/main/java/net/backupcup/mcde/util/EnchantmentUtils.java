@@ -21,6 +21,7 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.EnchantmentTarget;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.random.LocalRandom;
@@ -60,6 +61,10 @@ public class EnchantmentUtils {
 
     public static Identifier getEnchantmentId(Enchantment enchantment) {
         return ENCHANTMENT.getId(enchantment);
+    }
+
+    public static Formatting formatEnchantment(Identifier id) {
+        return MCDEnchantments.getConfig().isEnchantmentPowerful(id) ? Formatting.RED : Formatting.LIGHT_PURPLE;
     }
 
     public static EnchantmentSlots generateEnchantments(ItemStack itemStack) {
