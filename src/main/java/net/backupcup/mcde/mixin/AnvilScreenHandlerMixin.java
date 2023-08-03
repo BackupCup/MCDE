@@ -1,7 +1,5 @@
 package net.backupcup.mcde.mixin;
 
-import java.util.Map;
-
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -10,8 +8,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.util.EnchantmentSlots;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.screen.AnvilScreenHandler;

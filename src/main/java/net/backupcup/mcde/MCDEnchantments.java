@@ -1,16 +1,22 @@
 package net.backupcup.mcde;
 
+import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.configurate.ConfigurateException;
+import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
 import org.spongepowered.configurate.loader.ParsingException;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
+import org.spongepowered.configurate.serialize.SerializationException;
+import org.spongepowered.configurate.serialize.TypeSerializer;
 import org.spongepowered.configurate.util.NamingSchemes;
 
 import net.backupcup.mcde.block.ModBlocks;
@@ -19,6 +25,7 @@ import net.backupcup.mcde.screen.handler.ModScreenHandlers;
 import net.backupcup.mcde.util.IdentifierGlobbedList;
 import net.backupcup.mcde.util.IdentifierGlobbedListSerializer;
 import net.backupcup.mcde.util.ModTags;
+import net.backupcup.mcde.util.Slots;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
@@ -73,6 +80,22 @@ public class MCDEnchantments implements ModInitializer {
             .defaultOptions(opts -> 
                     opts.serializers(builder -> {
                         builder.register(IdentifierGlobbedList.class, IdentifierGlobbedListSerializer.INSTANCE);
+                        builder.register(Identifier.class, new TypeSerializer<Identifier>() {
+                            @Override
+                            public Identifier deserialize(Type type, ConfigurationNode node)
+                                    throws SerializationException {
+                                    return Identifier.tryParse(node.getString());
+                            }
+
+                            @Override
+                            public void serialize(Type type, @Nullable Identifier obj, ConfigurationNode node)
+                                    throws SerializationException {
+                                    if (obj == null) {
+                                        return;
+                                    }
+                                    node.set(obj.toString());
+                            }
+                        });
                         builder.registerAnnotatedObjects(ObjectMapper.factoryBuilder()
                                 .defaultNamingScheme(NamingSchemes.SNAKE_CASE).build());
                     }))
@@ -181,6 +204,10 @@ public class MCDEnchantments implements ModInitializer {
             return requireCompatibility;
         }
 
+        public Map<Identifier, Map<Slots, Float>> getProgressChances() {
+            return progressChances;
+        }
+
         @Comment("Has two possible values:\n" +
                  "ALLOW - Only allow enchantments specified in 'list' to appear\n" +
                  "DENY - Make enchantments specified in 'list' to never appear")
@@ -233,5 +260,11 @@ public class MCDEnchantments implements ModInitializer {
         @Comment("Each n-th tick (where n is this setting) would increment progress of gilding.\n" +
                  "The process consists of 33 steps (frames). So, overall process would take n * 33 ticks.")
         private int ticksPerGildingProcessStep = 1;
+
+        @Comment("Defines how slot chances increases with game progression")
+        private Map<Identifier, Map<Slots, Float>> progressChances = Map.of(
+            Identifier.of("minecraft", "story/smelt_iron"), Map.of(Slots.SECOND, 1.1f, Slots.THIRD, 1.04f),
+            Identifier.tryParse("minecraft:story/enter_the_end"), Map.of(Slots.SECOND, 1.5f, Slots.THIRD, 1.3f)
+        );
     }
 }

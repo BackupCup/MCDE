@@ -16,6 +16,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
@@ -70,7 +71,7 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
     @Nullable
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
-        return new GildingFoundryScreenHandler(syncId, inv, this, this.propertyDelegate);
+        return new GildingFoundryScreenHandler(syncId, inv, this, this.propertyDelegate, ScreenHandlerContext.create(world, pos));
     }
 
     @Override
@@ -88,9 +89,6 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
     public static void tick(World world, BlockPos blockPos, BlockState state, GildingFoundryBlockEntity entity) {
         if (world.isClient()) {
             return;
-        }
-        if (!entity.inventory.get(0).isEmpty()) {
-            entity.generateEnchantments();
         }
 
         if (entity.gilding_progress == 0) {
@@ -110,15 +108,6 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
             }
         }
         markDirty(world, blockPos, state);
-    }
-
-    private void generateEnchantments() {
-        ItemStack itemStack = inventory.get(0);
-
-        if (EnchantmentSlots.fromItemStack(itemStack) == null) {
-            EnchantmentSlots slots = EnchantmentUtils.generateEnchantments(itemStack);
-            slots.updateItemStack(itemStack);
-        }
     }
 
     private void finishGilding() {

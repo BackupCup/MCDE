@@ -62,6 +62,8 @@ public class RollBenchScreenHandler extends ScreenHandler {
             }
         });
 
+        addListener(EnchantmentUtils.generatorListener(context, playerInventory.player));
+
         addPlayerInventory(playerInventory);
         addPlayerHotbar(playerInventory);
     }

@@ -4,7 +4,6 @@ import org.jetbrains.annotations.Nullable;
 
 import net.backupcup.mcde.screen.handler.RollBenchScreenHandler;
 import net.backupcup.mcde.util.EnchantmentSlots;
-import net.backupcup.mcde.util.EnchantmentUtils;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -70,6 +69,5 @@ public class RollBenchBlockEntity extends BlockEntity implements NamedScreenHand
         if (EnchantmentSlots.fromItemStack(itemStack) != null) {
             return;
         }
-        EnchantmentUtils.generateEnchantments(itemStack).updateItemStack(itemStack);
     }
 }

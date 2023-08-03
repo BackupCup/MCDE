@@ -8,8 +8,10 @@ import static net.minecraft.util.registry.Registry.ENCHANTMENT;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -19,8 +21,13 @@ import net.backupcup.mcde.MCDEnchantments;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.EnchantmentTarget;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.screen.ScreenHandler;
+import net.minecraft.screen.ScreenHandlerContext;
+import net.minecraft.screen.ScreenHandlerListener;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
@@ -67,8 +74,8 @@ public class EnchantmentUtils {
         return MCDEnchantments.getConfig().isEnchantmentPowerful(id) ? Formatting.RED : Formatting.LIGHT_PURPLE;
     }
 
-    public static EnchantmentSlots generateEnchantments(ItemStack itemStack) {
-        return generateEnchantments(itemStack, new LocalRandom(System.nanoTime()));
+    public static EnchantmentSlots generateEnchantments(ItemStack itemStack, ServerPlayerEntity player) {
+        return generateEnchantments(itemStack, player, new LocalRandom(System.nanoTime()));
     }
 
     public static boolean isCompatible(Collection<Identifier> present, Identifier enchantment) {
@@ -85,14 +92,29 @@ public class EnchantmentUtils {
         }
     }
 
-    public static EnchantmentSlots generateEnchantments(ItemStack itemStack, Random random) {
+    public static Map<Slots, Float> calculateMultipliers(ServerPlayerEntity player) {
+        var result = new TreeMap<>(Map.of(Slots.SECOND, 0.5f, Slots.THIRD, 0.25f));
+        MCDEnchantments.getConfig().getProgressChances().entrySet().stream()
+            .filter(kvp -> player.getAdvancementTracker().getProgress(player.server.getAdvancementLoader().get(kvp.getKey())).isDone())
+            .map(Map.Entry::getValue)
+            .reduce(result, (lhs, rhs) -> {
+                for (var kvp : rhs.entrySet()) {
+                    lhs.put(kvp.getKey(), lhs.get(kvp.getKey()) * kvp.getValue());
+                }
+                return lhs;
+            });
+        return result;
+    }
+
+    public static EnchantmentSlots generateEnchantments(ItemStack itemStack, ServerPlayerEntity player, Random random) {
         var builder = EnchantmentSlots.builder();
         var pool = getEnchantmentsForItem(itemStack).collect(ObjectArrayList.toList());
         boolean isTwoChoiceGenerated = false;
         boolean isSecondSlotGenerated = false;
         float threeChoiceChance = 0.5f;
-        float secondSlotChance = 0.5f;
-        float thirdSlotChance = 0.25f;
+        var slotChances = calculateMultipliers(player);
+        float secondSlotChance = slotChances.get(SECOND);
+        float thirdSlotChance = slotChances.get(THIRD);
 
         if (pool.isEmpty()) {
             return EnchantmentSlots.EMPTY;
@@ -156,6 +178,28 @@ public class EnchantmentUtils {
 
         return builder.build();
     }
+
+    public static ScreenHandlerListener generatorListener(ScreenHandlerContext context, PlayerEntity player) {
+        return new ScreenHandlerListener() {
+            @Override
+            public void onPropertyUpdate(ScreenHandler handler, int property, int value) {
+            }
+
+            @Override
+            public void onSlotUpdate(ScreenHandler handler, int slotId, ItemStack stack) {
+                if (slotId != 0 || stack.isEmpty() || EnchantmentSlots.fromItemStack(stack) != null) {
+                    return;
+                }
+                context.run((world, pos) -> {
+                    var server = world.getServer();
+                    var serverPlayer = server.getPlayerManager().getPlayer(player.getUuid());
+                    EnchantmentUtils.generateEnchantments(stack, serverPlayer).updateItemStack(stack);
+                    handler.setStackInSlot(0, 0, stack);
+                });
+            }
+        };
+    }
+
 
     public static boolean canGenerateEnchantment(ItemStack itemStack) {
         return !getPossibleCandidates(itemStack).isEmpty();

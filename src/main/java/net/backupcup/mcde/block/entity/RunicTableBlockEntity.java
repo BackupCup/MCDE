@@ -70,6 +70,5 @@ public class RunicTableBlockEntity extends BlockEntity implements NamedScreenHan
         if (EnchantmentSlots.fromItemStack(itemStack) != null) {
             return;
         }
-        EnchantmentUtils.generateEnchantments(itemStack).updateItemStack(itemStack);
     }
 }

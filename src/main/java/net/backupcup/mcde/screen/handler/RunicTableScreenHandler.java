@@ -2,6 +2,7 @@ package net.backupcup.mcde.screen.handler;
 
 import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.util.EnchantmentSlots;
+import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.Slots;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -46,6 +47,9 @@ public class RunicTableScreenHandler extends ScreenHandler {
                 return 1;
             }
         });
+
+        addListener(EnchantmentUtils.generatorListener(context, playerInventory.player));
+        inventory.markDirty();
 
         addPlayerInventory(playerInventory);
         addPlayerHotbar(playerInventory);

@@ -1,5 +1,6 @@
 package net.backupcup.mcde.screen.handler;
 
+import net.backupcup.mcde.util.EnchantmentUtils;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -9,6 +10,7 @@ import net.minecraft.item.Items;
 import net.minecraft.screen.ArrayPropertyDelegate;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.slot.Slot;
 
 public class GildingFoundryScreenHandler extends ScreenHandler {
@@ -20,10 +22,10 @@ public class GildingFoundryScreenHandler extends ScreenHandler {
     private final PropertyDelegate propertyDelegate;
 
     public GildingFoundryScreenHandler(int syncId, PlayerInventory inventory) {
-        this(syncId, inventory, new SimpleInventory(2), new ArrayPropertyDelegate(1));
+        this(syncId, inventory, new SimpleInventory(2), new ArrayPropertyDelegate(1), ScreenHandlerContext.EMPTY);
     }
 
-    public GildingFoundryScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, PropertyDelegate delegate) {
+    public GildingFoundryScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, PropertyDelegate delegate, ScreenHandlerContext context) {
         super(ModScreenHandlers.GILDING_FOUNDRY_SCREEN_HANDLER, syncId);
 
         checkSize(inventory, 1);
@@ -56,6 +58,8 @@ public class GildingFoundryScreenHandler extends ScreenHandler {
                 return 64;
             }
         });
+
+        addListener(EnchantmentUtils.generatorListener(context, playerInventory.player));
 
         addPlayerInventory(playerInventory);
         addPlayerHotbar(playerInventory);
