@@ -99,7 +99,7 @@ public class EnchantmentUtils {
             .map(Map.Entry::getValue)
             .reduce(result, (lhs, rhs) -> {
                 for (var kvp : rhs.entrySet()) {
-                    lhs.put(kvp.getKey(), lhs.get(kvp.getKey()) * kvp.getValue());
+                    lhs.put(kvp.getKey(), lhs.get(kvp.getKey()) + kvp.getValue());
                 }
                 return lhs;
             });
