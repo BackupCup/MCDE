@@ -94,7 +94,7 @@
       "required": false
     },
     {
-      "id": "mcdw:whip_whip"
+      "id": "mcdw:whip_whip",
       "required": false
     }
   ]
