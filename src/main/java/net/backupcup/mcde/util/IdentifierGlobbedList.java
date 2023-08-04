@@ -5,12 +5,22 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Jankson;
+import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.JsonArray;
+import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.JsonObject;
+import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.JsonPrimitive;
+import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.annotation.Deserializer;
+import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.annotation.Serializer;
+import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.api.SyntaxError;
 import net.minecraft.tag.TagKey;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
 public class IdentifierGlobbedList {
+    private static final Jankson JANKSON = Jankson.builder().build();
     private final Set<String> namespaces = new HashSet<>();
     private final Set<Identifier> fullySpecified = new HashSet<>();
     private final Set<Identifier> tags = new HashSet<>();
@@ -74,6 +84,30 @@ public class IdentifierGlobbedList {
 
     public Set<Identifier> getFullySpecified() {
         return fullySpecified;
+    }
+
+    @Serializer
+    public JsonArray toJson() {
+        return (JsonArray)JANKSON.toJson(Stream.concat(
+            getNamespaces().stream().map(ns -> ns + ":*"),
+            getFullySpecified().stream().map(id -> id.toString())
+        ).toList());
+    }
+
+    @Deserializer
+    public static IdentifierGlobbedList fromArray(JsonArray array) throws SyntaxError {
+        return new IdentifierGlobbedList(array.stream().map(e -> ((JsonPrimitive)e).asString()).toList());
+    }
+
+    @Deserializer
+    public static IdentifierGlobbedList fromObject(JsonObject obj) throws SyntaxError {
+        return new IdentifierGlobbedList(obj.entrySet().stream()
+                .map(kvp -> Map.entry(
+                    kvp.getKey(),
+                    ((JsonArray)kvp.getValue()).stream()
+                        .map(e -> ((JsonPrimitive)e).asString()).toList()
+                ))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 
     @Override
