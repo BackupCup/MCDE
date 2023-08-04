@@ -1,18 +1,27 @@
 package net.backupcup.mcde.block.custom;
 
-import net.backupcup.mcde.block.entity.ModBlockEntities;
-import net.backupcup.mcde.block.entity.RollBenchBlockEntity;
-import net.minecraft.block.*;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityTicker;
-import net.minecraft.block.entity.BlockEntityType;
+import java.util.stream.Stream;
+
+import org.jetbrains.annotations.Nullable;
+
+import net.backupcup.mcde.screen.handler.RollBenchScreenHandler;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockRenderType;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.ShapeContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.screen.NamedScreenHandlerFactory;
+import net.minecraft.screen.ScreenHandlerContext;
+import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.Properties;
-import net.minecraft.util.*;
+import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.BlockMirror;
+import net.minecraft.util.BlockRotation;
+import net.minecraft.util.Hand;
 import net.minecraft.util.function.BooleanBiFunction;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -20,11 +29,8 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.stream.Stream;
-
-public class RollBenchBlock extends BlockWithEntity {
+public class RollBenchBlock extends Block {
     public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
 
     public RollBenchBlock(Settings settings) {
@@ -91,18 +97,6 @@ public class RollBenchBlock extends BlockWithEntity {
     }
 
     @Override
-    public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        if (state.getBlock() != newState.getBlock()) {
-            BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (blockEntity instanceof RollBenchBlockEntity) {
-                ItemScatterer.spawn(world, pos, (RollBenchBlockEntity)blockEntity);
-                world.updateComparators(pos,this);
-            }
-        }
-        super.onStateReplaced(state, world, pos, newState, moved);
-    }
-
-    @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos,
                               PlayerEntity player, Hand hand, BlockHitResult hit) {
         if (!world.isClient) {
@@ -116,15 +110,15 @@ public class RollBenchBlock extends BlockWithEntity {
         return ActionResult.SUCCESS;
     }
 
-    @Nullable
     @Override
-    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return new RollBenchBlockEntity(pos, state);
-    }
-
-    @Nullable
-    @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return checkType(type, ModBlockEntities.ROLL_BENCH, RollBenchBlockEntity::tick);
+    public NamedScreenHandlerFactory createScreenHandlerFactory(BlockState state, World world, BlockPos pos) {
+        return new SimpleNamedScreenHandlerFactory(
+            (syncId, inventory, player) -> new RollBenchScreenHandler(
+                syncId,
+                inventory,
+                ScreenHandlerContext.create(world, pos)
+            ),
+            Text.translatable("block.mcde.roll_bench")
+        );
     }
 }

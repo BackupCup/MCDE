@@ -20,21 +20,19 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 
 public class RollBenchScreenHandler extends ScreenHandler {
-    private final Inventory inventory;
+    private final Inventory inventory = new SimpleInventory(2);
     private final ScreenHandlerContext context;
     public Inventory getInventory() {
         return inventory;
     }
 
     public RollBenchScreenHandler(int syncId, PlayerInventory inventory) {
-        this(syncId, inventory, new SimpleInventory(2), ScreenHandlerContext.EMPTY);
+        this(syncId, inventory, ScreenHandlerContext.EMPTY);
     }
 
-    public RollBenchScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, ScreenHandlerContext context) {
+    public RollBenchScreenHandler(int syncId, PlayerInventory playerInventory, ScreenHandlerContext context) {
         super(ModScreenHandlers.ROLL_BENCH_SCREEN_HANDLER, syncId);
 
-        checkSize(inventory, 1);
-        this.inventory = inventory;
         this.context = context;
         inventory.onOpen(playerInventory.player);
 
