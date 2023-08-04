@@ -257,9 +257,6 @@ public class MCDEnchantments implements ModInitializer {
         private int ticksPerGildingProcessStep = 1;
 
         @Comment("Defines how slot chances increases with game progression")
-        private Map<Identifier, Map<Slots, Float>> progressChances = Map.of(
-            Identifier.of("minecraft", "story/smelt_iron"), Map.of(Slots.SECOND, 1.1f, Slots.THIRD, 1.04f),
-            Identifier.tryParse("minecraft:story/enter_the_end"), Map.of(Slots.SECOND, 1.5f, Slots.THIRD, 1.3f)
-        );
+        private Map<Identifier, Map<Slots, Float>> progressChances = Map.of();
     }
 }
