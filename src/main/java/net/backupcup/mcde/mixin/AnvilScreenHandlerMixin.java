@@ -7,7 +7,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.backupcup.mcde.MCDEnchantments;
+import net.backupcup.mcde.screen.handler.RunicTableScreenHandler;
 import net.backupcup.mcde.util.EnchantmentSlots;
+import net.backupcup.mcde.util.EnchantmentUtils;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.screen.AnvilScreenHandler;
@@ -38,31 +41,45 @@ public abstract class AnvilScreenHandlerMixin {
             }
             return;
         }
-        var input1 = screenGetSlot(0).getStack();
-        var input2 = screenGetSlot(1).getStack();
-        var slots = EnchantmentSlots.fromItemStack(input1);
-        var slots2 = EnchantmentSlots.fromItemStack(input2);
-        ItemStack other = input2;
-        if (slots == null && slots2 == null) {
-            return;
-        }
-        if (!input1.isItemEqualIgnoreDamage(input2) && !input2.isOf(Items.ENCHANTED_BOOK)) {
-            return;
-        }
+        var input = screenGetSlot(0).getStack();
+        var other = screenGetSlot(1).getStack();
+        var slots = EnchantmentSlots.fromItemStack(input);
         if (slots == null) {
-            slots = slots2;
-            other = input1;
+            return;
+        }
+        if (!input.isItemEqualIgnoreDamage(other) && !other.isOf(Items.ENCHANTED_BOOK)) {
+            return;
         }
         levelCost.set(slots.merge(other));
         ItemStack result = ItemStack.EMPTY;
         if (levelCost.get() > 0) {
-            result = input1.copy();
+            result = input.copy();
             slots.removeGilding();
             slots.updateItemStack(result);
         }
-        if (!newItemName.isBlank() && (levelCost.get() > 0 || input2.isEmpty())) {
+        if (MCDEnchantments.getConfig().isEnchantingWithBooksAllowed() && other.isOf(Items.ENCHANTED_BOOK)) {
+            var map = EnchantmentHelper.get(other);
+            slots.stream().map(slot -> slot.getChosen()).forEach(o -> o.ifPresent(c -> map.remove(c.getEnchantment())));
+            var iter = map.entrySet().iterator();
+            while (iter.hasNext()) {
+                var entry = iter.next();
+                if (!entry.getKey().isAcceptableItem(input)) {
+                    iter.remove();
+                }
+            }
+            if (!map.isEmpty()) {
+                if (result.isEmpty()) {
+                    result = input.copy();
+                }
+                levelCost.set(map.entrySet().stream()
+                        .mapToInt(kvp -> RunicTableScreenHandler.getEnchantCost(EnchantmentUtils.getEnchantmentId(kvp.getKey()), kvp.getValue()))
+                        .sum() + levelCost.get());
+                EnchantmentHelper.set(map, result);
+            }
+        }
+        if (!newItemName.isBlank() && (levelCost.get() > 0 || other.isEmpty())) {
             if (result.isEmpty()) {
-                result = input1.copy();
+                result = input.copy();
             }
             levelCost.set(levelCost.get() + 1);
             result.setCustomName(Text.literal(newItemName));

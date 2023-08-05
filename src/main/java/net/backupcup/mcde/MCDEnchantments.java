@@ -189,6 +189,10 @@ public class MCDEnchantments implements ModInitializer {
             return allowAnvilItemMixing;
         }
 
+        public boolean isEnchantingWithBooksAllowed() {
+            return allowEnchantingWithBooks;
+        }
+
         public int getGildingCost() {
             return gildingCost;
         }
@@ -270,6 +274,9 @@ public class MCDEnchantments implements ModInitializer {
         @Comment("Allow mixing items in anvil\n" +
                  "On true, vanilla anvil behaviour is applied")
         private boolean allowAnvilItemMixing = false;
+
+        @Comment("Allow applying additional enchantments via books in anvil")
+        private boolean allowEnchantingWithBooks = true;
 
         @Comment("Whether to allow players to use enchanting table.\n" +
                  "Creative players can still use it.")
