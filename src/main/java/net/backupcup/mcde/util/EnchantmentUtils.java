@@ -92,8 +92,8 @@ public class EnchantmentUtils {
         }
     }
 
-    public static Map<Slots, Float> calculateMultipliers(ServerPlayerEntity player) {
-        var result = new TreeMap<>(Map.of(Slots.SECOND, 0.5f, Slots.THIRD, 0.25f));
+    public static Map<Slots, Float> calculateAdvancementModifiers(ServerPlayerEntity player) {
+        var result = new TreeMap<>(Map.of(Slots.SECOND, 0f, Slots.THIRD, 0f));
         MCDEnchantments.getConfig().getProgressChances().entrySet().stream()
             .filter(kvp -> player.getAdvancementTracker().getProgress(player.server.getAdvancementLoader().get(kvp.getKey())).isDone())
             .map(Map.Entry::getValue)
@@ -106,15 +106,26 @@ public class EnchantmentUtils {
         return result;
     }
 
+    public static float calculateEnchantabilityModifier(float baseChance, int enchantability) {
+        // Some magic math here. The idea is to make low enchantability add less chance than high one
+        // the significance function really can be any other one
+        // one requirement for such function is its values should be from 0 to 1
+        float significance = (float)(1 / Math.PI * Math.atan(0.2 * (enchantability - 20)) + 0.5);
+        return -significance * baseChance + significance;
+    }
+
     public static EnchantmentSlots generateEnchantments(ItemStack itemStack, ServerPlayerEntity player, Random random) {
+        var enchantability = itemStack.getItem().getEnchantability();
         var builder = EnchantmentSlots.builder();
         var pool = getEnchantmentsForItem(itemStack).collect(ObjectArrayList.toList());
         boolean isTwoChoiceGenerated = false;
         boolean isSecondSlotGenerated = false;
-        float threeChoiceChance = 0.5f;
-        var slotChances = calculateMultipliers(player);
-        float secondSlotChance = slotChances.get(SECOND);
-        float thirdSlotChance = slotChances.get(THIRD);
+        float threeChoiceChance = 0.5f + enchantability / 100f;
+        var advancementModifier = calculateAdvancementModifiers(player);
+        float secondSlotChance = 0.5f + advancementModifier.get(SECOND);
+        float thirdSlotChance = 0.25f + advancementModifier.get(THIRD);
+        secondSlotChance += calculateEnchantabilityModifier(secondSlotChance, enchantability);
+        thirdSlotChance += calculateEnchantabilityModifier(thirdSlotChance, enchantability);
 
         if (pool.isEmpty()) {
             return EnchantmentSlots.EMPTY;
