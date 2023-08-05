@@ -106,6 +106,24 @@ public abstract class AnvilScreenHandlerMixin {
         ci.cancel();
     }
 
+    @Inject(method = "updateResult", at = @At("RETURN"))
+    private void adjustPrice(CallbackInfo ci) {
+        var left = EnchantmentHelper.get(screenGetSlot(0).getStack());
+        var right = EnchantmentHelper.get(screenGetSlot(1).getStack());
+        if (right.isEmpty() || EnchantmentSlots.fromItemStack(screenGetSlot(0).getStack()) != null) {
+            return;
+        }
+        levelCost.set(left.entrySet().stream()
+            .mapToInt(kvp -> RunicTableScreenHandler.getEnchantCost(
+                EnchantmentUtils.getEnchantmentId(kvp.getKey()),
+                right.containsKey(kvp.getKey()) ?
+                kvp.getValue() == right.get(kvp.getKey()) ?
+                    1 : kvp.getValue() - right.get(kvp.getKey()) :
+                kvp.getValue()
+            ))
+            .sum() + (newItemName.isBlank() ? 0 : 1));
+    }
+
     private void setCustomNameToResult() {
         if (newItemName.isBlank()) {
             return;
