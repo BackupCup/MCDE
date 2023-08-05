@@ -29,20 +29,21 @@ public abstract class AnvilScreenHandlerMixin {
 
     @Inject(method = "updateResult", at = @At("HEAD"), cancellable = true)
     private void mixSlots(CallbackInfo ci) {
+        var input = screenGetSlot(0).getStack();
+        var other = screenGetSlot(1).getStack();
+        if (!other.getItem().isEnchantable(other)) {
+            return;
+        }
         if (!MCDEnchantments.getConfig().isAnvilItemMixingAllowed()) {
-            ItemStack input1 = screenGetSlot(0).getStack();
-            ItemStack input2 = screenGetSlot(1).getStack();
-            if (input2.isEmpty()) {
+            if (other.isEmpty()) {
                 return;
             }
-            if (EnchantmentSlots.fromItemStack(input1) != null || EnchantmentSlots.fromItemStack(input2) != null) {
+            if (EnchantmentSlots.fromItemStack(input) != null || EnchantmentSlots.fromItemStack(other) != null) {
                 screenGetSlot(2).setStack(ItemStack.EMPTY);
                 ci.cancel();
             }
             return;
         }
-        var input = screenGetSlot(0).getStack();
-        var other = screenGetSlot(1).getStack();
         var slots = EnchantmentSlots.fromItemStack(input);
         if (slots == null) {
             return;
