@@ -14,6 +14,7 @@ import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.JsonObject;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.JsonPrimitive;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.annotation.Deserializer;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.annotation.Serializer;
+import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.api.Marshaller;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.api.SyntaxError;
 import net.minecraft.tag.TagKey;
 import net.minecraft.util.Identifier;
@@ -87,11 +88,11 @@ public class IdentifierGlobbedList {
     }
 
     @Serializer
-    public JsonArray toJson() {
+    public JsonArray toJson(Marshaller marshaller) {
         return (JsonArray)JANKSON.toJson(Stream.concat(
             getNamespaces().stream().map(ns -> ns + ":*"),
             getFullySpecified().stream().map(id -> id.toString())
-        ).toList());
+        ).toList(), marshaller);
     }
 
     @Deserializer

@@ -95,6 +95,7 @@ public class MCDEnchantments implements ModInitializer {
             var jankson = Jankson.builder()
                 .registerSerializer(Identifier.class, (id, marshaller) -> marshaller.serialize(id.toString()))
                 .registerDeserializer(String.class, Identifier.class, (str, marshaller) -> Identifier.tryParse(str))
+                .registerSerializer(IdentifierGlobbedList.class, (list, marshaller) -> list.toJson(marshaller))
                 .build();
             try {
                 if (getConfigFile().exists()) {
