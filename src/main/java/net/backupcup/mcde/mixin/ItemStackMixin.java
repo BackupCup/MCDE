@@ -129,7 +129,8 @@ public abstract class ItemStackMixin {
         if (slots == null) {
             return;
         }
-        cir.setReturnValue(slots.stream()
-                .anyMatch(s -> s.getChosen().isPresent()));
+        if (slots.stream().anyMatch(s -> s.getChosen().isPresent())) {
+            cir.setReturnValue(true);
+        }
     }
 }
