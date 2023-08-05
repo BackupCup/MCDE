@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -17,17 +18,22 @@ import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.api.SyntaxEr
 import net.backupcup.mcde.block.ModBlocks;
 import net.backupcup.mcde.block.entity.ModBlockEntities;
 import net.backupcup.mcde.screen.handler.ModScreenHandlers;
+import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.IdentifierGlobbedList;
 import net.backupcup.mcde.util.ModTags;
 import net.backupcup.mcde.util.Slots;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.loot.v2.LootTableEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.enchantment.Enchantment;
+import net.minecraft.loot.context.LootContext;
+import net.minecraft.loot.entry.ItemEntry;
+import net.minecraft.loot.entry.LeafEntry;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
@@ -211,6 +217,18 @@ public class MCDEnchantments implements ModInitializer {
             return progressChances;
         }
 
+        public boolean isTreasureCustom() {
+            return customTreasure;
+        }
+
+        public boolean isInCustomTreasurePool(Identifier id) {
+            return treasurePool.contains(id);
+        }
+
+        public boolean isInCustomTreasurePool(Enchantment enchantment) {
+            return isInCustomTreasurePool(Registry.ENCHANTMENT.getId(enchantment));
+        }
+
         @Comment("Has two possible values:\n" +
                  "ALLOW - Only allow enchantments specified in 'list' to appear\n" +
                  "DENY - Make enchantments specified in 'list' to never appear")
@@ -263,6 +281,12 @@ public class MCDEnchantments implements ModInitializer {
         @Comment("Each n-th tick (where n is this setting) would increment progress of gilding.\n" +
                  "The process consists of 33 steps (frames). So, overall process would take n * 33 ticks.")
         private int ticksPerGildingProcessStep = 1;
+
+        @Comment("Whether to use custom pool for treasure enchantments")
+        private boolean customTreasure = false;
+
+        @Comment("Enchantments from this pool would be used to enchant books in loot tables")
+        private IdentifierGlobbedList treasurePool = new IdentifierGlobbedList(List.of());
 
         @Comment("Defines how slot chances increases with game progression")
         private Map<Identifier, Map<Slots, Float>> progressChances = Map.ofEntries(
