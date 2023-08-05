@@ -1,6 +1,7 @@
 package net.backupcup.mcde;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -88,24 +89,32 @@ public class MCDEnchantments implements ModInitializer {
             ).toFile();
         }
 
+        private static final Jankson JANKSON = Jankson.builder()
+            .registerSerializer(Identifier.class, (id, marshaller) -> marshaller.serialize(id.toString()))
+            .registerDeserializer(String.class, Identifier.class, (str, marshaller) -> Identifier.tryParse(str))
+            .registerSerializer(IdentifierGlobbedList.class, (list, marshaller) -> list.toJson(marshaller))
+            .build();
+
         private static Text lastError;
+
+        public void save() throws FileNotFoundException {
+            getConfigFile().getParentFile().mkdirs();
+            try (var outStream = new FileOutputStream(getConfigFile())) {
+                outStream.write(JANKSON.toJson(this).toJson(true, true).getBytes());
+            } catch (IOException e) {
+                LOGGER.error("IO exception while saving config: {}", e.getMessage());
+            }
+        }
 
         public static Config load() {
             var defaults = new Config();
-            var jankson = Jankson.builder()
-                .registerSerializer(Identifier.class, (id, marshaller) -> marshaller.serialize(id.toString()))
-                .registerDeserializer(String.class, Identifier.class, (str, marshaller) -> Identifier.tryParse(str))
-                .registerSerializer(IdentifierGlobbedList.class, (list, marshaller) -> list.toJson(marshaller))
-                .build();
             try {
                 if (getConfigFile().exists()) {
                     lastError = null;
-                    var json = jankson.load(getConfigFile());
-                    return jankson.fromJson(json, Config.class);
+                    var json = JANKSON.load(getConfigFile());
+                    return JANKSON.fromJson(json, Config.class);
                 }
-                var outStream = new FileOutputStream(getConfigFile());
-                outStream.write(jankson.toJson(defaults).toJson(true, true).getBytes());
-                outStream.close();
+                defaults.save();
                 lastError = null;
                 return defaults;
             } catch (SyntaxError e) {
