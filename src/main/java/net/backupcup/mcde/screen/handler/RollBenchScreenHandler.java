@@ -6,12 +6,14 @@ import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.Slots;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.slot.Slot;
@@ -180,12 +182,14 @@ public class RollBenchScreenHandler extends ScreenHandler {
         if (!MCDEnchantments.getConfig().isCompatibilityRequired()) {
             return candidates.toList();
         }
-        var enchantments_not_in_clicked_slot =
+        var enchantmentsNotInClickedSlot =
             slots.stream().filter(s -> !s.getSlot().equals(clickedSlot))
             .flatMap(s -> s.choices().stream())
             .map(c -> c.getEnchantmentId())
             .toList();
-        candidates = candidates.filter(id -> EnchantmentUtils.isCompatible(enchantments_not_in_clicked_slot, id));
+        candidates = candidates.filter(id -> EnchantmentUtils.isCompatible(enchantmentsNotInClickedSlot, id))
+            .filter(id -> EnchantmentUtils.isCompatible(EnchantmentHelper.get(itemStack).keySet().stream()
+                        .map(EnchantmentUtils::getEnchantmentId).toList(), id));
         return candidates.toList();
     }
 }
