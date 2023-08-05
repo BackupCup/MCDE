@@ -31,7 +31,54 @@ public abstract class AnvilScreenHandlerMixin {
     private void mixSlots(CallbackInfo ci) {
         var input = screenGetSlot(0).getStack();
         var other = screenGetSlot(1).getStack();
-        if (!other.getItem().isEnchantable(other)) {
+        var slots = EnchantmentSlots.fromItemStack(input);
+        ItemStack result = ItemStack.EMPTY;
+        if (slots == null) {
+            if (EnchantmentSlots.fromItemStack(other) != null) {
+                screenGetSlot(2).setStack(ItemStack.EMPTY);
+                ci.cancel();
+            }
+            return;
+        }
+        if (MCDEnchantments.getConfig().isEnchantingWithBooksAllowed() && other.isOf(Items.ENCHANTED_BOOK)) {
+            levelCost.set(slots.merge(other));
+            var map = EnchantmentHelper.get(other);
+            var present = EnchantmentHelper.get(input);
+            slots.stream().map(slot -> slot.getChosen()).forEach(o -> o.ifPresent(c -> map.remove(c.getEnchantment())));
+            var iter = map.entrySet().iterator();
+            while (iter.hasNext()) {
+                var entry = iter.next();
+                if (!entry.getKey().isAcceptableItem(input) || (present.containsKey(entry.getKey()) && present.get(entry.getKey()) > entry.getValue())) {
+                    iter.remove();
+                    continue;
+                }
+                if (present.containsKey(entry.getKey())) {
+                    entry.setValue(entry.getValue() + 1);
+                }
+            }
+            if (!map.isEmpty()) {
+                result = input.copy();
+                slots.updateItemStack(result);
+                screenGetSlot(2).setStack(result);
+
+                levelCost.set(map.entrySet().stream()
+                        .mapToInt(kvp -> RunicTableScreenHandler.getEnchantCost(
+                            EnchantmentUtils.getEnchantmentId(kvp.getKey()),
+                            present.containsKey(kvp.getKey()) ?
+                            kvp.getValue() == present.get(kvp.getKey()) ?
+                                1 : kvp.getValue() - present.get(kvp.getKey()) :
+                            kvp.getValue()
+                        ))
+                        .sum() + levelCost.get());
+                present.entrySet().stream()
+                    .filter(kvp -> !map.containsKey(kvp.getKey())).forEach(kvp -> map.put(kvp.getKey(), kvp.getValue()));
+                EnchantmentHelper.set(map, result);
+                setCustomNameToResult();
+            }
+            ci.cancel();
+            return;
+        }
+        if (!other.getItem().isEnchantable(other) && !other.isOf(Items.ENCHANTED_BOOK)) {
             return;
         }
         if (!MCDEnchantments.getConfig().isAnvilItemMixingAllowed()) {
@@ -41,52 +88,34 @@ public abstract class AnvilScreenHandlerMixin {
             if (EnchantmentSlots.fromItemStack(input) != null || EnchantmentSlots.fromItemStack(other) != null) {
                 screenGetSlot(2).setStack(ItemStack.EMPTY);
                 ci.cancel();
+                return;
             }
-            return;
-        }
-        var slots = EnchantmentSlots.fromItemStack(input);
-        if (slots == null) {
-            return;
         }
         if (!input.isItemEqualIgnoreDamage(other) && !other.isOf(Items.ENCHANTED_BOOK)) {
             return;
         }
         levelCost.set(slots.merge(other));
-        ItemStack result = ItemStack.EMPTY;
         if (levelCost.get() > 0) {
             result = input.copy();
             slots.removeGilding();
             slots.updateItemStack(result);
         }
-        if (MCDEnchantments.getConfig().isEnchantingWithBooksAllowed() && other.isOf(Items.ENCHANTED_BOOK)) {
-            var map = EnchantmentHelper.get(other);
-            slots.stream().map(slot -> slot.getChosen()).forEach(o -> o.ifPresent(c -> map.remove(c.getEnchantment())));
-            var iter = map.entrySet().iterator();
-            while (iter.hasNext()) {
-                var entry = iter.next();
-                if (!entry.getKey().isAcceptableItem(input)) {
-                    iter.remove();
-                }
-            }
-            if (!map.isEmpty()) {
-                if (result.isEmpty()) {
-                    result = input.copy();
-                }
-                levelCost.set(map.entrySet().stream()
-                        .mapToInt(kvp -> RunicTableScreenHandler.getEnchantCost(EnchantmentUtils.getEnchantmentId(kvp.getKey()), kvp.getValue()))
-                        .sum() + levelCost.get());
-                EnchantmentHelper.set(map, result);
-            }
-        }
-        if (!newItemName.isBlank() && (levelCost.get() > 0 || other.isEmpty())) {
-            if (result.isEmpty()) {
-                result = input.copy();
-            }
-            levelCost.set(levelCost.get() + 1);
-            result.setCustomName(Text.literal(newItemName));
-        }
         screenGetSlot(2).setStack(result);
+        setCustomNameToResult();
         ((AnvilScreenHandler)(Object)this).sendContentUpdates();
         ci.cancel();
+    }
+
+    private void setCustomNameToResult() {
+        if (newItemName.isBlank()) {
+            return;
+        }
+        var input = screenGetSlot(0).getStack();
+        var result = screenGetSlot(2).getStack();
+        if (result.isEmpty()) {
+            result = input.copy();
+        }
+        levelCost.set(levelCost.get() + 1);
+        result.setCustomName(Text.literal(newItemName));
     }
 }
