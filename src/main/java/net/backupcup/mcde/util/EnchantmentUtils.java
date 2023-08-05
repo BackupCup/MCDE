@@ -83,13 +83,8 @@ public class EnchantmentUtils {
     }
 
     public static void removeIncompatible(List<Identifier> pool, EnchantmentSlots.Builder builder) {
-        var it = pool.iterator();
-        while (it.hasNext()) {
-            var enchantment = it.next();
-            if (!isCompatible(builder.getAdded().stream().map(c -> c.getEnchantmentId()).toList(), enchantment)) {
-                it.remove();
-            }
-        }
+        var present = builder.getAdded().stream().map(c -> c.getEnchantmentId()).toList();
+        pool.removeIf(id -> !isCompatible(present, id));
     }
 
     public static Map<Slots, Float> calculateAdvancementModifiers(ServerPlayerEntity player) {
@@ -126,6 +121,12 @@ public class EnchantmentUtils {
         float thirdSlotChance = 0.25f + advancementModifier.get(THIRD);
         secondSlotChance += calculateEnchantabilityModifier(secondSlotChance, enchantability);
         thirdSlotChance += calculateEnchantabilityModifier(thirdSlotChance, enchantability);
+
+        if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
+            pool.removeIf(id -> !isCompatible(
+                EnchantmentHelper.get(itemStack).keySet()
+                .stream().map(EnchantmentHelper::getEnchantmentId).toList(), id));
+        }
 
         if (pool.isEmpty()) {
             return EnchantmentSlots.EMPTY;
