@@ -21,7 +21,7 @@ public abstract class EnchantRandomlyLootFunctionMixin {
     }
 
     @Inject(method = "process", at = @At("HEAD"), cancellable = true)
-    private void processBook(ItemStack stack, LootContext context, CallbackInfoReturnable<ItemStack> cir) {
+    private void mcde$processBook(ItemStack stack, LootContext context, CallbackInfoReturnable<ItemStack> cir) {
         var list = MCDEnchantments.getConfig().getCustomTreasurePool();
         if (!stack.isOf(Items.BOOK) || list.isEmpty()) {
             return;

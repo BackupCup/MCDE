@@ -14,7 +14,7 @@ import net.minecraft.village.TradeOffers;
 @Mixin(TradeOffers.EnchantBookFactory.class)
 public class EnchantBookFactoryMixin {
     @ModifyVariable(method = "create", at = @At("STORE"))
-    private List<Enchantment> changeTrade(List<Enchantment> list) {
+    private List<Enchantment> mcde$changeTrade(List<Enchantment> list) {
         var pool = MCDEnchantments.getConfig().getVillagerBookPool();
         if (pool.isEmpty()) {
             return list;

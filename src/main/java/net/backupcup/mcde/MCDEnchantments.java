@@ -257,7 +257,7 @@ public class MCDEnchantments implements ModInitializer {
         private boolean allowTreasure = false;
 
         @Comment("Require compatibility of enchantments in different slots.\n" +
-        "For example, if this is false, you can enchant an armor both for protection and fire protection simultaneously.")
+                 "For example, if this is false, you can enchant an armor both for protection and fire protection simultaneously.")
         private boolean requireCompatibility = true;
 
         @Comment("Sets cost of enchanting in xp levels per level")
@@ -300,32 +300,32 @@ public class MCDEnchantments implements ModInitializer {
 
         @Comment("Defines how slot chances increases with game progression")
         private Map<Identifier, Map<Slots, Float>> progressChances = Map.ofEntries(
-                Map.entry(Identifier.of("minecraft", "story/cure_zombie_villager"),             Map.of(Slots.SECOND, 0.011432f, Slots.THIRD, 0.01079f)),
-                Map.entry(Identifier.of("minecraft", "adventure/kill_mob_near_sculk_catalyst"), Map.of(Slots.SECOND, 0.011694f, Slots.THIRD, 0.011256f)),
-                Map.entry(Identifier.of("minecraft", "adventure/bullseye"),                     Map.of(Slots.SECOND, 0.012399f, Slots.THIRD, 0.011303f)),
-                Map.entry(Identifier.of("minecraft", "adventure/summon_iron_golem"),            Map.of(Slots.SECOND, 0.012235f, Slots.THIRD, 0.012248f)),
-                Map.entry(Identifier.of("minecraft", "husbandry/froglights"),                   Map.of(Slots.SECOND, 0.012514f, Slots.THIRD, 0.012777f)),
-                Map.entry(Identifier.of("minecraft", "nether/return_to_sender"),                Map.of(Slots.SECOND, 0.012801f, Slots.THIRD, 0.013328f)),
-                Map.entry(Identifier.of("minecraft", "adventure/hero_of_the_village"),          Map.of(Slots.SECOND, 0.013093f, Slots.THIRD, 0.013904f)),
-                Map.entry(Identifier.of("minecraft", "nether/netherite_armor"),                 Map.of(Slots.SECOND, 0.013392f, Slots.THIRD, 0.014503f)),
-                Map.entry(Identifier.of("minecraft", "adventure/totem_of_undying"),             Map.of(Slots.SECOND, 0.013699f, Slots.THIRD, 0.01513f)),
-                Map.entry(Identifier.of("minecraft", "end/dragon_breath"),                      Map.of(Slots.SECOND, 0.014012f, Slots.THIRD, 0.015782f)),
-                Map.entry(Identifier.of("minecraft", "husbandry/bred_all_animals"),             Map.of(Slots.SECOND, 0.014332f, Slots.THIRD, 0.016464f)),
-                Map.entry(Identifier.of("minecraft", "end/respawn_dragon"),                     Map.of(Slots.SECOND, 0.01466f,  Slots.THIRD, 0.017174f)),
-                Map.entry(Identifier.of("minecraft", "end/elytra"),                             Map.of(Slots.SECOND, 0.014995f, Slots.THIRD, 0.017916f)),
-                Map.entry(Identifier.of("minecraft", "nether/explore_nether"),                  Map.of(Slots.SECOND, 0.015338f, Slots.THIRD, 0.018688f)),
-                Map.entry(Identifier.of("minecraft", "nether/fast_travel"),                     Map.of(Slots.SECOND, 0.015689f, Slots.THIRD, 0.019496f)),
-                Map.entry(Identifier.of("minecraft", "husbandry/balanced_diet"),                Map.of(Slots.SECOND, 0.016048f, Slots.THIRD, 0.020336f)),
-                Map.entry(Identifier.of("minecraft", "end/levitate"),                           Map.of(Slots.SECOND, 0.01641f,  Slots.THIRD, 0.02121f)),
-                Map.entry(Identifier.of("minecraft", "nether/create_beacon"),                   Map.of(Slots.SECOND, 0.016794f, Slots.THIRD, 0.022135f)),
-                Map.entry(Identifier.of("minecraft", "adventure/two_birds_one_arrow"),          Map.of(Slots.SECOND, 0.017174f, Slots.THIRD, 0.023085f)),
-                Map.entry(Identifier.of("minecraft", "husbandry/complete_catalogue"),           Map.of(Slots.SECOND, 0.01757f,  Slots.THIRD, 0.02408f)),
-                Map.entry(Identifier.of("minecraft", "nether/create_full_beacon"),              Map.of(Slots.SECOND, 0.017964f, Slots.THIRD, 0.025123f)),
-                Map.entry(Identifier.of("minecraft", "nether/uneasy_alliance"),                 Map.of(Slots.SECOND, 0.018379f, Slots.THIRD, 0.026205f)),
-                Map.entry(Identifier.of("minecraft", "nether/all_potions"),                     Map.of(Slots.SECOND, 0.018798f, Slots.THIRD, 0.027336f)),
-                Map.entry(Identifier.of("minecraft", "adventure/kill_all_mobs"),                Map.of(Slots.SECOND, 0.019229f, Slots.THIRD, 0.028516f)),
-                Map.entry(Identifier.of("minecraft", "adventure/adventuring_time"),             Map.of(Slots.SECOND, 0.019669f, Slots.THIRD, 0.029746f)),
-                Map.entry(Identifier.of("minecraft", "nether/all_effects"),                     Map.of(Slots.SECOND, 0.020118f, Slots.THIRD, 0.031031f))
-    );
-}
+            Map.entry(Identifier.of("minecraft", "story/cure_zombie_villager"),             Map.of(Slots.SECOND, 0.011432f, Slots.THIRD, 0.01079f)),
+            Map.entry(Identifier.of("minecraft", "adventure/kill_mob_near_sculk_catalyst"), Map.of(Slots.SECOND, 0.011694f, Slots.THIRD, 0.011256f)),
+            Map.entry(Identifier.of("minecraft", "adventure/bullseye"),                     Map.of(Slots.SECOND, 0.012399f, Slots.THIRD, 0.011303f)),
+            Map.entry(Identifier.of("minecraft", "adventure/summon_iron_golem"),            Map.of(Slots.SECOND, 0.012235f, Slots.THIRD, 0.012248f)),
+            Map.entry(Identifier.of("minecraft", "husbandry/froglights"),                   Map.of(Slots.SECOND, 0.012514f, Slots.THIRD, 0.012777f)),
+            Map.entry(Identifier.of("minecraft", "nether/return_to_sender"),                Map.of(Slots.SECOND, 0.012801f, Slots.THIRD, 0.013328f)),
+            Map.entry(Identifier.of("minecraft", "adventure/hero_of_the_village"),          Map.of(Slots.SECOND, 0.013093f, Slots.THIRD, 0.013904f)),
+            Map.entry(Identifier.of("minecraft", "nether/netherite_armor"),                 Map.of(Slots.SECOND, 0.013392f, Slots.THIRD, 0.014503f)),
+            Map.entry(Identifier.of("minecraft", "adventure/totem_of_undying"),             Map.of(Slots.SECOND, 0.013699f, Slots.THIRD, 0.01513f)),
+            Map.entry(Identifier.of("minecraft", "end/dragon_breath"),                      Map.of(Slots.SECOND, 0.014012f, Slots.THIRD, 0.015782f)),
+            Map.entry(Identifier.of("minecraft", "husbandry/bred_all_animals"),             Map.of(Slots.SECOND, 0.014332f, Slots.THIRD, 0.016464f)),
+            Map.entry(Identifier.of("minecraft", "end/respawn_dragon"),                     Map.of(Slots.SECOND, 0.01466f,  Slots.THIRD, 0.017174f)),
+            Map.entry(Identifier.of("minecraft", "end/elytra"),                             Map.of(Slots.SECOND, 0.014995f, Slots.THIRD, 0.017916f)),
+            Map.entry(Identifier.of("minecraft", "nether/explore_nether"),                  Map.of(Slots.SECOND, 0.015338f, Slots.THIRD, 0.018688f)),
+            Map.entry(Identifier.of("minecraft", "nether/fast_travel"),                     Map.of(Slots.SECOND, 0.015689f, Slots.THIRD, 0.019496f)),
+            Map.entry(Identifier.of("minecraft", "husbandry/balanced_diet"),                Map.of(Slots.SECOND, 0.016048f, Slots.THIRD, 0.020336f)),
+            Map.entry(Identifier.of("minecraft", "end/levitate"),                           Map.of(Slots.SECOND, 0.01641f,  Slots.THIRD, 0.02121f)),
+            Map.entry(Identifier.of("minecraft", "nether/create_beacon"),                   Map.of(Slots.SECOND, 0.016794f, Slots.THIRD, 0.022135f)),
+            Map.entry(Identifier.of("minecraft", "adventure/two_birds_one_arrow"),          Map.of(Slots.SECOND, 0.017174f, Slots.THIRD, 0.023085f)),
+            Map.entry(Identifier.of("minecraft", "husbandry/complete_catalogue"),           Map.of(Slots.SECOND, 0.01757f,  Slots.THIRD, 0.02408f)),
+            Map.entry(Identifier.of("minecraft", "nether/create_full_beacon"),              Map.of(Slots.SECOND, 0.017964f, Slots.THIRD, 0.025123f)),
+            Map.entry(Identifier.of("minecraft", "nether/uneasy_alliance"),                 Map.of(Slots.SECOND, 0.018379f, Slots.THIRD, 0.026205f)),
+            Map.entry(Identifier.of("minecraft", "nether/all_potions"),                     Map.of(Slots.SECOND, 0.018798f, Slots.THIRD, 0.027336f)),
+            Map.entry(Identifier.of("minecraft", "adventure/kill_all_mobs"),                Map.of(Slots.SECOND, 0.019229f, Slots.THIRD, 0.028516f)),
+            Map.entry(Identifier.of("minecraft", "adventure/adventuring_time"),             Map.of(Slots.SECOND, 0.019669f, Slots.THIRD, 0.029746f)),
+            Map.entry(Identifier.of("minecraft", "nether/all_effects"),                     Map.of(Slots.SECOND, 0.020118f, Slots.THIRD, 0.031031f))
+        );
+    }
 }

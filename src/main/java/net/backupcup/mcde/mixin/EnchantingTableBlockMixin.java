@@ -18,7 +18,7 @@ import net.minecraft.world.World;
 @Mixin(EnchantingTableBlock.class)
 public class EnchantingTableBlockMixin {
     @Inject(method = "onUse", at = @At("HEAD"), cancellable = true)
-    private void restrictUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit, CallbackInfoReturnable<ActionResult> cir) {
+    private void mcde$restrictUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit, CallbackInfoReturnable<ActionResult> cir) {
         if (MCDEnchantments.getConfig().isUsingEnchantingTableAllowed()) {
             return;
         }

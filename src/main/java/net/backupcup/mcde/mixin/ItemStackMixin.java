@@ -43,7 +43,7 @@ public abstract class ItemStackMixin {
         ),
         index = 1
     )
-    private NbtList removeMcdeManagedEnchantments(NbtList list) {
+    private NbtList mcde$removeMcdeManagedEnchantments(NbtList list) {
         var itemStack = (ItemStack)(Object)this;
         var slots = EnchantmentSlots.fromItemStack(itemStack);
 
@@ -72,7 +72,7 @@ public abstract class ItemStackMixin {
         ),
         locals = LocalCapture.CAPTURE_FAILHARD
     )
-    private void appendEnchantmentLines(PlayerEntity player, TooltipContext context, CallbackInfoReturnable<List<Text>> cir, List<Text> tooltip) {
+    private void mcde$appendEnchantmentLines(PlayerEntity player, TooltipContext context, CallbackInfoReturnable<List<Text>> cir, List<Text> tooltip) {
         var slots = EnchantmentSlots.fromItemStack((ItemStack)(Object)this);
         if (slots == null) {
             return;
@@ -97,7 +97,7 @@ public abstract class ItemStackMixin {
     }
 
     @ModifyReturnValue(method = "getEnchantments", at = @At("RETURN"))
-    private NbtList getEnchantments(NbtList list) {
+    private NbtList mcde$getEnchantments(NbtList list) {
         if (!hasNbt()) {
             return list;
         }
@@ -124,7 +124,7 @@ public abstract class ItemStackMixin {
     }
 
     @Inject(method = "hasGlint", at = @At("HEAD"), cancellable = true)
-    private void hasEnchantments(CallbackInfoReturnable<Boolean> cir) {
+    private void mcde$hasEnchantments(CallbackInfoReturnable<Boolean> cir) {
         var slots = EnchantmentSlots.fromItemStack((ItemStack)(Object)this);
         if (slots == null) {
             return;

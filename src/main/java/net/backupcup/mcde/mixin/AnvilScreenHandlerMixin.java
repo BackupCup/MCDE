@@ -33,7 +33,7 @@ public abstract class AnvilScreenHandlerMixin extends AnvilScreenHandler {
     }
 
     @Inject(method = "updateResult", at = @At("HEAD"), cancellable = true)
-    private void mixSlots(CallbackInfo ci) {
+    private void mcde$mixSlots(CallbackInfo ci) {
         var input = getSlot(0).getStack();
         var other = getSlot(1).getStack();
         var slots = EnchantmentSlots.fromItemStack(input);
@@ -117,7 +117,7 @@ public abstract class AnvilScreenHandlerMixin extends AnvilScreenHandler {
     }
 
     @Inject(method = "updateResult", at = @At("RETURN"))
-    private void adjustPrice(CallbackInfo ci) {
+    private void mcde$adjustPrice(CallbackInfo ci) {
         var input = getSlot(0).getStack();
         var other = getSlot(1).getStack();
         var left = EnchantmentHelper.get(input);
