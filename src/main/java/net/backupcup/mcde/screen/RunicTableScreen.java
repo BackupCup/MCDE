@@ -19,6 +19,7 @@ import net.backupcup.mcde.util.Slots;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -164,24 +165,24 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
             drawMouseoverTooltip(matrices, mouseX, mouseY);
             return;
         }
-
+        Enchantment enchantment = hoveredChoice.get().getEnchantment();
         Identifier enchantmentId = hoveredChoice.get().getEnchantmentId();
-        String translationKey = enchantmentId.toTranslationKey("enchantment");
         List<Text> tooltipLines = new ArrayList<>();
         int level = 1;
         boolean enoughLevels = RunicTableScreenHandler.canEnchant(client.player, enchantmentId, level);
-        MutableText enchantmentName = Text.translatable(translationKey)
+        MutableText enchantmentName = Text.translatable(enchantment.getTranslationKey())
             .formatted(EnchantmentUtils.formatEnchantment(enchantmentId));
         if (hoveredChoice.get() instanceof ChoiceWithLevel withLevel) {
-            enchantmentName.append(" ");
+            enchantmentName.append(" ")
+                .append(Text.translatable("enchantment.level." + withLevel.getLevel()))
+                .append(" ");
             if (withLevel.isMaxedOut()) {
                 enchantmentName.append(Text.translatable("message.mcde.max_level"));
                 enoughLevels = true;
             }
             else {
                 enchantmentName
-                    .append(Text.translatable("enchantment.level." + withLevel.getLevel()))
-                    .append(" → ")
+                    .append("→ ")
                     .append(Text.translatable("enchantment.level." + (withLevel.getLevel() + 1)));
                 level = (int)(withLevel.getLevel() + 1);
                 enoughLevels = RunicTableScreenHandler.canEnchant(client.player, enchantmentId, level);
@@ -190,7 +191,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
         }
         tooltipLines.add(enchantmentName);
 
-        Text enchantmentDescription = Text.translatable(translationKey + ".desc");
+        Text enchantmentDescription = Text.translatable(enchantment.getTranslationKey() + ".desc");
         List<MutableText> desc = wrap.matcher(enchantmentDescription.getString())
             .results().map(res -> Text.literal(res.group(1)).formatted(Formatting.GRAY))
             .toList();
@@ -212,7 +213,10 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
                     .filter(e -> !e.canCombine(hoveredChoice.get().getEnchantment())).findFirst();
                 if (conflict.isPresent()) {
                     var conflicting = conflict.get();
-                    tooltipLines.add(Text.translatable("message.mcde.cant_combine", Text.translatable(conflicting.getTranslationKey())).formatted(Formatting.DARK_RED, Formatting.ITALIC));
+                    tooltipLines.add(Text.translatable(
+                        "message.mcde.cant_combine",
+                        Text.translatable(conflicting.getTranslationKey())
+                    ).formatted(Formatting.DARK_RED, Formatting.ITALIC));
                 }
             }
         }
