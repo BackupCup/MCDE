@@ -38,7 +38,7 @@ public class RunicTableScreenHandler extends ScreenHandler {
 
             @Override
             public boolean canInsert(ItemStack stack) {
-                return stack.isDamageable();
+                return stack.getItem().isEnchantable(stack);
             }
 
             @Override

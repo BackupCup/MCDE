@@ -41,7 +41,7 @@ public class RollBenchScreenHandler extends ScreenHandler {
         this.addSlot(new Slot(inventory, 0, 145, 33) {
             @Override
             public boolean canInsert(ItemStack stack) {
-                return stack.isDamageable();
+                return stack.getItem().isEnchantable(stack);
             }
 
             @Override
