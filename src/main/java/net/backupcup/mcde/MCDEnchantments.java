@@ -254,7 +254,7 @@ public class MCDEnchantments implements ModInitializer {
         private boolean respectAvailabilityForRandomSelection = true;
 
         @Comment("Allow treasure enchantments to appear")
-        private boolean allowTreasure = true;
+        private boolean allowTreasure = false;
 
         @Comment("Require compatibility of enchantments in different slots.\n" +
         "For example, if this is false, you can enchant an armor both for protection and fire protection simultaneously.")
@@ -272,7 +272,7 @@ public class MCDEnchantments implements ModInitializer {
 
         @Comment("Allow mixing items in anvil\n" +
                  "On true, vanilla anvil behaviour is applied")
-        private boolean allowAnvilItemMixing = false;
+        private boolean allowAnvilItemMixing = true;
 
         @Comment("Allow applying additional enchantments via books in anvil")
         private boolean allowEnchantingWithBooks = true;
