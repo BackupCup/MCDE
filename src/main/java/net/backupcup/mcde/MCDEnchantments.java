@@ -257,12 +257,16 @@ public class MCDEnchantments implements ModInitializer {
         private boolean allowTreasure = false;
 
         @Comment("Require compatibility of enchantments in different slots.\n" +
-                 "For example, if this is false, you can enchant an armor both for protection and fire protection simultaneously.")
+                 "For example, if this is false, you can enchant an armor both for protection and fire protection simultaneously.\n" +
+                 "Anvils are also affected.")
         private boolean requireCompatibility = true;
 
-        @Comment("Sets cost of enchanting in xp levels per level")
+        @Comment("Sets cost of enchanting in xp levels per level\n" +
+                 "Anvil's mixing price relies on this and also affected")
         private int enchantCost = 3;
-        @Comment("Sets cost of enchanting in xp levels per level for powerful enchantments")
+        @Comment("Sets cost of enchanting in xp levels per level for powerful enchantments\n" +
+                 "Enchantment is considered powerful whenever it is listed in #c:powerful tag\n" + 
+                 "Anvil's mixing price relies on this and also affected")
         private int enchantCostPowerful = 5;
 
         @Comment("Sets amount of lapis needed for reroll per level")
