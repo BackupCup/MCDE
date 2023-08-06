@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -18,22 +17,17 @@ import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.api.SyntaxEr
 import net.backupcup.mcde.block.ModBlocks;
 import net.backupcup.mcde.block.entity.ModBlockEntities;
 import net.backupcup.mcde.screen.handler.ModScreenHandlers;
-import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.IdentifierGlobbedList;
 import net.backupcup.mcde.util.ModTags;
 import net.backupcup.mcde.util.Slots;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.loot.v2.LootTableEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.loot.context.LootContext;
-import net.minecraft.loot.entry.ItemEntry;
-import net.minecraft.loot.entry.LeafEntry;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
@@ -230,7 +224,11 @@ public class MCDEnchantments implements ModInitializer {
         }
 
         public boolean isInCustomTreasurePool(Enchantment enchantment) {
-            return isInCustomTreasurePool(Registry.ENCHANTMENT.getId(enchantment));
+            return treasurePool.contains(enchantment);
+        }
+
+        public List<Enchantment> getCustomTreasurePool() {
+            return Registry.ENCHANTMENT.stream().filter(treasurePool::contains).toList();
         }
 
         @Comment("Has two possible values:\n" +

@@ -13,7 +13,6 @@ import net.minecraft.item.Items;
 import net.minecraft.loot.context.LootContext;
 import net.minecraft.loot.function.EnchantRandomlyLootFunction;
 import net.minecraft.util.math.random.Random;
-import net.minecraft.util.registry.Registry;
 
 @Mixin(EnchantRandomlyLootFunction.class)
 public abstract class EnchantRandomlyLootFunctionMixin {
@@ -27,8 +26,7 @@ public abstract class EnchantRandomlyLootFunctionMixin {
             return;
         }
         var random = context.getRandom();
-        var list = Registry.ENCHANTMENT.stream()
-            .filter(MCDEnchantments.getConfig()::isInCustomTreasurePool).toList();
+        var list = MCDEnchantments.getConfig().getCustomTreasurePool();
         var enchantment = list.get(random.nextInt(list.size()));
         cir.setReturnValue(addEnchantmentToStack(stack, enchantment, random));
     }

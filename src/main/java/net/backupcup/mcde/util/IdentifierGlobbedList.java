@@ -16,6 +16,7 @@ import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.annotation.D
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.annotation.Serializer;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.api.Marshaller;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.api.SyntaxError;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.tag.TagKey;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
@@ -73,6 +74,10 @@ public class IdentifierGlobbedList {
             tags.stream().anyMatch(tag -> ModTags.isIn(id, TagKey.of(Registry.ENCHANTMENT_KEY, tag))) ||
             namespace_tags.stream().flatMap(ns -> Registry.ENCHANTMENT.streamTags().filter(tag -> tag.id().getNamespace().equals(ns)))
                 .anyMatch(tag -> ModTags.isIn(Registry.ENCHANTMENT.get(id), tag));
+    }
+
+    public boolean contains(Enchantment enchantment) {
+        return contains(Registry.ENCHANTMENT.getId(enchantment));
     }
 
     public boolean containsNamespaceGlob(Identifier id) {
