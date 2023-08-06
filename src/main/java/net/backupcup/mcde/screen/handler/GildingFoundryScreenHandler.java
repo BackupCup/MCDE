@@ -1,5 +1,6 @@
 package net.backupcup.mcde.screen.handler;
 
+import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -69,7 +70,19 @@ public class GildingFoundryScreenHandler extends ScreenHandler {
 
     @Override
     public boolean onButtonClick(PlayerEntity player, int id) {
-        startProgress();
+        if (!player.isCreative()) {
+            startProgress();
+            return false;
+        }
+        var weaponStack = inventory.getStack(0);
+        var gildedEnchantment = EnchantmentUtils.generateEnchantment(weaponStack);
+        if (gildedEnchantment.isEmpty()) {
+            return false;
+        }
+        var enchantmentId = gildedEnchantment.get();
+        var slots = EnchantmentSlots.fromItemStack(weaponStack);
+        slots.setGilding(enchantmentId);
+        slots.updateItemStack(weaponStack);
         return false;
     }
 
