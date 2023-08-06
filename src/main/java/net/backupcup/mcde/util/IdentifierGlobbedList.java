@@ -26,13 +26,13 @@ public class IdentifierGlobbedList {
     private final Set<String> namespaces = new HashSet<>();
     private final Set<Identifier> fullySpecified = new HashSet<>();
     private final Set<Identifier> tags = new HashSet<>();
-    private final Set<String> namespace_tags = new HashSet<>();
+    private final Set<String> namespaceTags = new HashSet<>();
 
     public IdentifierGlobbedList(Collection<String> globs) {
         for (var glob : globs) {
             if (glob.endsWith(":*")) {
                 if (glob.startsWith("#")) {
-                    namespace_tags.add(glob.substring(1, glob.length() - 2));
+                    namespaceTags.add(glob.substring(1, glob.length() - 2));
                 } else {
                     namespaces.add(glob.substring(0, glob.length() - 2));
                 }
@@ -56,7 +56,8 @@ public class IdentifierGlobbedList {
                 continue;
             }
             if (paths.size() >= 1 && paths.get(0).equals("#*")) {
-                namespace_tags.add(namespace);
+                namespaceTags.add(namespace);
+                continue;
             }
             for (var path : paths) {
                 if (path.startsWith("#")) {
@@ -72,7 +73,7 @@ public class IdentifierGlobbedList {
         return containsNamespaceGlob(id) ||
             fullySpecified.contains(id) ||
             tags.stream().anyMatch(tag -> ModTags.isIn(id, TagKey.of(Registry.ENCHANTMENT_KEY, tag))) ||
-            namespace_tags.stream().flatMap(ns -> Registry.ENCHANTMENT.streamTags().filter(tag -> tag.id().getNamespace().equals(ns)))
+            namespaceTags.stream().flatMap(ns -> Registry.ENCHANTMENT.streamTags().filter(tag -> tag.id().getNamespace().equals(ns)))
                 .anyMatch(tag -> ModTags.isIn(Registry.ENCHANTMENT.get(id), tag));
     }
 
@@ -84,20 +85,14 @@ public class IdentifierGlobbedList {
         return namespaces.contains(id.getNamespace());
     }
 
-    public Set<String> getNamespaces() {
-        return namespaces;
-    }
-
-    public Set<Identifier> getFullySpecified() {
-        return fullySpecified;
-    }
-
     @Serializer
     public JsonArray toJson(Marshaller marshaller) {
         return (JsonArray)JANKSON.toJson(Stream.concat(
-            getNamespaces().stream().map(ns -> ns + ":*"),
-            getFullySpecified().stream().map(id -> id.toString())
-        ).toList(), marshaller);
+                    namespaces.stream().map(ns -> ns + ":*"),
+                    Stream.concat(fullySpecified.stream().map(id -> id.toString()),
+                        Stream.concat(tags.stream().map(id -> "#" + id.toString()),
+                            namespaceTags.stream().map(ns -> "#" + ns + ":*")))
+                    ).toList(), marshaller);
     }
 
     @Deserializer
@@ -122,7 +117,7 @@ public class IdentifierGlobbedList {
             namespaces.toString(),
             fullySpecified.toString(),
             tags.toString(),
-            namespace_tags.toString());
+            namespaceTags.toString());
         }
 
 }

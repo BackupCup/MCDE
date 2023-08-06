@@ -22,11 +22,11 @@ public abstract class EnchantRandomlyLootFunctionMixin {
 
     @Inject(method = "process", at = @At("HEAD"), cancellable = true)
     private void processBook(ItemStack stack, LootContext context, CallbackInfoReturnable<ItemStack> cir) {
-        if (!stack.isOf(Items.BOOK) || !MCDEnchantments.getConfig().isTreasureCustom()) {
+        var list = MCDEnchantments.getConfig().getCustomTreasurePool();
+        if (!stack.isOf(Items.BOOK) || list.isEmpty()) {
             return;
         }
         var random = context.getRandom();
-        var list = MCDEnchantments.getConfig().getCustomTreasurePool();
         if (list.size() == 0) {
             MCDEnchantments.LOGGER.warn("Custom pool size must be non-zero.");
             return;

@@ -211,16 +211,8 @@ public class MCDEnchantments implements ModInitializer {
             return progressChances;
         }
 
-        public boolean areVillagersSellFromCustomPool() {
-            return customVillagerBooks;
-        }
-
         public List<Enchantment> getVillagerBookPool() {
             return Registry.ENCHANTMENT.stream().filter(villagerBookPool::contains).toList();
-        }
-
-        public boolean isTreasureCustom() {
-            return customTreasure;
         }
 
         public boolean isInCustomTreasurePool(Identifier id) {
@@ -240,7 +232,16 @@ public class MCDEnchantments implements ModInitializer {
                  "DENY - Make enchantments specified in 'list' to never appear")
         private ListType listKind = ListType.DENY;
 
-        @Comment("Lists all enchantments to be excluded (or included) when using blocks from this mod")
+        @Comment("Lists all enchantments to be excluded (or included) when using tables from MCDE\n" + 
+                 "You can specify tags (#c:powerful), whole namespaces (mcdw:*), also you can specify all tags from a namespace (#mcdw:*)\n" +
+                 "The format can also be different, you can specify this list in 'nested' format like so:\n" +
+                 "\"list\" = {\n" + 
+                 "  \"minecraft\": [\"unbreaking\", \"mending\"],\n" +
+                 "  \"mcda\": [\"chilling\", \"burning\"],\n" +
+                 "  \"c\": [\"#powerful\"], // tags\n" +
+                 "  \"mcdw\": [\"*\"], // whole namespace\n" + 
+                 "  \"namespace\": [\"#*\"] // all tags from a namespace\n" +
+                 "}")
         private IdentifierGlobbedList list = new IdentifierGlobbedList(List.of(
             "minecraft:mending",
             "minecraft:unbreaking"
@@ -287,17 +288,14 @@ public class MCDEnchantments implements ModInitializer {
                  "The process consists of 33 steps (frames). So, overall process would take n * 33 ticks.")
         private int ticksPerGildingProcessStep = 1;
 
-        @Comment("Sets whether villagers sell enchanted books only from custom pool\n" +
-                 "On false, villagers have vanilla trades")
-        private boolean customVillagerBooks = true;
-
-        @Comment("Enchantments from this pool would be used in trades")
+        @Comment("Enchantments from this pool would be used in trades.\n" +
+                 "If this pool is empty, then trades will not be affected.\n" +
+                 "This list supports the same features as 'list' option")
         private IdentifierGlobbedList villagerBookPool = new IdentifierGlobbedList(List.of("minecraft:unbreaking"));
 
-        @Comment("Whether to use custom pool for treasure enchantments")
-        private boolean customTreasure = false;
-
-        @Comment("Enchantments from this pool would be used to enchant books in loot tables")
+        @Comment("Enchantments from this pool would be used to enchant books in loot tables.\n" +
+                 "If this pool is empty, then loot tables will not be affected.\n" +
+                 "This list supports the same features as 'list' option")
         private IdentifierGlobbedList treasurePool = new IdentifierGlobbedList(List.of());
 
         @Comment("Defines how slot chances increases with game progression")

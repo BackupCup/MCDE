@@ -15,15 +15,10 @@ import net.minecraft.village.TradeOffers;
 public class EnchantBookFactoryMixin {
     @ModifyVariable(method = "create", at = @At("STORE"))
     private List<Enchantment> changeTrade(List<Enchantment> list) {
-        var config = MCDEnchantments.getConfig();
-        if (config.areVillagersSellFromCustomPool()) {
-            var pool = config.getVillagerBookPool();
-            if (pool.size() == 0) {
-                MCDEnchantments.LOGGER.warn("Custom pool size must be non-zero.");
-                return list;
-            }
-            return pool;
+        var pool = MCDEnchantments.getConfig().getVillagerBookPool();
+        if (pool.isEmpty()) {
+            return list;
         }
-        return list;
+        return pool;
     }
 }
