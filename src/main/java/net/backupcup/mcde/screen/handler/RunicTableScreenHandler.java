@@ -92,6 +92,12 @@ public class RunicTableScreenHandler extends ScreenHandler {
             player.addExperienceLevels(-RunicTableScreenHandler.getEnchantCost(enchantmentId, level));
         }
         inventory.markDirty();
+        context.run((world, pos) -> {
+            var server = world.getServer();
+            var tracker = server.getPlayerManager().getPlayer(player.getUuid()).getAdvancementTracker();
+            var advancement = server.getAdvancementLoader().get(Identifier.of("minecraft", "story/enchant_item"));
+            tracker.grantCriterion(advancement, "enchanted_item");
+        });
         return super.onButtonClick(player, id);
     }
 
