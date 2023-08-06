@@ -44,7 +44,11 @@ public abstract class AnvilScreenHandlerMixin {
             levelCost.set(slots.merge(other));
             var map = EnchantmentHelper.get(other);
             var present = EnchantmentHelper.get(input);
-            slots.stream().map(slot -> slot.getChosen()).forEach(o -> o.ifPresent(c -> map.remove(c.getEnchantment())));
+            slots.stream().forEach(slot -> slot.getChosen().ifPresent(c -> map.remove(c.getEnchantment())));
+            if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
+                map.entrySet().removeIf(kvp -> present.keySet().stream()
+                        .anyMatch(e -> !kvp.getKey().canCombine(e)));
+            }
             var iter = map.entrySet().iterator();
             while (iter.hasNext()) {
                 var entry = iter.next();
@@ -108,20 +112,27 @@ public abstract class AnvilScreenHandlerMixin {
 
     @Inject(method = "updateResult", at = @At("RETURN"))
     private void adjustPrice(CallbackInfo ci) {
-        var left = EnchantmentHelper.get(screenGetSlot(0).getStack());
-        var right = EnchantmentHelper.get(screenGetSlot(1).getStack());
-        if (right.isEmpty() || EnchantmentSlots.fromItemStack(screenGetSlot(0).getStack()) != null) {
+        var input = screenGetSlot(0).getStack();
+        var other = screenGetSlot(1).getStack();
+        var left = EnchantmentHelper.get(input);
+        var right = EnchantmentHelper.get(other);
+        if (right.isEmpty() || EnchantmentSlots.fromItemStack(input) != null) {
             return;
         }
         levelCost.set(left.entrySet().stream()
-            .mapToInt(kvp -> RunicTableScreenHandler.getEnchantCost(
-                EnchantmentUtils.getEnchantmentId(kvp.getKey()),
-                right.containsKey(kvp.getKey()) ?
-                kvp.getValue() == right.get(kvp.getKey()) ?
-                    1 : kvp.getValue() - right.get(kvp.getKey()) :
-                kvp.getValue()
-            ))
-            .sum() + (newItemName.isBlank() ? 0 : 1));
+                .filter(kvp -> right.containsKey(kvp.getKey()) && right.get(kvp.getKey()) >= kvp.getValue())
+                .mapToInt(kvp -> RunicTableScreenHandler.getEnchantCost(
+                    EnchantmentHelper.getEnchantmentId(kvp.getKey()),
+                    kvp.getValue() == right.get(kvp.getKey()) ?
+                        1 : right.get(kvp.getKey()) - kvp.getValue()
+                )).sum() +
+            right.entrySet().stream()
+                .filter(kvp -> !left.containsKey(kvp.getKey()))
+                .mapToInt(kvp -> RunicTableScreenHandler.getEnchantCost(
+                    EnchantmentHelper.getEnchantmentId(kvp.getKey()),
+                    kvp.getValue()
+                )).sum() +
+            (newItemName.isBlank() ? 0 : 1));
     }
 
     private void setCustomNameToResult() {
