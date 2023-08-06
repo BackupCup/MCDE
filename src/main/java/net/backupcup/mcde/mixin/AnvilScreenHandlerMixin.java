@@ -11,41 +11,47 @@ import net.backupcup.mcde.screen.handler.RunicTableScreenHandler;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.screen.AnvilScreenHandler;
 import net.minecraft.screen.Property;
-import net.minecraft.screen.slot.Slot;
+import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.text.Text;
 
 @Mixin(AnvilScreenHandler.class)
-public abstract class AnvilScreenHandlerMixin {
+public abstract class AnvilScreenHandlerMixin extends AnvilScreenHandler {
+    public AnvilScreenHandlerMixin(int syncId, PlayerInventory inventory) {
+        super(syncId, inventory);
+    }
+    
     @Shadow private Property levelCost;
     @Shadow private String newItemName;
 
-    public Slot screenGetSlot(int index) {
-        return ((AnvilScreenHandler)(Object)this).getSlot(index);
+    public AnvilScreenHandlerMixin(int syncId, PlayerInventory inventory, ScreenHandlerContext context) {
+        super(syncId, inventory, context);
     }
 
     @Inject(method = "updateResult", at = @At("HEAD"), cancellable = true)
     private void mixSlots(CallbackInfo ci) {
-        var input = screenGetSlot(0).getStack();
-        var other = screenGetSlot(1).getStack();
+        var input = getSlot(0).getStack();
+        var other = getSlot(1).getStack();
         var slots = EnchantmentSlots.fromItemStack(input);
         ItemStack result = ItemStack.EMPTY;
         if (slots == null) {
             if (EnchantmentSlots.fromItemStack(other) != null) {
-                screenGetSlot(2).setStack(ItemStack.EMPTY);
+                getSlot(2).setStack(ItemStack.EMPTY);
                 ci.cancel();
             }
             return;
         }
         if (MCDEnchantments.getConfig().isEnchantingWithBooksAllowed() && other.isOf(Items.ENCHANTED_BOOK)) {
+            
             levelCost.set(slots.merge(other));
             var map = EnchantmentHelper.get(other);
             var present = EnchantmentHelper.get(input);
             slots.stream().forEach(slot -> slot.getChosen().ifPresent(c -> map.remove(c.getEnchantment())));
-            if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
+            if (MCDEnchantments.getConfig().isCompatibilityRequired() && !player.isCreative()) {
                 map.entrySet().removeIf(kvp -> present.keySet().stream()
                         .anyMatch(e -> !kvp.getKey().canCombine(e)));
             }
@@ -63,7 +69,7 @@ public abstract class AnvilScreenHandlerMixin {
             if (!map.isEmpty()) {
                 result = input.copy();
                 slots.updateItemStack(result);
-                screenGetSlot(2).setStack(result);
+                getSlot(2).setStack(result);
 
                 levelCost.set(map.entrySet().stream()
                         .mapToInt(kvp -> RunicTableScreenHandler.getEnchantCost(
@@ -90,7 +96,7 @@ public abstract class AnvilScreenHandlerMixin {
                 return;
             }
             if (EnchantmentSlots.fromItemStack(input) != null || EnchantmentSlots.fromItemStack(other) != null) {
-                screenGetSlot(2).setStack(ItemStack.EMPTY);
+                getSlot(2).setStack(ItemStack.EMPTY);
                 ci.cancel();
                 return;
             }
@@ -104,7 +110,7 @@ public abstract class AnvilScreenHandlerMixin {
             slots.removeGilding();
             slots.updateItemStack(result);
         }
-        screenGetSlot(2).setStack(result);
+        getSlot(2).setStack(result);
         setCustomNameToResult();
         ((AnvilScreenHandler)(Object)this).sendContentUpdates();
         ci.cancel();
@@ -112,8 +118,8 @@ public abstract class AnvilScreenHandlerMixin {
 
     @Inject(method = "updateResult", at = @At("RETURN"))
     private void adjustPrice(CallbackInfo ci) {
-        var input = screenGetSlot(0).getStack();
-        var other = screenGetSlot(1).getStack();
+        var input = getSlot(0).getStack();
+        var other = getSlot(1).getStack();
         var left = EnchantmentHelper.get(input);
         var right = EnchantmentHelper.get(other);
         if (right.isEmpty() || EnchantmentSlots.fromItemStack(input) != null) {
@@ -139,8 +145,8 @@ public abstract class AnvilScreenHandlerMixin {
         if (newItemName.isBlank()) {
             return;
         }
-        var input = screenGetSlot(0).getStack();
-        var result = screenGetSlot(2).getStack();
+        var input = getSlot(0).getStack();
+        var result = getSlot(2).getStack();
         if (result.isEmpty()) {
             result = input.copy();
         }
