@@ -27,6 +27,10 @@ public abstract class EnchantRandomlyLootFunctionMixin {
         }
         var random = context.getRandom();
         var list = MCDEnchantments.getConfig().getCustomTreasurePool();
+        if (list.size() == 0) {
+            MCDEnchantments.LOGGER.warn("Custom pool size must be non-zero.");
+            return;
+        }
         var enchantment = list.get(random.nextInt(list.size()));
         cir.setReturnValue(addEnchantmentToStack(stack, enchantment, random));
     }

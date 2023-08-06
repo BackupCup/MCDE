@@ -175,10 +175,6 @@ public class MCDEnchantments implements ModInitializer {
             return isEnchantmentPowerful(id) ? rerollCostPowerful : rerollCost;
         }
 
-        public boolean areVillagersSellOnlyUnbreaking() {
-            return villagersSellOnlyUnbreaking;
-        }
-
         public boolean isAnvilItemMixingAllowed() {
             return allowAnvilItemMixing;
         }
@@ -213,6 +209,14 @@ public class MCDEnchantments implements ModInitializer {
 
         public Map<Identifier, Map<Slots, Float>> getProgressChances() {
             return progressChances;
+        }
+
+        public boolean areVillagersSellFromCustomPool() {
+            return customVillagerBooks;
+        }
+
+        public List<Enchantment> getVillagerBookPool() {
+            return Registry.ENCHANTMENT.stream().filter(villagerBookPool::contains).toList();
         }
 
         public boolean isTreasureCustom() {
@@ -265,10 +269,6 @@ public class MCDEnchantments implements ModInitializer {
         @Comment("Sets amount of lapis needed for reroll per level for powerful enchantments")
         private int rerollCostPowerful = 5;
 
-        @Comment("Sets whether villagers sell enchanted books only with unbreaking\n" +
-                 "On false, villagers have vanilla trades")
-        private boolean villagersSellOnlyUnbreaking = true;
-
         @Comment("Allow mixing items in anvil\n" +
                  "On true, vanilla anvil behaviour is applied")
         private boolean allowAnvilItemMixing = false;
@@ -286,6 +286,13 @@ public class MCDEnchantments implements ModInitializer {
         @Comment("Each n-th tick (where n is this setting) would increment progress of gilding.\n" +
                  "The process consists of 33 steps (frames). So, overall process would take n * 33 ticks.")
         private int ticksPerGildingProcessStep = 1;
+
+        @Comment("Sets whether villagers sell enchanted books only from custom pool\n" +
+                 "On false, villagers have vanilla trades")
+        private boolean customVillagerBooks = true;
+
+        @Comment("Enchantments from this pool would be used in trades")
+        private IdentifierGlobbedList villagerBookPool = new IdentifierGlobbedList(List.of("minecraft:unbreaking"));
 
         @Comment("Whether to use custom pool for treasure enchantments")
         private boolean customTreasure = false;
