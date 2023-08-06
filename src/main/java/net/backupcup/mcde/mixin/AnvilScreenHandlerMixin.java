@@ -23,22 +23,15 @@ import net.minecraft.item.Items;
 import net.minecraft.text.Text;
 
 @Mixin(AnvilScreenHandler.class)
-public abstract class AnvilScreenHandlerMixin extends ScreenHandler {
+public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
     
-    @Final
-    @Shadow private Property levelCost;
+    public AnvilScreenHandlerMixin(ScreenHandlerType<?> type, int syncId, PlayerInventory playerInventory,
+            ScreenHandlerContext context) {
+        super(type, syncId, playerInventory, context);
+    }
+
+    @Final @Shadow private Property levelCost;
     @Shadow private String newItemName;
-
-    @Unique private PlayerEntity playerEntity;
-
-    protected AnvilScreenHandlerMixin(@Nullable ScreenHandlerType<?> type, int syncId) {
-        super(type, syncId);
-    }
-
-    @Inject(method = "<init>(ILnet/minecraft/entity/player/PlayerInventory;Lnet/minecraft/screen/ScreenHandlerContext;)V", at = @At("TAIL"))
-    private void mcde$getPlayer(int syncId, PlayerInventory inventory, ScreenHandlerContext context, CallbackInfo ci){
-        this.playerEntity = inventory.player;
-    }
 
     @Inject(method = "updateResult", at = @At("HEAD"), cancellable = true)
     private void mcde$mixSlots(CallbackInfo ci) {
@@ -54,12 +47,11 @@ public abstract class AnvilScreenHandlerMixin extends ScreenHandler {
             return;
         }
         if (MCDEnchantments.getConfig().isEnchantingWithBooksAllowed() && other.isOf(Items.ENCHANTED_BOOK)) {
-            
             levelCost.set(slots.merge(other));
             var map = EnchantmentHelper.get(other);
             var present = EnchantmentHelper.get(input);
             slots.stream().forEach(slot -> slot.getChosen().ifPresent(c -> map.remove(c.getEnchantment())));
-            if (MCDEnchantments.getConfig().isCompatibilityRequired() && !playerEntity.isCreative()) {
+            if (MCDEnchantments.getConfig().isCompatibilityRequired() && !player.isCreative()) {
                 map.entrySet().removeIf(kvp -> present.keySet().stream()
                         .anyMatch(e -> !kvp.getKey().canCombine(e)));
             }

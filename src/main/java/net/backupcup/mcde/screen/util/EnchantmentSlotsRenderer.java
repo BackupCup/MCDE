@@ -24,6 +24,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
 
 public class EnchantmentSlotsRenderer {
+    private static final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
+    private static final Identifier missingEnchantTexture = new Identifier(MCDEnchantments.MOD_ID, "textures/gui/icons/missing_no.png");
+
     private TexturePos slotTexturePos;
     private TexturePos outlinePos;
 
@@ -74,9 +77,6 @@ public class EnchantmentSlotsRenderer {
         this.defaultGuiTexture = defaultGuiTexture;
         this.dimColorMultiplier = dimColorMultiplier;
     }
-
-    private final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
-    private final Identifier missingEnchantTexture = new Identifier(MCDEnchantments.MOD_ID,"textures/gui/icons/missing_no.png");
 
     public void drawSlot(MatrixStack matrices, Slots slot) {
         var pos = slotPos.get(slot);
