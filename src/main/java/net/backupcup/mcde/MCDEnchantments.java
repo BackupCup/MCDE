@@ -133,7 +133,7 @@ public class MCDEnchantments implements ModInitializer {
 
         public static Config readFromServer(PacketByteBuf buf) {
             try {
-                return Jankson.builder().build().fromJson(buf.readString(), Config.class);
+                return JANKSON.fromJson(buf.readString(), Config.class);
             } catch (SyntaxError e) {
                 LOGGER.error("Error while retrieving config from server: {}", e);
             }
@@ -141,7 +141,7 @@ public class MCDEnchantments implements ModInitializer {
         }
 
         public void writeToClient(PacketByteBuf buf) {
-            buf.writeString(Jankson.builder().build().toJson(this).toJson());
+            buf.writeString(JANKSON.toJson(this).toJson());
         }
 
         public enum ListType {
