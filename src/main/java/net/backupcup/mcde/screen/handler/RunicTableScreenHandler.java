@@ -1,6 +1,7 @@
 package net.backupcup.mcde.screen.handler;
 
 import net.backupcup.mcde.MCDEnchantments;
+import net.backupcup.mcde.block.ModBlocks;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.Slots;
@@ -128,7 +129,7 @@ public class RunicTableScreenHandler extends ScreenHandler {
 
     @Override
     public boolean canUse(PlayerEntity player) {
-        return this.inventory.canPlayerUse(player);
+        return canUse(context, player, ModBlocks.RUNIC_TABLE);
     }
 
     @Override

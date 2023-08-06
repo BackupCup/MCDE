@@ -1,5 +1,6 @@
 package net.backupcup.mcde.screen.handler;
 
+import net.backupcup.mcde.block.ModBlocks;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.minecraft.entity.player.PlayerEntity;
@@ -16,6 +17,7 @@ import net.minecraft.screen.slot.Slot;
 
 public class GildingFoundryScreenHandler extends ScreenHandler {
     private final Inventory inventory;
+    private final ScreenHandlerContext context;
     public Inventory getInventory() {
         return inventory;
     }
@@ -28,6 +30,7 @@ public class GildingFoundryScreenHandler extends ScreenHandler {
 
     public GildingFoundryScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, PropertyDelegate delegate, ScreenHandlerContext context) {
         super(ModScreenHandlers.GILDING_FOUNDRY_SCREEN_HANDLER, syncId);
+        this.context = context;
 
         checkSize(inventory, 1);
         this.inventory = inventory;
@@ -125,7 +128,7 @@ public class GildingFoundryScreenHandler extends ScreenHandler {
 
     @Override
     public boolean canUse(PlayerEntity player) {
-        return this.inventory.canPlayerUse(player);
+        return canUse(context, player, ModBlocks.GILDING_FOUNDRY);
     }
 
     private void addPlayerInventory(PlayerInventory playerInventory) {
