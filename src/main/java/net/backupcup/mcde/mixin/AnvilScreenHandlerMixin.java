@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.backupcup.mcde.MCDEnchantments;
-import net.backupcup.mcde.screen.handler.RunicTableScreenHandler;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -73,7 +72,7 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
                 getSlot(2).setStack(result);
 
                 levelCost.set(map.entrySet().stream()
-                        .mapToInt(kvp -> RunicTableScreenHandler.getEnchantCost(
+                        .mapToInt(kvp -> MCDEnchantments.getConfig().getEnchantCost(
                             EnchantmentUtils.getEnchantmentId(kvp.getKey()),
                             present.containsKey(kvp.getKey()) ?
                             kvp.getValue() == present.get(kvp.getKey()) ?
@@ -128,14 +127,14 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
         }
         levelCost.set(left.entrySet().stream()
                 .filter(kvp -> right.containsKey(kvp.getKey()) && right.get(kvp.getKey()) >= kvp.getValue())
-                .mapToInt(kvp -> RunicTableScreenHandler.getEnchantCost(
+                .mapToInt(kvp -> MCDEnchantments.getConfig().getEnchantCost(
                     EnchantmentHelper.getEnchantmentId(kvp.getKey()),
                     kvp.getValue() == right.get(kvp.getKey()) ?
                         1 : right.get(kvp.getKey()) - kvp.getValue()
                 )).sum() +
             right.entrySet().stream()
                 .filter(kvp -> !left.containsKey(kvp.getKey()))
-                .mapToInt(kvp -> RunicTableScreenHandler.getEnchantCost(
+                .mapToInt(kvp -> MCDEnchantments.getConfig().getEnchantCost(
                     EnchantmentHelper.getEnchantmentId(kvp.getKey()),
                     kvp.getValue()
                 )).sum() +

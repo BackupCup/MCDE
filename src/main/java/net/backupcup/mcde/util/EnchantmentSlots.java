@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import net.backupcup.mcde.MCDEnchantments;
-import net.backupcup.mcde.screen.handler.RunicTableScreenHandler;
 import net.backupcup.mcde.util.EnchantmentSlot.Choice;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -22,8 +21,8 @@ import net.minecraft.util.Identifier;
 public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
     private Map<Slots, EnchantmentSlot> slots;
     private Optional<Identifier> gilding = Optional.empty();
-    private int nextRerollCost = MCDEnchantments.getConfig().getRerollCostParameters().normal().startCost();
-    private int nextRerollCostPowerful = MCDEnchantments.getConfig().getRerollCostParameters().powerful().startCost();
+    private int nextRerollCost = MCDEnchantments.getConfig().getRerollCostParameters().getNormal().getStartCost();
+    private int nextRerollCostPowerful = MCDEnchantments.getConfig().getRerollCostParameters().getPowerful().getStartCost();
 
     public EnchantmentSlots(Map<Slots, EnchantmentSlot> slots, Optional<Identifier> gilding, int nextRerollCost, int nextRerollCostPowerful) {
         this(slots);
@@ -181,7 +180,7 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
             }
             var other_lvl = same.get().getLevel();
             var upgrade = other_lvl == chosen.getLevel() ? 1 : other_lvl - chosen.getLevel();
-            cost += RunicTableScreenHandler.getEnchantCost(chosen.getEnchantmentId(), upgrade);
+            cost += MCDEnchantments.getConfig().getEnchantCost(chosen.getEnchantmentId(), upgrade);
             slot.setLevel(chosen.getLevel() + upgrade);
         }
         return cost;
@@ -203,7 +202,7 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
                 continue;
             }
             var upgrade = chosen.getLevel() == otherLvl ? 1 : otherLvl - chosen.getLevel();
-            cost += RunicTableScreenHandler.getEnchantCost(chosen.getEnchantmentId(), upgrade);
+            cost += MCDEnchantments.getConfig().getEnchantCost(chosen.getEnchantmentId(), upgrade);
             slot.setLevel(chosen.getLevel() + upgrade);
         }
         return cost;

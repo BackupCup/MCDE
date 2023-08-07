@@ -55,10 +55,6 @@ public class RunicTableScreenHandler extends ScreenHandler {
         addPlayerHotbar(playerInventory);
     }
 
-    public static int getEnchantCost(Identifier enchantmentId, int level) {
-        return MCDEnchantments.getConfig().getEnchantCostPerLevel(enchantmentId) * level;
-    }
-
     @Override
     public boolean onButtonClick(PlayerEntity player, int id) {
         ItemStack itemStack = inventory.getStack(0);
@@ -90,7 +86,7 @@ public class RunicTableScreenHandler extends ScreenHandler {
         slots.updateItemStack(itemStack);
         player.playSound(SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, SoundCategory.BLOCKS, 0.5f, 1f);
         if (!player.isCreative()) {
-            player.addExperienceLevels(-RunicTableScreenHandler.getEnchantCost(enchantmentId, level));
+            player.addExperienceLevels(-MCDEnchantments.getConfig().getEnchantCost(enchantmentId, level));
         }
         inventory.markDirty();
         context.run((world, pos) -> {
@@ -158,6 +154,6 @@ public class RunicTableScreenHandler extends ScreenHandler {
         if (player.isCreative()) {
             return true;
         }
-        return player.experienceLevel >= RunicTableScreenHandler.getEnchantCost(enchantmentId, level);
+        return player.experienceLevel >= MCDEnchantments.getConfig().getEnchantCost(enchantmentId, level);
     }
 }

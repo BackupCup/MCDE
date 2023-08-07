@@ -10,6 +10,7 @@ import java.util.Map;
 
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Jankson;
+import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.api.DeserializationException;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.api.SyntaxError;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.IdentifierGlobbedList;
@@ -75,8 +76,8 @@ public class Config {
 
     public static Config readFromServer(PacketByteBuf buf) {
         try {
-            return JANKSON.fromJson(buf.readString(), Config.class);
-        } catch (SyntaxError e) {
+            return JANKSON.fromJsonCarefully(buf.readString(), Config.class);
+        } catch (SyntaxError | DeserializationException e) {
             MCDEnchantments.LOGGER.error("Error while retrieving config from server: {}", e);
         }
         return null;
@@ -90,7 +91,33 @@ public class Config {
         ALLOW, DENY
     }
 
-    public static record RerollCost(int startCost, int endCost, int step) {
+    public static class RerollCost {
+        private int startCost;
+        private int endCost;
+        private int step;
+
+        public RerollCost() {
+            this(30, 3, 3);
+        }
+
+        public RerollCost(int startCost, int endCost, int step) {
+            this.startCost = startCost;
+            this.endCost = endCost;
+            this.step = step;
+        }
+
+        public int getStartCost() {
+            return startCost;
+        }
+
+        public int getEndCost() {
+            return endCost;
+        }
+
+        public int getStep() {
+            return step;
+        }
+
         private int getNextCost(int cost) {
             if (startCost == endCost) {
                 return startCost;
@@ -102,10 +129,84 @@ public class Config {
         }
     }
 
-    public static record RerollCostParameters(RerollCost normal, RerollCost powerful) {
+    public static class RerollCostParameters {
+        private RerollCost normal;
+        private RerollCost powerful;
+
+        public RerollCostParameters() {
+            this(new RerollCost(30, 3, 3), new RerollCost(50, 5, 5));
+        }
+
+        public RerollCostParameters(RerollCost normal, RerollCost powerful) {
+            this.normal = normal;
+            this.powerful = powerful;
+        }
+
         public void updateCost(EnchantmentSlots slots) {
             slots.setNextRerollCost(normal.getNextCost(slots.getNextRerollCost()));
             slots.setNextRerollCostPowerful(powerful.getNextCost(slots.getNextRerollCostPowerful()));
+        }
+
+        public RerollCost getNormal() {
+            return normal;
+        }
+
+        public RerollCost getPowerful() {
+            return powerful;
+        }
+    }
+
+    public static class EnchantCost {
+        private int startCost;
+        private int step;
+
+        public EnchantCost() {
+            this(3, 3);
+        }
+
+        public EnchantCost(int startCost, int step) {
+            this.startCost = startCost;
+            this.step = step;
+        }
+
+        public int getEnchantCost(Identifier id, int level) {
+            return startCost + step * (level - 1);
+        }
+
+        public int getStartCost() {
+            return startCost;
+        }
+
+        public int getStep() {
+            return step;
+        }
+    }
+
+    public static class EnchantCostParameters {
+        private EnchantCost normal;
+        private EnchantCost powerful;
+
+        public EnchantCostParameters() {
+            this(new EnchantCost(3, 3), new EnchantCost(5, 5));
+        }
+
+        public EnchantCostParameters(EnchantCost normal, EnchantCost powerful) {
+            this.normal = normal;
+            this.powerful = powerful;
+        }
+
+        public int getEnchantCost(Identifier id, int level) {
+            return MCDEnchantments.getConfig().isEnchantmentPowerful(id) ? 
+                powerful.getEnchantCost(id, level) :
+                normal.getEnchantCost(id, level);
+        }
+
+        public EnchantCost getNormal() {
+            return normal;
+        }
+
+        public EnchantCost getPowerful() {
+            return powerful;
         }
     }
 
@@ -128,8 +229,8 @@ public class Config {
         return ModTags.isIn(id, ModTags.Enchantments.POWERFUL);
     }
 
-    public int getEnchantCostPerLevel(Identifier id) {
-        return isEnchantmentPowerful(id) ? enchantCostPowerful : enchantCost;
+    public int getEnchantCost(Identifier id, int level) {
+        return enchantCost.getEnchantCost(id, level);
     }
 
     public RerollCost getRerollCostParameters(Identifier id) {
@@ -234,13 +335,13 @@ public class Config {
              "Anvils are also affected.")
     private boolean requireCompatibility = true;
 
-    @Comment("Sets cost of enchanting in xp levels per level\n" +
+    @Comment("Sets cost of enchanting in xp levels\n" +
+             "Each level increases cost by step\n" +
              "Anvil's mixing price relies on this and also affected")
-    private int enchantCost = 3;
-    @Comment("Sets cost of enchanting in xp levels per level for powerful enchantments\n" +
-             "Enchantment is considered powerful whenever it is listed in #c:powerful tag\n" + 
-             "Anvil's mixing price relies on this and also affected")
-    private int enchantCostPowerful = 5;
+    private EnchantCostParameters enchantCost = new EnchantCostParameters(
+        new EnchantCost(3, 3),
+        new EnchantCost(5, 5)
+    );
 
     @Comment("Sets amount of lapis needed for reroll\n" +
              "For each reroll, the cost is either increased or decreased by step")

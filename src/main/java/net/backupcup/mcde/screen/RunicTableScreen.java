@@ -200,7 +200,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
             tooltipLines.add(Text.translatable("message.mcde.not_enough_levels").formatted(Formatting.DARK_RED, Formatting.ITALIC));
             tooltipLines.add(Text.translatable(
                         "message.mcde.levels_required",
-                        RunicTableScreenHandler.getEnchantCost(enchantmentId, level)
+                        MCDEnchantments.getConfig().getEnchantCost(enchantmentId, level)
                         ).formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
         }
 
