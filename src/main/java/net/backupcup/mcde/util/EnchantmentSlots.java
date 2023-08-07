@@ -10,6 +10,7 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.screen.handler.RunicTableScreenHandler;
 import net.backupcup.mcde.util.EnchantmentSlot.Choice;
 import net.minecraft.enchantment.Enchantment;
@@ -21,10 +22,14 @@ import net.minecraft.util.Identifier;
 public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
     private Map<Slots, EnchantmentSlot> slots;
     private Optional<Identifier> gilding = Optional.empty();
+    private int nextRerollCost = MCDEnchantments.getConfig().getRerollCostParameters().normal().startCost();
+    private int nextRerollCostPowerful = MCDEnchantments.getConfig().getRerollCostParameters().powerful().startCost();
 
-    public EnchantmentSlots(Map<Slots, EnchantmentSlot> slots, Optional<Identifier> gilding) {
+    public EnchantmentSlots(Map<Slots, EnchantmentSlot> slots, Optional<Identifier> gilding, int nextRerollCost, int nextRerollCostPowerful) {
+        this(slots);
         this.gilding = gilding;
-        this.slots = slots;
+        this.nextRerollCost = nextRerollCost;
+        this.nextRerollCostPowerful = nextRerollCostPowerful;
     }
 
     public EnchantmentSlots(Map<Slots, EnchantmentSlot> slots) {
@@ -45,6 +50,26 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
 
     public void removeGilding() {
         gilding = Optional.empty();
+    }
+
+    public int getNextRerollCost() {
+        return nextRerollCost;
+    }
+
+    public void setNextRerollCost(int nextRerollCost) {
+        this.nextRerollCost = nextRerollCost;
+    }
+
+    public int getNextRerollCostPowerful() {
+        return nextRerollCostPowerful;
+    }
+
+    public void setNextRerollCostPowerful(int nextRerollCostPowerful) {
+        this.nextRerollCostPowerful = nextRerollCostPowerful;
+    }
+
+    public int getNextRerollCost(Identifier id) {
+        return MCDEnchantments.getConfig().isEnchantmentPowerful(id) ? nextRerollCostPowerful : nextRerollCost;
     }
 
     public static class Builder {
@@ -101,6 +126,10 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
             .forEach(kvp -> slotsCompound.put(kvp.getKey().name(), kvp.getValue().toNbt()));
         root.put("Slots", slotsCompound);
         gilding.ifPresent(id -> root.putString("Gilding", id.toString()));
+        NbtCompound rerollCost = new NbtCompound();
+        rerollCost.putInt("Normal", nextRerollCost);
+        rerollCost.putInt("Powerful", nextRerollCostPowerful);
+        root.put("NextRerollCost", rerollCost);
         return root;
     }
 
@@ -113,7 +142,9 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
                 .collect(Collectors.toMap(
                     key -> Slots.valueOf(key),
                     key -> EnchantmentSlot.fromNbt(slots.getCompound(key), Slots.valueOf(key))
-                )), Optional.ofNullable(nbt.getString("Gilding")).filter(id -> !id.isEmpty()).map(Identifier::tryParse));
+                )), Optional.ofNullable(nbt.getString("Gilding")).filter(id -> !id.isEmpty()).map(Identifier::tryParse),
+                nbt.getCompound("NextRerollCost").getInt("Normal"),
+                nbt.getCompound("NextRerollCost").getInt("Powerful"));
     }
 
     public static EnchantmentSlots fromItemStack(ItemStack itemStack) {

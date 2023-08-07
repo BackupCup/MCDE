@@ -11,6 +11,7 @@ import java.util.Map;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Jankson;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.api.SyntaxError;
+import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.IdentifierGlobbedList;
 import net.backupcup.mcde.util.ModTags;
 import net.backupcup.mcde.util.Slots;
@@ -89,6 +90,25 @@ public class Config {
         ALLOW, DENY
     }
 
+    public static record RerollCost(int startCost, int endCost, int step) {
+        private int getNextCost(int cost) {
+            if (startCost == endCost) {
+                return startCost;
+            }
+            if (endCost < startCost && cost <= endCost || endCost > startCost && cost >= endCost) {
+                return endCost;
+            }
+            return cost + step * (endCost > startCost ? 1 : -1);
+        }
+    }
+
+    public static record RerollCostParameters(RerollCost normal, RerollCost powerful) {
+        public void updateCost(EnchantmentSlots slots) {
+            slots.setNextRerollCost(normal.getNextCost(slots.getNextRerollCost()));
+            slots.setNextRerollCostPowerful(powerful.getNextCost(slots.getNextRerollCostPowerful()));
+        }
+    }
+
     public boolean isEnchantmentAllowed(Enchantment enchantment) {
         return isEnchantmentAllowed(Registry.ENCHANTMENT.getId(enchantment));
     }
@@ -112,8 +132,12 @@ public class Config {
         return isEnchantmentPowerful(id) ? enchantCostPowerful : enchantCost;
     }
 
-    public int getRerollCostPerLevel(Identifier id) {
-        return isEnchantmentPowerful(id) ? rerollCostPowerful : rerollCost;
+    public RerollCost getRerollCostParameters(Identifier id) {
+        return isEnchantmentPowerful(id) ? rerollCost.powerful : rerollCost.normal;
+    }
+
+    public RerollCostParameters getRerollCostParameters() {
+        return rerollCost;
     }
 
     public boolean isAnvilItemMixingAllowed() {
@@ -218,10 +242,12 @@ public class Config {
              "Anvil's mixing price relies on this and also affected")
     private int enchantCostPowerful = 5;
 
-    @Comment("Sets amount of lapis needed for reroll per level")
-    private int rerollCost = 3;
-    @Comment("Sets amount of lapis needed for reroll per level for powerful enchantments")
-    private int rerollCostPowerful = 5;
+    @Comment("Sets amount of lapis needed for reroll\n" +
+             "For each reroll, the cost is either increased or decreased by step")
+    private RerollCostParameters rerollCost = new RerollCostParameters(
+        new RerollCost(30, 3, 3),
+        new RerollCost(50, 5, 5)
+    );
 
     @Comment("Allow mixing items in anvil\n" +
              "On true, vanilla anvil behaviour is applied")

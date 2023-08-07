@@ -197,7 +197,7 @@ public class EnchantmentSlotsRenderer {
         Identifier enchantmentID = choice.getEnchantmentId();
         Identifier textureID = getTextureId(enchantmentID);
 
-        AbstractTexture tryTexture = this.textureManager.getTexture(textureID);
+        AbstractTexture tryTexture = textureManager.getTexture(textureID);
         if (tryTexture != MissingSprite.getMissingSpriteTexture()){
             RenderSystem.setShaderTexture(0, textureID);
         } else {

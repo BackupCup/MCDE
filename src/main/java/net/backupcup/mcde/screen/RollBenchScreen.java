@@ -60,11 +60,8 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
                 .withDefaultGuiTexture(TEXTURE)
                 .withDefaultSlotPositions(posX, posY)
                 .withDimPredicate(choice -> {
-                    int level = 1;
-                    if (choice instanceof EnchantmentSlot.ChoiceWithLevel withLevel) {
-                        level = (int) (withLevel.getLevel() + 1);
-                    }
-                    return !handler.canReroll(client.player, choice.getEnchantmentId(), level) ||
+                    var slots = EnchantmentSlots.fromItemStack(inventory.getStack(0));
+                    return !handler.canReroll(client.player, choice.getEnchantmentId(), slots) ||
                         RollBenchScreenHandler.getCandidatesForReroll(
                             inventory.getStack(0),
                             EnchantmentSlots.fromItemStack(inventory.getStack(0)),
@@ -151,8 +148,8 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         super.render(matrices, mouseX, mouseY, delta);
         RenderSystem.setShaderTexture(0, TEXTURE);
         ItemStack itemStack = inventory.getStack(0);
-
-        if (itemStack.isEmpty()) {
+        var slots = EnchantmentSlots.fromItemStack(itemStack);
+        if (itemStack.isEmpty() || slots == null) {
             drawMouseoverTooltip(matrices, mouseX, mouseY);
             opened = Optional.empty();
             return;
@@ -168,16 +165,14 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         Identifier enchantment = hoveredChoice.get().getEnchantmentId();
         String translationKey = enchantment.toTranslationKey("enchantment");
         List<Text> tooltipLines = new ArrayList<>();
-        int level = 1;
-        boolean canReroll = handler.canReroll(client.player, enchantment, level);
+        boolean canReroll = handler.canReroll(client.player, enchantment, slots);
         MutableText enchantmentName = Text.translatable(translationKey)
                 .formatted(EnchantmentUtils.formatEnchantment(enchantment));
         if (hoveredChoice.get() instanceof ChoiceWithLevel withLevel &&
                 withLevel.getEnchantment().getMaxLevel() > 1) {
             enchantmentName.append(" ")
                     .append(Text.translatable("enchantment.level." + withLevel.getLevel()));
-            level = (int) (withLevel.getLevel() + 1);
-            canReroll = handler.canReroll(client.player, enchantment, level);
+            canReroll = handler.canReroll(client.player, enchantment, slots);
         }
         tooltipLines.add(enchantmentName);
 
@@ -191,7 +186,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
                     .formatted(Formatting.DARK_RED, Formatting.ITALIC));
             tooltipLines.add(Text.translatable(
                     "message.mcde.lapis_required",
-                    RollBenchScreenHandler.getRerollCost(enchantment, level))
+                    slots.getNextRerollCost(enchantment))
                 .formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
         }
         if (RollBenchScreenHandler.getCandidatesForReroll(

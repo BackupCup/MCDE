@@ -68,10 +68,6 @@ public class RollBenchScreenHandler extends ScreenHandler {
         addPlayerHotbar(playerInventory);
     }
 
-    public static int getRerollCost(Identifier enchantmentId, int level) {
-        return MCDEnchantments.getConfig().getRerollCostPerLevel(enchantmentId) * level;
-    }
-
     @Override
     public boolean onButtonClick(PlayerEntity player, int id) {
         ItemStack itemStack = inventory.getStack(0);
@@ -81,7 +77,6 @@ public class RollBenchScreenHandler extends ScreenHandler {
         var slotsSize = Slots.values().length;
         var clickedSlot = slots.getSlot(Slots.values()[id / slotsSize]).get();
         Slots toChange;
-        int level = 1;
         Identifier enchantmentId;
         var newEnchantment = EnchantmentUtils.generateEnchantment(itemStack, getCandidatesForReroll(itemStack, slots, clickedSlot.getSlot()));
         if (newEnchantment.isEmpty()) {
@@ -91,9 +86,8 @@ public class RollBenchScreenHandler extends ScreenHandler {
         if (clickedSlot.getChosen().isPresent()) {
             var chosen = clickedSlot.getChosen().get();
             enchantmentId = chosen.getEnchantmentId();
-            level = chosen.getLevel();
 
-            if (!canReroll(player, enchantmentId, level)) {
+            if (!canReroll(player, enchantmentId, slots)) {
                 return super.onButtonClick(player, id);
             }
             clickedSlot.clearChoice();
@@ -102,27 +96,28 @@ public class RollBenchScreenHandler extends ScreenHandler {
             toChange = Slots.values()[id % slotsSize];
             enchantmentId = clickedSlot.getChoice(toChange).get();
 
-            if (!canReroll(player, enchantmentId, level)) {
+            if (!canReroll(player, enchantmentId, slots)) {
                 return super.onButtonClick(player, id);
             }
         }
 
         clickedSlot.changeEnchantment(toChange, newEnchantment.get());
-        slots.updateItemStack(itemStack);
         if (!player.isCreative()) {
-            lapisLazuliStack.decrement(getRerollCost(enchantmentId, level));
+            lapisLazuliStack.decrement(slots.getNextRerollCost(enchantmentId));
         }
+        MCDEnchantments.getConfig().getRerollCostParameters().updateCost(slots);
+        slots.updateItemStack(itemStack);
         player.playSound(SoundEvents.BLOCK_GRINDSTONE_USE, SoundCategory.BLOCKS, 0.5f, 1f);
         inventory.markDirty();
         return super.onButtonClick(player, id);
     }
 
-    public boolean canReroll(PlayerEntity player, Identifier enchantmentId, int level) {
+    public boolean canReroll(PlayerEntity player, Identifier enchantmentId, EnchantmentSlots slots) {
         if (player.isCreative()) {
             return true;
         }
         ItemStack lapisLazuliStack = inventory.getStack(1);
-        return lapisLazuliStack.getCount() >= getRerollCost(enchantmentId, level);
+        return lapisLazuliStack.getCount() >= slots.getNextRerollCost(enchantmentId);
     }
 
     @Override
