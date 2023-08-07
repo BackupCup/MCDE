@@ -1,6 +1,5 @@
 package net.backupcup.mcde;
 
-import net.backupcup.mcde.MCDEnchantments.Config;
 import net.backupcup.mcde.block.ModBlocks;
 import net.backupcup.mcde.screen.GildingFoundryScreen;
 import net.backupcup.mcde.screen.RollBenchScreen;
