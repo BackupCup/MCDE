@@ -309,7 +309,7 @@ public class Config {
     @Comment("Lists all enchantments to be excluded (or included) when using tables from MCDE\n" + 
              "You can specify tags (#c:powerful), whole namespaces (mcdw:*), also you can specify all tags from a namespace (#mcdw:*)\n" +
              "The format can also be different, you can specify this list in 'nested' format like so:\n" +
-             "\"list\" = {\n" + 
+             "\"list\": {\n" + 
              "  \"minecraft\": [\"unbreaking\", \"mending\"],\n" +
              "  \"mcda\": [\"chilling\", \"burning\"],\n" +
              "  \"c\": [\"#powerful\"], // tags\n" +
