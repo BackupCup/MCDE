@@ -117,8 +117,8 @@ public class EnchantmentUtils {
         boolean isSecondSlotGenerated = false;
         float threeChoiceChance = 0.5f + enchantability / 100f;
         var advancementModifier = calculateAdvancementModifiers(player);
-        float secondSlotChance = 0.5f + advancementModifier.get(SECOND);
-        float thirdSlotChance = 0.25f + advancementModifier.get(THIRD);
+        float secondSlotChance = MCDEnchantments.getConfig().getSecondSlotBaseChance() + advancementModifier.get(SECOND);
+        float thirdSlotChance = MCDEnchantments.getConfig().getThirdSlotBaseChance() + advancementModifier.get(THIRD);
         secondSlotChance += calculateEnchantabilityModifier(secondSlotChance, enchantability);
         thirdSlotChance += calculateEnchantabilityModifier(thirdSlotChance, enchantability);
 

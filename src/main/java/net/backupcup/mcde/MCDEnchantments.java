@@ -207,6 +207,14 @@ public class MCDEnchantments implements ModInitializer {
             return requireCompatibility;
         }
 
+        public float getSecondSlotBaseChance() {
+            return secondSlotBaseChance;
+        }
+
+        public float getThirdSlotBaseChance() {
+            return thirdSlotBaseChance;
+        }
+
         public Map<Identifier, Map<Slots, Float>> getProgressChances() {
             return progressChances;
         }
@@ -301,6 +309,13 @@ public class MCDEnchantments implements ModInitializer {
                  "If this pool is empty, then loot tables will not be affected.\n" +
                  "This list supports the same features as 'list' option")
         private IdentifierGlobbedList treasurePool = new IdentifierGlobbedList(List.of());
+
+        @Comment("Sets a base chance for second slot to appear when generating enchantment slots for a new item.\n" +
+                 "Value must be between 0 and 1")
+        private float secondSlotBaseChance = 0.5f;
+
+        @Comment("Same thing as above only for third slot")
+        private float thirdSlotBaseChance = 0.25f;
 
         @Comment("Defines how slot chances increases with game progression")
         private Map<Identifier, Map<Slots, Float>> progressChances = Map.ofEntries(
