@@ -2,11 +2,11 @@ package net.backupcup.mcde.util;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -72,7 +72,7 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
     }
 
     public static class Builder {
-        private Map<Slots, EnchantmentSlot> slots = new TreeMap<>();
+        private Map<Slots, EnchantmentSlot> slots = new EnumMap<>(Slots.class);
 
         public Builder withSlot(Slots slot, Identifier first) {
             slots.put(slot, EnchantmentSlot.of(slot, first));
