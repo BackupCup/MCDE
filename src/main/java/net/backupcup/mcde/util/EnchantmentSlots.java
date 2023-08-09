@@ -163,29 +163,6 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
         return slots.values().stream();
     }
 
-    public int merge(EnchantmentSlots other) {
-        int cost = 0;
-        for (var slot : this) {
-            if (slot.getChosen().isEmpty()) {
-                continue;
-            }
-            var chosen = slot.getChosen().get();
-            var id = chosen.getEnchantmentId();
-            var same = other.stream().filter(s -> s.getChosen().isPresent()).map(s -> s.getChosen().get()).filter(c -> c.getEnchantmentId().equals(id)).findAny();
-            if (same.isEmpty()) {
-                continue;
-            }
-            if (same.get().getLevel() < chosen.getLevel()) {
-                continue;
-            }
-            var other_lvl = same.get().getLevel();
-            var upgrade = other_lvl == chosen.getLevel() ? 1 : other_lvl - chosen.getLevel();
-            cost += MCDEnchantments.getConfig().getEnchantCost(chosen.getEnchantmentId(), upgrade);
-            slot.setLevel(chosen.getLevel() + upgrade);
-        }
-        return cost;
-    }
-
     public int merge(Map<Enchantment, Integer> enchantmentMap) {
         int cost = 0;
         for (var slot : this) {
@@ -195,6 +172,9 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
             var chosen = slot.getChosen().get();
             var enchantment = chosen.getEnchantment();
             if (!enchantmentMap.containsKey(enchantment)) {
+                continue;
+            }
+            if (chosen.getLevel() >= chosen.getEnchantment().getMaxLevel()) {
                 continue;
             }
             var otherLvl = enchantmentMap.get(enchantment);
@@ -209,15 +189,6 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
     }
 
     public int merge(ItemStack itemStack) {
-        var otherSlots = fromItemStack(itemStack);
-        int cost = 0;
-        if (otherSlots != null) {
-            if (hasGilding() && otherSlots.hasGilding()) {
-                return 0;
-            }
-            cost += merge(otherSlots);
-        }
-        cost += merge(EnchantmentHelper.get(itemStack));
-        return cost;
+        return merge(EnchantmentHelper.get(itemStack));
     }
 }
