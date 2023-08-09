@@ -101,15 +101,34 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
                 return;
             }
         }
+
         if (!input.isItemEqualIgnoreDamage(other) && !other.isOf(Items.ENCHANTED_BOOK)) {
             return;
         }
+
+        result = input.copy();
         levelCost.set(slots.merge(other));
-        if (levelCost.get() > 0) {
-            result = input.copy();
-            slots.removeGilding();
-            slots.updateItemStack(result);
+        slots.removeGilding();
+        slots.updateItemStack(result);
+
+        if (input.isDamageable() && other.isDamageable()) {
+            int inputDamage = input.getMaxDamage() - input.getDamage();
+            int otherDamage = other.getMaxDamage() - other.getDamage();
+            int newDamage = input.getMaxDamage() - (inputDamage + otherDamage + input.getMaxDamage() * 12 / 100);
+            if (newDamage < 0) {
+                newDamage = 0;
+            }
+
+            if (newDamage < input.getDamage()) {
+                result.setDamage(newDamage);
+                levelCost.set(levelCost.get() + 2);
+            }
         }
+
+        if (levelCost.get() == 0) {
+            result = ItemStack.EMPTY;
+        }
+
         getSlot(2).setStack(result);
         mcde$setCustomNameToResult();
         ((AnvilScreenHandler)(Object)this).sendContentUpdates();
