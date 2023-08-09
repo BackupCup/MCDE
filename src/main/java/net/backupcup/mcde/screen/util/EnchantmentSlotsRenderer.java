@@ -14,17 +14,16 @@ import net.backupcup.mcde.util.EnchantmentSlot.Choice;
 import net.backupcup.mcde.util.EnchantmentSlot.ChoiceWithLevel;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.Slots;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
-import net.minecraft.client.texture.AbstractTexture;
-import net.minecraft.client.texture.MissingSprite;
-import net.minecraft.client.texture.TextureManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
 
+@Environment(EnvType.CLIENT)
 public class EnchantmentSlotsRenderer {
-    private static final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
     private static final Identifier missingEnchantTexture = new Identifier(MCDEnchantments.MOD_ID, "textures/gui/icons/missing_no.png");
 
     private TexturePos slotTexturePos;
@@ -197,13 +196,8 @@ public class EnchantmentSlotsRenderer {
         Identifier enchantmentID = choice.getEnchantmentId();
         Identifier textureID = getTextureId(enchantmentID);
 
-        AbstractTexture tryTexture = textureManager.getTexture(textureID);
-        if (tryTexture != MissingSprite.getMissingSpriteTexture()){
-            RenderSystem.setShaderTexture(0, textureID);
-        } else {
-            RenderSystem.setShaderTexture(0, missingEnchantTexture);
-        }
-
+        RenderSystem.setShaderTexture(0, MinecraftClient.getInstance().getResourceManager().getResource(textureID).isPresent() ?
+                textureID : missingEnchantTexture);
         if (dimPredicate.test(choice)) {
             RenderSystem.setShaderColor(dimColorMultiplier, dimColorMultiplier, dimColorMultiplier, 1.0f);
         }
