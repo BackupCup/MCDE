@@ -12,7 +12,8 @@
   "contact": {
     "curseforge": "https://legacy.curseforge.com/minecraft/mc-mods/mc-dungeons-enchantments",
     "modrinth": "https://modrinth.com/mod/mc-dungeons-enchantments",
-    "sources": "https://github.com/EndLone/MCDE"
+    "sources": "https://github.com/EndLone/MCDE",
+    "issues": "https://github.com/EndLone/MCDE/issues"
   },
 
   "license": "Timefall Development License 1.1",
