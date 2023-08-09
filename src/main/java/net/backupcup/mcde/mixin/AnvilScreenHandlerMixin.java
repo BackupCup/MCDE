@@ -131,7 +131,7 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
 
         getSlot(2).setStack(result);
         mcde$setCustomNameToResult();
-        ((AnvilScreenHandler)(Object)this).sendContentUpdates();
+        sendContentUpdates();
         ci.cancel();
     }
 
