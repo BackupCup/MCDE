@@ -29,6 +29,9 @@
     ],
     "client": [
       "net.backupcup.mcde.MCDEClient"
+    ],
+    "preLaunch": [
+        "net.backupcup.mcde.MixinExtraInit"
     ]
   },
   "mixins": [
@@ -37,7 +40,7 @@
 
   "depends": {
     "fabricloader": ">=0.14.19",
-    "fabric-api": "*",
+    "fabric": "*",
     "minecraft": "~1.19",
     "java": ">=17",
     "cloth-config": ">=8.3.103"
