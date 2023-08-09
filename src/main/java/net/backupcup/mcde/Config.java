@@ -222,7 +222,7 @@ public class Config {
     }
 
     public boolean areCursedAllowed() {
-        return allowCursed;
+        return allowCurses;
     }
 
     public boolean isEnchantmentPowerful(Identifier id) {
@@ -321,8 +321,8 @@ public class Config {
         "minecraft:unbreaking"
     ));
 
-    @Comment("Allow cursed enchantments to appear")
-    private boolean allowCursed = false;
+    @Comment("Allow curses to appear")
+    private boolean allowCurses = false;
 
     @Comment("Generate enchantments only if they are available for random selection.")
     private boolean respectAvailabilityForRandomSelection = true;
@@ -337,7 +337,7 @@ public class Config {
 
     @Comment("Sets cost of enchanting in xp levels\n" +
              "Each level increases cost by step\n" +
-             "Anvil's mixing price relies on this and also affected")
+             "Anvil's mixing price is also affected")
     private EnchantCostParameters enchantCost = new EnchantCostParameters(
         new EnchantCost(3, 3),
         new EnchantCost(5, 5)
@@ -385,7 +385,7 @@ public class Config {
     @Comment("Same thing as above only for third slot")
     private float thirdSlotBaseChance = 0.25f;
 
-    @Comment("Defines how slot chances increases with game progression")
+    @Comment("Defines how slot chances increases with advancements")
     private Map<Identifier, Map<Slots, Float>> progressChances = Map.ofEntries(
         Map.entry(Identifier.of("minecraft", "story/cure_zombie_villager"),             Map.of(Slots.SECOND, 0.011432f, Slots.THIRD, 0.01079f)),
         Map.entry(Identifier.of("minecraft", "adventure/kill_mob_near_sculk_catalyst"), Map.of(Slots.SECOND, 0.011694f, Slots.THIRD, 0.011256f)),
