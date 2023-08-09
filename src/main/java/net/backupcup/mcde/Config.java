@@ -55,7 +55,7 @@ public class Config {
             if (getConfigFile().exists()) {
                 lastError = null;
                 var json = JANKSON.load(getConfigFile());
-                return JANKSON.fromJson(json, Config.class);
+                return JANKSON.fromJsonCarefully(json, Config.class);
             }
             defaults.save();
             lastError = null;
@@ -63,6 +63,14 @@ public class Config {
         } catch (SyntaxError e) {
             MCDEnchantments.LOGGER.error("Config syntax error. {}.", e.getLineMessage());
             MCDEnchantments.LOGGER.error(e.getMessage());
+            MCDEnchantments.LOGGER.warn("Using default configuration.");
+            lastError = Text.translatable("message.mcde.error.config.general");
+        } catch (DeserializationException e) {
+            MCDEnchantments.LOGGER.error("MCDE's config deserialization error.");
+            MCDEnchantments.LOGGER.error("{}", e.getMessage());
+            if (e.getCause() != null) {
+                MCDEnchantments.LOGGER.error("Cause: {}", e.getCause().getMessage());
+            }
             MCDEnchantments.LOGGER.warn("Using default configuration.");
             lastError = Text.translatable("message.mcde.error.config.general");
         } catch (IOException e) {
