@@ -1,9 +1,9 @@
 {
   "item.mcde.test_rune": "Тестова руна",
 
-  "block.mcde.runic_table": "§fРунічний стіл",
-  "block.mcde.roll_bench": "§fСувійна лава",
-  "block.mcde.gilding_foundry": "§fЛиварня позолоти",
+  "block.mcde.runic_table": "Рунічний стіл",
+  "block.mcde.roll_bench": "Сувійна лава",
+  "block.mcde.gilding_foundry": "Ливарня позолоти",
 
   "enchantment.minecraft.protection.desc": "Зменшує шкоду з більшості джерел.",
   "enchantment.minecraft.fire_protection.desc": "Зменшує вплив вогневої шкоди. Також зменшує час горіння.",
@@ -52,5 +52,7 @@
   "message.mcde.not_enough_lapis": "Недостатньо лазуриту",
   "item.tooltip.gilded": "[Позолочено] - %s",
   "message.mcde.cant_generate": "Неможливо згенерувати нове зачарування",
-  "message.mcde.error.config.general": "Сталася помилка під час завантаження конфігурацій. Використовуючи типові. Перегляньте журнали для подробиць"
+  "message.mcde.error.config.general": "Сталася помилка під час завантаження конфігурацій. Використовуючи типові. Перегляньте журнали для подробиць",
+  "message.mcde.already_exists": "Зачарування вже застосовано",
+  "message.mcde.cant_combine": "Неможливо поєднати з %s"
 }
