@@ -29,9 +29,6 @@
     ],
     "client": [
       "net.backupcup.mcde.MCDEClient"
-    ],
-    "preLaunch": [
-        "net.backupcup.mcde.MixinExtraInit"
     ]
   },
   "mixins": [
