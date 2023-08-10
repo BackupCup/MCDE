@@ -8,14 +8,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Jankson;
-import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.JsonArray;
-import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.JsonObject;
-import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.JsonPrimitive;
-import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.annotation.Deserializer;
-import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.annotation.Serializer;
-import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.api.Marshaller;
-import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.api.SyntaxError;
+import blue.endless.jankson.Jankson;
+import blue.endless.jankson.JsonArray;
+import blue.endless.jankson.JsonObject;
+import blue.endless.jankson.JsonPrimitive;
+import blue.endless.jankson.annotation.Deserializer;
+import blue.endless.jankson.annotation.Serializer;
+import blue.endless.jankson.api.SyntaxError;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.tag.TagKey;
 import net.minecraft.util.Identifier;
@@ -86,13 +85,13 @@ public class IdentifierGlobbedList {
     }
 
     @Serializer
-    public JsonArray toJson(Marshaller marshaller) {
+    public JsonArray toJson() {
         return (JsonArray)JANKSON.toJson(Stream.concat(
                     namespaces.stream().map(ns -> ns + ":*"),
                     Stream.concat(fullySpecified.stream().map(id -> id.toString()),
                         Stream.concat(tags.stream().map(id -> "#" + id.toString()),
                             namespaceTags.stream().map(ns -> "#" + ns + ":*")))
-                    ).toList(), marshaller);
+                    ).toList());
     }
 
     @Deserializer

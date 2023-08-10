@@ -8,10 +8,10 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
-import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
-import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Jankson;
-import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.api.DeserializationException;
-import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.api.SyntaxError;
+import blue.endless.jankson.Comment;
+import blue.endless.jankson.Jankson;
+import blue.endless.jankson.api.DeserializationException;
+import blue.endless.jankson.api.SyntaxError;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.IdentifierGlobbedList;
 import net.backupcup.mcde.util.ModTags;
@@ -35,7 +35,6 @@ public class Config {
     private static final Jankson JANKSON = Jankson.builder()
         .registerSerializer(Identifier.class, (id, marshaller) -> marshaller.serialize(id.toString()))
         .registerDeserializer(String.class, Identifier.class, (str, marshaller) -> Identifier.tryParse(str))
-        .registerSerializer(IdentifierGlobbedList.class, (list, marshaller) -> list.toJson(marshaller))
         .build();
 
     static Text lastError;

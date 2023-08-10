@@ -38,9 +38,8 @@
   "depends": {
     "fabricloader": ">=0.14.19",
     "fabric": "*",
-    "minecraft": "1.19 - 1.19.2",
-    "java": ">=17",
-    "cloth-config": ">=8.3.103"
+    "minecraft": "~1.19",
+    "java": ">=17"
   },
   "suggests": {
     "mcdw": ">=5.0.12-1.19",
