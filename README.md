@@ -40,5 +40,9 @@ There are two rules you should be aware of:
  - Everything in red is ignored (i.e. only the most top-left 23x23 area will actually be rendered).
 Once the textures are loaded, everything should work just fine.
 
+#### Tagging enchantments as powerful
+MCDE uses `#c:powerful` enchantment tag to determine if enchantment is powerful.
+This tag is located in `data/c/tags/enchantment/powerful.json` and can be overriden by a datapack.
+
 # Attributions/Special Thanks
 - Iamnotagenius - For developing most of the logic and code behind this enchanting system. Without him, this mod wouldn't exist.
