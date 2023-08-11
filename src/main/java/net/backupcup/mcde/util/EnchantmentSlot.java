@@ -1,14 +1,14 @@
 package net.backupcup.mcde.util;
 
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.Registries;
+import net.minecraft.util.Identifier;
 
 public class EnchantmentSlot {
     private Slots slot;
@@ -76,7 +76,7 @@ public class EnchantmentSlot {
             return enchantment;
         }
         public Enchantment getEnchantment() {
-            return Registry.ENCHANTMENT.get(enchantment);
+            return Registries.ENCHANTMENT.get(enchantment);
         }
     }
 
@@ -109,7 +109,7 @@ public class EnchantmentSlot {
     }
 
     private static boolean isMaxedOut(Identifier enchantmentId, int level) {
-        return level >= Registry.ENCHANTMENT.get(enchantmentId).getMaxLevel();
+        return level >= Registries.ENCHANTMENT.get(enchantmentId).getMaxLevel();
     }
 
     public static EnchantmentSlot of(Slots slot, Identifier first) {

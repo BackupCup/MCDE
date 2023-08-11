@@ -19,9 +19,9 @@ import net.backupcup.mcde.util.ModTags;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 
 public class Config {
     private static File getConfigFile() {
@@ -244,7 +244,7 @@ public class Config {
     }
 
     public boolean isEnchantmentAllowed(Enchantment enchantment) {
-        return isEnchantmentAllowed(Registry.ENCHANTMENT.getId(enchantment));
+        return isEnchantmentAllowed(Registries.ENCHANTMENT.getId(enchantment));
     }
 
     public boolean isEnchantmentAllowed(Identifier id) {
@@ -319,7 +319,7 @@ public class Config {
     }
 
     public List<Enchantment> getVillagerBookPool() {
-        return Registry.ENCHANTMENT.stream().filter(villagerBookPool::contains).toList();
+        return Registries.ENCHANTMENT.stream().filter(villagerBookPool::contains).toList();
     }
 
     public boolean isInCustomTreasurePool(Identifier id) {
@@ -331,7 +331,7 @@ public class Config {
     }
 
     public List<Enchantment> getCustomTreasurePool() {
-        return Registry.ENCHANTMENT.stream().filter(treasurePool::contains).toList();
+        return Registries.ENCHANTMENT.stream().filter(treasurePool::contains).toList();
     }
 
     @Comment("Has two possible values:\n" +

@@ -16,9 +16,10 @@ import blue.endless.jankson.annotation.Deserializer;
 import blue.endless.jankson.annotation.Serializer;
 import blue.endless.jankson.api.SyntaxError;
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.tag.TagKey;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 
 public class IdentifierGlobbedList {
     private static final Jankson JANKSON = Jankson.builder().build();
@@ -71,13 +72,13 @@ public class IdentifierGlobbedList {
     public boolean contains(Identifier id) {
         return containsNamespaceGlob(id) ||
             fullySpecified.contains(id) ||
-            tags.stream().anyMatch(tag -> ModTags.isIn(id, TagKey.of(Registry.ENCHANTMENT_KEY, tag))) ||
-            namespaceTags.stream().flatMap(ns -> Registry.ENCHANTMENT.streamTags().filter(tag -> tag.id().getNamespace().equals(ns)))
-                .anyMatch(tag -> ModTags.isIn(Registry.ENCHANTMENT.get(id), tag));
+            tags.stream().anyMatch(tag -> ModTags.isIn(id, TagKey.of(RegistryKeys.ENCHANTMENT, tag))) ||
+            namespaceTags.stream().flatMap(ns -> Registries.ENCHANTMENT.streamTags().filter(tag -> tag.id().getNamespace().equals(ns)))
+                .anyMatch(tag -> ModTags.isIn(Registries.ENCHANTMENT.get(id), tag));
     }
 
     public boolean contains(Enchantment enchantment) {
-        return contains(Registry.ENCHANTMENT.getId(enchantment));
+        return contains(Registries.ENCHANTMENT.getId(enchantment));
     }
 
     public boolean containsNamespaceGlob(Identifier id) {
