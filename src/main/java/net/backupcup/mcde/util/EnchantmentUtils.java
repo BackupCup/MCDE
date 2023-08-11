@@ -11,12 +11,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.backupcup.mcde.Config.SlotChances;
 import net.backupcup.mcde.MCDEnchantments;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -87,18 +87,11 @@ public class EnchantmentUtils {
         pool.removeIf(id -> !isCompatible(present, id));
     }
 
-    public static Map<Slots, Float> calculateAdvancementModifiers(ServerPlayerEntity player) {
-        var result = new TreeMap<>(Map.of(Slots.SECOND, 0f, Slots.THIRD, 0f));
-        MCDEnchantments.getConfig().getProgressChances().entrySet().stream()
+    public static SlotChances calculateAdvancementModifiers(ServerPlayerEntity player) {
+        return MCDEnchantments.getConfig().getProgressChances().entrySet().stream()
             .filter(kvp -> player.getAdvancementTracker().getProgress(player.server.getAdvancementLoader().get(kvp.getKey())).isDone())
             .map(Map.Entry::getValue)
-            .reduce(result, (lhs, rhs) -> {
-                for (var kvp : rhs.entrySet()) {
-                    lhs.put(kvp.getKey(), lhs.get(kvp.getKey()) + kvp.getValue());
-                }
-                return lhs;
-            });
-        return result;
+            .reduce(new SlotChances(), SlotChances::add);
     }
 
     public static float calculateEnchantabilityModifier(float baseChance, int enchantability) {
@@ -117,8 +110,8 @@ public class EnchantmentUtils {
         boolean isSecondSlotGenerated = false;
         float threeChoiceChance = 0.5f + enchantability / 100f;
         var advancementModifier = calculateAdvancementModifiers(player);
-        float secondSlotChance = MCDEnchantments.getConfig().getSecondSlotBaseChance() + advancementModifier.get(SECOND);
-        float thirdSlotChance = MCDEnchantments.getConfig().getThirdSlotBaseChance() + advancementModifier.get(THIRD);
+        float secondSlotChance = MCDEnchantments.getConfig().getSecondSlotBaseChance() + advancementModifier.getSecondChance();
+        float thirdSlotChance = MCDEnchantments.getConfig().getThirdSlotBaseChance() + advancementModifier.getThirdChance();
         secondSlotChance += calculateEnchantabilityModifier(secondSlotChance, enchantability);
         thirdSlotChance += calculateEnchantabilityModifier(thirdSlotChance, enchantability);
 
