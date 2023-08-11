@@ -72,13 +72,6 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
         .build();
     }
 
-    // For some reason without this, it crashes with AbstractMethodException
-    // where it says drawTexture is not implemented for ScreenWithSlots interface
-    @Override
-    public void drawTexture(MatrixStack matrices, int x, int y, int u, int v, int width, int height) {
-        super.drawTexture(matrices, x, y, u, v, width, height);
-    }
-
     @Override
     protected void drawBackground(MatrixStack matrices, float delta, int mouseX, int mouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexProgram);

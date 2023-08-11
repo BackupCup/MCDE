@@ -49,7 +49,7 @@ public class EnchantmentUtils {
 
     public static Stream<Identifier> getAllEnchantmentsForItem(ItemStack itemStack) {
         Predicate<Enchantment> target = itemStack.isIn(ModTags.Items.WEAPONS) ?
-            e -> e.type.equals(EnchantmentTarget.WEAPON) :
+            e -> e.target.equals(EnchantmentTarget.WEAPON) :
             e -> e.isAcceptableItem(itemStack);
 
         return ENCHANTMENT.stream()
