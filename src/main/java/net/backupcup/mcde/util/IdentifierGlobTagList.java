@@ -12,7 +12,7 @@ import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import blue.endless.jankson.api.SyntaxError;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.registry.Registry;
 
 public abstract class IdentifierGlobTagList<T> extends IdentifierGlobList<T> {
     private final Map<String, List<Glob>> tags;

@@ -3,7 +3,7 @@ package net.backupcup.mcde.util;
 import static net.backupcup.mcde.util.Slots.FIRST;
 import static net.backupcup.mcde.util.Slots.SECOND;
 import static net.backupcup.mcde.util.Slots.THIRD;
-import static net.minecraft.util.registry.Registry.ENCHANTMENT;
+import static net.minecraft.registry.Registries.ENCHANTMENT;
 
 import java.util.Arrays;
 import java.util.Collection;

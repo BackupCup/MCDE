@@ -1,9 +1,10 @@
 package net.backupcup.mcde.screen.handler;
 
 import net.backupcup.mcde.MCDEnchantments;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 
 public class ModScreenHandlers {
     public static ScreenHandlerType<RunicTableScreenHandler> RUNIC_TABLE_SCREEN_HANDLER = new ScreenHandlerType<>(RunicTableScreenHandler::new);
@@ -17,6 +18,6 @@ public class ModScreenHandlers {
     }
 
     private static void registerScreenHandler(String id, ScreenHandlerType<?> type) {
-        Registry.register(Registry.SCREEN_HANDLER, Identifier.of(MCDEnchantments.MOD_ID, id), type);
+        Registry.register(Registries.SCREEN_HANDLER, Identifier.of(MCDEnchantments.MOD_ID, id), type);
     }
 }

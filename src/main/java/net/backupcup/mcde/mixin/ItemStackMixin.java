@@ -22,9 +22,9 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.registry.Registry;
 
 @Mixin(ItemStack.class)
 public abstract class ItemStackMixin {
@@ -55,7 +55,7 @@ public abstract class ItemStackMixin {
             slot.getChosen().ifPresent(chosen -> map.remove(chosen.getEnchantment()));
         }
         if (slots.hasGilding()) {
-            map.remove(Registry.ENCHANTMENT.get(slots.getGilding().get()));
+            map.remove(Registries.ENCHANTMENT.get(slots.getGilding().get()));
         }
         return map.entrySet().stream()
             .map(kvp -> EnchantmentHelper.createNbt(EnchantmentHelper.getEnchantmentId(kvp.getKey()), kvp.getValue()))
@@ -82,7 +82,7 @@ public abstract class ItemStackMixin {
             if (slot.getChosen().isPresent()) {
                 var chosen =  slot.getChosen().get();
                 var name = Text.translatable(chosen.getEnchantmentId().toTranslationKey("enchantment"));
-                if (Registry.ENCHANTMENT.get(chosen.getEnchantmentId()).getMaxLevel() > 1) {
+                if (Registries.ENCHANTMENT.get(chosen.getEnchantmentId()).getMaxLevel() > 1) {
                     name.append(" ")
                         .append(Text.translatable("enchantment.level." + chosen.getLevel()));
                 }

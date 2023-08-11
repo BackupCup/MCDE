@@ -9,7 +9,8 @@ import blue.endless.jankson.annotation.Deserializer;
 import blue.endless.jankson.annotation.Serializer;
 import blue.endless.jankson.api.SyntaxError;
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 
 public class EnchantmentList extends IdentifierGlobTagList<Enchantment> {
     public EnchantmentList(String... globs) {
@@ -22,7 +23,7 @@ public class EnchantmentList extends IdentifierGlobTagList<Enchantment> {
 
     @Override
     public Registry<Enchantment> getRegistry() {
-        return Registry.ENCHANTMENT;
+        return Registries.ENCHANTMENT;
     }
 
     @Override
