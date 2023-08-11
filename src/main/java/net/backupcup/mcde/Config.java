@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -393,7 +394,7 @@ public class Config {
     private float thirdSlotBaseChance = 0.25f;
 
     @Comment("Defines how slot chances increases with advancements")
-    private Map<Identifier, Map<Slots, Float>> progressChances = Map.ofEntries(
+    private Map<Identifier, Map<Slots, Float>> progressChances = new HashMap<>(Map.ofEntries(
         Map.entry(Identifier.of("minecraft", "story/cure_zombie_villager"),             Map.of(Slots.SECOND, 0.011432f, Slots.THIRD, 0.01079f)),
         Map.entry(Identifier.of("minecraft", "adventure/kill_mob_near_sculk_catalyst"), Map.of(Slots.SECOND, 0.011694f, Slots.THIRD, 0.011256f)),
         Map.entry(Identifier.of("minecraft", "adventure/bullseye"),                     Map.of(Slots.SECOND, 0.012399f, Slots.THIRD, 0.011303f)),
@@ -420,5 +421,5 @@ public class Config {
         Map.entry(Identifier.of("minecraft", "adventure/kill_all_mobs"),                Map.of(Slots.SECOND, 0.019229f, Slots.THIRD, 0.028516f)),
         Map.entry(Identifier.of("minecraft", "adventure/adventuring_time"),             Map.of(Slots.SECOND, 0.019669f, Slots.THIRD, 0.029746f)),
         Map.entry(Identifier.of("minecraft", "nether/all_effects"),                     Map.of(Slots.SECOND, 0.020118f, Slots.THIRD, 0.031031f))
-    );
+    ));
 }
