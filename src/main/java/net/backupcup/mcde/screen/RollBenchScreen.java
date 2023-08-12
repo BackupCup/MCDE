@@ -122,11 +122,13 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
 
             if (opened.isPresent() && opened.get() == slot.getSlot()) {
                 for (var choice : slot.choices()) {
-                    if (slotsRenderer.isInChoiceBounds(slot.getSlot(), choice.getChoiceSlot(), (int) mouseX, (int) mouseY) &&
-                            !slotsRenderer.getDimPredicate().test(choice)) {
-                        client.interactionManager.clickButton(handler.syncId,
-                                Slots.values().length * slot.ordinal() + choice.ordinal());
-                        return super.mouseClicked(mouseX, mouseY, button);
+                    if (slotsRenderer.isInChoiceBounds(slot.getSlot(), choice.getChoiceSlot(), (int) mouseX, (int) mouseY)) {
+                        if (!slotsRenderer.getDimPredicate().test(choice)) {
+                            client.interactionManager.clickButton(handler.syncId, Slots.values().length * slot.ordinal() + choice.ordinal());
+                            return super.mouseClicked(mouseX, mouseY, button);
+                        } else {
+                            return super.mouseClicked(mouseX, mouseY, button);
+                        }
                     }
                 }
             }

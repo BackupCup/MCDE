@@ -115,7 +115,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
 
             if (opened.isPresent() && opened.get() == slot.getSlot()) {
                 for (var choice : slot.choices()) {
-                    if (slotsRenderer.isInChoiceBounds(slot.getSlot(), choice.getChoiceSlot(), (int) mouseX, (int) mouseY))
+                    if (slotsRenderer.isInChoiceBounds(slot.getSlot(), choice.getChoiceSlot(), (int) mouseX, (int) mouseY)) {
                         if (!slotsRenderer.getDimPredicate().test(choice)) {
                             client.interactionManager.clickButton(handler.syncId, Slots.values().length * slot.ordinal() + choice.ordinal());
                             opened = Optional.empty();
@@ -123,6 +123,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
                         } else {
                             return super.mouseClicked(mouseX, mouseY, button);
                         }
+                    }
                 }
             }
         }
