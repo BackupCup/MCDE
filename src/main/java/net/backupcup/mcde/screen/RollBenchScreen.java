@@ -13,7 +13,6 @@ import net.backupcup.mcde.screen.handler.RollBenchScreenHandler;
 import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
 import net.backupcup.mcde.screen.util.ScreenWithSlots;
 import net.backupcup.mcde.util.EnchantmentSlot.Choice;
-import net.backupcup.mcde.util.EnchantmentSlot.Chosen;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.Slots;
@@ -169,7 +168,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         boolean canReroll = handler.canReroll(client.player, enchantment, slots);
         MutableText enchantmentName = Text.translatable(translationKey)
                 .formatted(EnchantmentUtils.formatEnchantment(enchantment));
-        if (hovered instanceof Chosen && hovered.getEnchantment().getMaxLevel() > 1) {
+        if (hovered.isChosen() && hovered.getEnchantment().getMaxLevel() > 1) {
             enchantmentName.append(" ")
                 .append(Text.translatable("enchantment.level." + hovered.getLevel()));
         }

@@ -84,6 +84,12 @@ public class EnchantmentSlot {
         public int getLevel() {
             return 1;
         }
+        public boolean isMaxedOut() {
+            return false;
+        }
+        public boolean isChosen() {
+            return false;
+        }
     }
 
     public class Chosen extends Choice {
@@ -106,8 +112,14 @@ public class EnchantmentSlot {
             }
         }
 
+        @Override
         public boolean isMaxedOut() {
             return EnchantmentSlot.isMaxedOut(getEnchantmentId(), level);
+        }
+
+        @Override
+        public boolean isChosen() {
+            return true;
         }
     }
 

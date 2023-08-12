@@ -165,26 +165,27 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
             drawMouseoverTooltip(matrices, mouseX, mouseY);
             return;
         }
-        Enchantment enchantment = hoveredChoice.get().getEnchantment();
-        Identifier enchantmentId = hoveredChoice.get().getEnchantmentId();
+        var hovered = hoveredChoice.get();
+        Enchantment enchantment = hovered.getEnchantment();
+        Identifier enchantmentId = hovered.getEnchantmentId();
         List<Text> tooltipLines = new ArrayList<>();
         int level = 1;
         boolean enoughLevels = RunicTableScreenHandler.canEnchant(client.player, enchantmentId, level);
         MutableText enchantmentName = Text.translatable(enchantment.getTranslationKey())
             .formatted(EnchantmentUtils.formatEnchantment(enchantmentId));
-        if (hoveredChoice.get() instanceof Chosen chosen) {
+        if (hovered.isChosen()) {
             enchantmentName.append(" ")
-                .append(Text.translatable("enchantment.level." + chosen.getLevel()))
+                .append(Text.translatable("enchantment.level." + hovered.getLevel()))
                 .append(" ");
-            if (chosen.isMaxedOut()) {
+            if (hovered.isMaxedOut()) {
                 enchantmentName.append(Text.translatable("message.mcde.max_level"));
                 enoughLevels = true;
             }
             else {
                 enchantmentName
                     .append("→ ")
-                    .append(Text.translatable("enchantment.level." + (chosen.getLevel() + 1)));
-                level = (int)(chosen.getLevel() + 1);
+                    .append(Text.translatable("enchantment.level." + (hovered.getLevel() + 1)));
+                level = hovered.getLevel() + 1;
                 enoughLevels = RunicTableScreenHandler.canEnchant(client.player, enchantmentId, level);
 
             }
@@ -204,7 +205,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
                         ).formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
         }
 
-        if (!(hoveredChoice.get() instanceof Chosen)) {
+        if (!hovered.isChosen()) {
             if (EnchantmentHelper.getLevel(hoveredChoice.get().getEnchantment(), itemStack) > 0) {
                 tooltipLines.add(Text.translatable("message.mcde.already_exists").formatted(Formatting.DARK_RED, Formatting.ITALIC));
             } else if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
