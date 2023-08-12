@@ -102,7 +102,7 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
             }
         }
 
-        if (!input.isItemEqual(other) && !other.isOf(Items.ENCHANTED_BOOK)) {
+        if (ItemStack.areItemsEqual(input, other) && !other.isOf(Items.ENCHANTED_BOOK)) {
             return;
         }
 

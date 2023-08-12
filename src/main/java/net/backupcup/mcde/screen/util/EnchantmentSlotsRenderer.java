@@ -17,9 +17,7 @@ import net.backupcup.mcde.util.Slots;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawableHelper;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
 
@@ -78,57 +76,52 @@ public class EnchantmentSlotsRenderer {
         this.dimColorMultiplier = dimColorMultiplier;
     }
 
-    public void drawSlot(MatrixStack matrices, Slots slot) {
+    public void drawSlot(DrawContext ctx, Slots slot) {
         var pos = slotPos.get(slot);
-        RenderSystem.setShaderTexture(0, defaultGuiTexture);
-        HandledScreen.drawTexture(matrices, pos.x(), pos.y(), slotTexturePos.x(), slotTexturePos.y(), 31, 31);
+        ctx.drawTexture(defaultGuiTexture, pos.x(), pos.y(), slotTexturePos.x(), slotTexturePos.y(), 31, 31);
     }
 
-    public void drawChoices(MatrixStack matrices, Slots slot) {
+    public void drawChoices(DrawContext ctx, Slots slot) {
         var pos = slotPos.get(slot).add(choicePosOffset);
-        RenderSystem.setShaderTexture(0, defaultGuiTexture);
-        HandledScreen.drawTexture(matrices, pos.x(), pos.y(), choiceTexturePos.x(), choiceTexturePos.y(), 67, 51);
+        ctx.drawTexture(defaultGuiTexture, pos.x(), pos.y(), choiceTexturePos.x(), choiceTexturePos.y(), 67, 51);
     }
 
-    public void drawHoverOutline(MatrixStack matrices, Slots slot) {
+    public void drawHoverOutline(DrawContext ctx, Slots slot) {
         var pos = slotPos.get(slot);
         RenderSystem.setShaderTexture(0, defaultGuiTexture);
-        HandledScreen.drawTexture(matrices, pos.x() - 1, pos.y() - 1, hoverOutlinePos.x(), hoverOutlinePos.y(), 33, 33);
+        ctx.drawTexture(defaultGuiTexture, pos.x() - 1, pos.y() - 1, hoverOutlinePos.x(), hoverOutlinePos.y(), 33, 33);
     }
 
-    public void drawIconInSlot(MatrixStack matrices, Slots slot, ChoiceWithLevel choice) {
+    public void drawIconInSlot(DrawContext ctx, Slots slot, ChoiceWithLevel choice) {
         var texPos = MCDEnchantments.getConfig().isEnchantmentPowerful(choice.getEnchantmentId()) ?
             powerfulOutlinePos : outlinePos;
         var pos = slotPos.get(slot);
-        RenderSystem.setShaderTexture(0, defaultGuiTexture);
-        HandledScreen.drawTexture(matrices, pos.x(), pos.y(), texPos.x(), texPos.y(), 31, 31);
-        drawIcon(matrices, pos.add(4, 4), slot, choice);
+        ctx.drawTexture(defaultGuiTexture, pos.x(), pos.y(), texPos.x(), texPos.y(), 31, 31);
+        drawIcon(ctx, pos.add(4, 4), slot, choice);
     }
 
-    public void drawIconHoverOutline(MatrixStack matrices, Slots slot, Choice choice) {
+    public void drawIconHoverOutline(DrawContext ctx, Slots slot, Choice choice) {
         var drawPos = slotPos.get(slot).add(choicePosOffset).add(choiceOffsets.get(choice.getSlot()));
-        RenderSystem.setShaderTexture(0, defaultGuiTexture);
-        HandledScreen.drawTexture(matrices, drawPos.x() - 1, drawPos.y() - 1, hoverIconOutlinePos.x(), hoverIconOutlinePos.y(), 25, 25);
+        ctx.drawTexture(defaultGuiTexture, drawPos.x() - 1, drawPos.y() - 1, hoverIconOutlinePos.x(), hoverIconOutlinePos.y(), 25, 25);
     }
 
-    public void drawIconOutline(MatrixStack matrices, Slots slot, Choice choice) {
+    public void drawIconOutline(DrawContext ctx, Slots slot, Choice choice) {
         var drawPos = slotPos.get(slot).add(choicePosOffset).add(choiceOffsets.get(choice.getSlot()));
         var texPos = MCDEnchantments.getConfig().isEnchantmentPowerful(choice.getEnchantmentId()) ?
             iconPowerfulOutlinePos : iconOutlinePos;
-        RenderSystem.setShaderTexture(0, defaultGuiTexture);
-        HandledScreen.drawTexture(matrices, drawPos.x() - 1, drawPos.y() - 1, texPos.x(), texPos.y(), 25, 25);
+        ctx.drawTexture(defaultGuiTexture, drawPos.x() - 1, drawPos.y() - 1, texPos.x(), texPos.y(), 25, 25);
     }
 
-    public void drawIconInChoice(MatrixStack matrices, Slots slot, Choice choice) {
+    public void drawIconInChoice(DrawContext ctx, Slots slot, Choice choice) {
         var drawPos = slotPos.get(slot).add(choicePosOffset).add(choiceOffsets.get(choice.getSlot()));
-        drawIcon(matrices, drawPos, slot, choice);
+        drawIcon(ctx, drawPos, slot, choice);
     }
 
     public Predicate<Choice> getDimPredicate() {
         return dimPredicate;
     }
 
-    public Optional<Choice> render(MatrixStack matrices, ItemStack itemStack, int mouseX, int mouseY) {
+    public Optional<Choice> render(DrawContext ctx, ItemStack itemStack, int mouseX, int mouseY) {
         Optional<Choice> hovered = Optional.empty();
         EnchantmentSlots slots = EnchantmentSlots.fromItemStack(itemStack);
         if (slots == null) {
@@ -136,27 +129,27 @@ public class EnchantmentSlotsRenderer {
         }
 
         for (var slot : slots) {
-            drawSlot(matrices, slot.getSlot());
+            drawSlot(ctx, slot.getSlot());
             if (slot.getChosen().isPresent()) {
                 var chosen = slot.getChosen().get();
-                drawIconInSlot(matrices, slot.getSlot(), chosen);
+                drawIconInSlot(ctx, slot.getSlot(), chosen);
                 if (isInSlotBounds(slot.getSlot(), mouseX, mouseY))
                     hovered = Optional.of(chosen);
             }
             if (isInSlotBounds(slot.getSlot(), mouseX, mouseY))
-                drawHoverOutline(matrices, slot.getSlot());
+                drawHoverOutline(ctx, slot.getSlot());
 
             if (screen.getOpened().isPresent() && screen.getOpened().get() == slot.getSlot()) {
-                drawChoices(matrices, slot.getSlot());
+                drawChoices(ctx, slot.getSlot());
 
                 for (var choice : slot.choices()) {
                     if (isInChoiceBounds(slot.getSlot(), choice.getSlot(), mouseX, mouseY)) {
-                        drawIconHoverOutline(matrices, slot.getSlot(), choice);
+                        drawIconHoverOutline(ctx, slot.getSlot(), choice);
                         hovered = Optional.of(choice);
                     } else {
-                        drawIconOutline(matrices, slot.getSlot(), choice);
+                        drawIconOutline(ctx, slot.getSlot(), choice);
                     }
-                    drawIconInChoice(matrices, slot.getSlot(), choice);
+                    drawIconInChoice(ctx, slot.getSlot(), choice);
                 }
             }
         }
@@ -193,16 +186,15 @@ public class EnchantmentSlotsRenderer {
                mouseY <= posY + endY;
     }
 
-    private void drawIcon(MatrixStack matrices, TexturePos drawPos, Slots slot, Choice choice) {
+    private void drawIcon(DrawContext ctx, TexturePos drawPos, Slots slot, Choice choice) {
         Identifier enchantmentID = choice.getEnchantmentId();
         Identifier textureID = getTextureId(enchantmentID);
 
-        RenderSystem.setShaderTexture(0, MinecraftClient.getInstance().getResourceManager().getResource(textureID).isPresent() ?
-                textureID : missingEnchantTexture);
         if (dimPredicate.test(choice)) {
             RenderSystem.setShaderColor(dimColorMultiplier, dimColorMultiplier, dimColorMultiplier, 1.0f);
         }
-        DrawableHelper.drawTexture(matrices, drawPos.x(), drawPos.y(), 0f, 0f, 23, 23, 32, 32);
+        ctx.drawTexture(MinecraftClient.getInstance().getResourceManager().getResource(textureID).isPresent() ?
+                textureID : missingEnchantTexture, drawPos.x(), drawPos.y(), 0f, 0f, 23, 23, 32, 32);
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
