@@ -91,7 +91,7 @@ public class RollBenchScreenHandler extends ScreenHandler {
                 return super.onButtonClick(player, id);
             }
             clickedSlot.clearChoice();
-            toChange = chosen.getSlot();
+            toChange = chosen.getChoiceSlot();
         } else {
             toChange = Slots.values()[id % slotsSize];
             enchantmentId = clickedSlot.getChoice(toChange).get();

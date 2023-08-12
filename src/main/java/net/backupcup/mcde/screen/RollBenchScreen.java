@@ -13,7 +13,7 @@ import net.backupcup.mcde.screen.handler.RollBenchScreenHandler;
 import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
 import net.backupcup.mcde.screen.util.ScreenWithSlots;
 import net.backupcup.mcde.util.EnchantmentSlot.Choice;
-import net.backupcup.mcde.util.EnchantmentSlot.ChoiceWithLevel;
+import net.backupcup.mcde.util.EnchantmentSlot.Chosen;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.Slots;
@@ -64,7 +64,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
                         RollBenchScreenHandler.getCandidatesForReroll(
                             inventory.getStack(0),
                             EnchantmentSlots.fromItemStack(inventory.getStack(0)),
-                            choice.getSlot()
+                            choice.getSlot().getSlot()
                         ).isEmpty();
                 })
                 .build();
@@ -127,7 +127,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
 
             if (opened.isPresent() && opened.get() == slot.getSlot()) {
                 for (var choice : slot.choices()) {
-                    if (slotsRenderer.isInChoiceBounds(slot.getSlot(), choice.getSlot(), (int) mouseX, (int) mouseY) &&
+                    if (slotsRenderer.isInChoiceBounds(slot.getSlot(), choice.getChoiceSlot(), (int) mouseX, (int) mouseY) &&
                             !slotsRenderer.getDimPredicate().test(choice)) {
                         client.interactionManager.clickButton(handler.syncId,
                                 Slots.values().length * slot.ordinal() + choice.ordinal());
@@ -161,17 +161,17 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
             return;
         }
 
-        Identifier enchantment = hoveredChoice.get().getEnchantmentId();
+        var hovered = hoveredChoice.get();
+
+        Identifier enchantment = hovered.getEnchantmentId();
         String translationKey = enchantment.toTranslationKey("enchantment");
         List<Text> tooltipLines = new ArrayList<>();
         boolean canReroll = handler.canReroll(client.player, enchantment, slots);
         MutableText enchantmentName = Text.translatable(translationKey)
                 .formatted(EnchantmentUtils.formatEnchantment(enchantment));
-        if (hoveredChoice.get() instanceof ChoiceWithLevel withLevel &&
-                withLevel.getEnchantment().getMaxLevel() > 1) {
+        if (hovered instanceof Chosen && hovered.getEnchantment().getMaxLevel() > 1) {
             enchantmentName.append(" ")
-                    .append(Text.translatable("enchantment.level." + withLevel.getLevel()));
-            canReroll = handler.canReroll(client.player, enchantment, slots);
+                .append(Text.translatable("enchantment.level." + hovered.getLevel()));
         }
         tooltipLines.add(enchantmentName);
 
@@ -191,7 +191,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         if (RollBenchScreenHandler.getCandidatesForReroll(
                             itemStack,
                             EnchantmentSlots.fromItemStack(itemStack),
-                            hoveredChoice.get().getSlot()
+                            hovered.getSlot().getSlot()
                         ).isEmpty()) {
             tooltipLines.add(Text.translatable("message.mcde.cant_generate").formatted(Formatting.DARK_RED, Formatting.ITALIC));
         }

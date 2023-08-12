@@ -11,7 +11,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.util.EnchantmentSlot.Choice;
-import net.backupcup.mcde.util.EnchantmentSlot.ChoiceWithLevel;
+import net.backupcup.mcde.util.EnchantmentSlot.Chosen;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.Slots;
 import net.fabricmc.api.EnvType;
@@ -95,7 +95,7 @@ public class EnchantmentSlotsRenderer {
         screen.drawTexture(matrices, pos.x() - 1, pos.y() - 1, hoverOutlinePos.x(), hoverOutlinePos.y(), 33, 33);
     }
 
-    public void drawIconInSlot(MatrixStack matrices, Slots slot, ChoiceWithLevel choice) {
+    public void drawIconInSlot(MatrixStack matrices, Slots slot, Chosen choice) {
         var texPos = MCDEnchantments.getConfig().isEnchantmentPowerful(choice.getEnchantmentId()) ?
             powerfulOutlinePos : outlinePos;
         var pos = slotPos.get(slot);
@@ -105,13 +105,13 @@ public class EnchantmentSlotsRenderer {
     }
 
     public void drawIconHoverOutline(MatrixStack matrices, Slots slot, Choice choice) {
-        var drawPos = slotPos.get(slot).add(choicePosOffset).add(choiceOffsets.get(choice.getSlot()));
+        var drawPos = slotPos.get(slot).add(choicePosOffset).add(choiceOffsets.get(choice.getChoiceSlot()));
         RenderSystem.setShaderTexture(0, defaultGuiTexture);
         screen.drawTexture(matrices, drawPos.x() - 1, drawPos.y() - 1, hoverIconOutlinePos.x(), hoverIconOutlinePos.y(), 25, 25);
     }
 
     public void drawIconOutline(MatrixStack matrices, Slots slot, Choice choice) {
-        var drawPos = slotPos.get(slot).add(choicePosOffset).add(choiceOffsets.get(choice.getSlot()));
+        var drawPos = slotPos.get(slot).add(choicePosOffset).add(choiceOffsets.get(choice.getChoiceSlot()));
         var texPos = MCDEnchantments.getConfig().isEnchantmentPowerful(choice.getEnchantmentId()) ?
             iconPowerfulOutlinePos : iconOutlinePos;
         RenderSystem.setShaderTexture(0, defaultGuiTexture);
@@ -119,7 +119,7 @@ public class EnchantmentSlotsRenderer {
     }
 
     public void drawIconInChoice(MatrixStack matrices, Slots slot, Choice choice) {
-        var drawPos = slotPos.get(slot).add(choicePosOffset).add(choiceOffsets.get(choice.getSlot()));
+        var drawPos = slotPos.get(slot).add(choicePosOffset).add(choiceOffsets.get(choice.getChoiceSlot()));
         drawIcon(matrices, drawPos, slot, choice);
     }
 
@@ -149,7 +149,7 @@ public class EnchantmentSlotsRenderer {
                 drawChoices(matrices, slot.getSlot());
 
                 for (var choice : slot.choices()) {
-                    if (isInChoiceBounds(slot.getSlot(), choice.getSlot(), mouseX, mouseY)) {
+                    if (isInChoiceBounds(slot.getSlot(), choice.getChoiceSlot(), mouseX, mouseY)) {
                         drawIconHoverOutline(matrices, slot.getSlot(), choice);
                         hovered = Optional.of(choice);
                     } else {
