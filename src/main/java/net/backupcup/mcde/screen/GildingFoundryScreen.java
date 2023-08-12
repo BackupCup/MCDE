@@ -118,7 +118,7 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
             (inventory.getStack(1).getCount() >= MCDEnchantments.getConfig().getGildingCost() || player.isCreative()) &&
             !handler.hasProgress() &&
             !(slots != null && slots.hasGilding()) &&
-            EnchantmentUtils.canGenerateEnchantment(weapon);
+            !handler.getCandidatesForGidling().isEmpty();
     }
 
     private void drawProgress(MatrixStack matrices, int progress) {

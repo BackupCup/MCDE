@@ -78,7 +78,7 @@ public class RollBenchScreenHandler extends ScreenHandler {
         var clickedSlot = slots.getSlot(Slots.values()[id / slotsSize]).get();
         Slots toChange;
         Identifier enchantmentId;
-        var newEnchantment = EnchantmentUtils.generateEnchantment(itemStack, getCandidatesForReroll(itemStack, slots, clickedSlot.getSlot()));
+        var newEnchantment = EnchantmentUtils.generateEnchantment(itemStack, getCandidatesForReroll(clickedSlot.getSlot()));
         if (newEnchantment.isEmpty()) {
             return super.onButtonClick(player, id);
         }
@@ -172,7 +172,9 @@ public class RollBenchScreenHandler extends ScreenHandler {
         }
     }
 
-    public static List<Identifier> getCandidatesForReroll(ItemStack itemStack, EnchantmentSlots slots, Slots clickedSlot) {
+    public List<Identifier> getCandidatesForReroll(Slots clickedSlot) {
+        var itemStack = inventory.getStack(0);
+        var slots = EnchantmentSlots.fromItemStack(itemStack);
         var candidates = EnchantmentUtils.getEnchantmentsNotInItem(itemStack);
         if (!MCDEnchantments.getConfig().isCompatibilityRequired()) {
             return candidates.toList();

@@ -60,11 +60,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
                 .withDimPredicate(choice -> {
                     var slots = EnchantmentSlots.fromItemStack(inventory.getStack(0));
                     return !handler.canReroll(client.player, choice.getEnchantmentId(), slots) ||
-                        RollBenchScreenHandler.getCandidatesForReroll(
-                            inventory.getStack(0),
-                            EnchantmentSlots.fromItemStack(inventory.getStack(0)),
-                            choice.getSlot().getSlot()
-                        ).isEmpty();
+                        handler.getCandidatesForReroll(choice.getSlot().getSlot()).isEmpty();
                 })
                 .build();
     }
@@ -187,11 +183,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
                     slots.getNextRerollCost(enchantment))
                 .formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
         }
-        if (RollBenchScreenHandler.getCandidatesForReroll(
-                            itemStack,
-                            EnchantmentSlots.fromItemStack(itemStack),
-                            hovered.getSlot().getSlot()
-                        ).isEmpty()) {
+        if (handler.getCandidatesForReroll(hovered.getSlot().getSlot()).isEmpty()) {
             tooltipLines.add(Text.translatable("message.mcde.cant_generate").formatted(Formatting.DARK_RED, Formatting.ITALIC));
         }
         renderTooltip(matrices, tooltipLines, mouseX, mouseY);

@@ -1,5 +1,7 @@
 package net.backupcup.mcde.screen.handler;
 
+import java.util.List;
+
 import net.backupcup.mcde.block.ModBlocks;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
@@ -14,6 +16,7 @@ import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.util.Identifier;
 
 public class GildingFoundryScreenHandler extends ScreenHandler {
     private final Inventory inventory;
@@ -78,7 +81,7 @@ public class GildingFoundryScreenHandler extends ScreenHandler {
             return false;
         }
         var weaponStack = inventory.getStack(0);
-        var gildedEnchantment = EnchantmentUtils.generateEnchantment(weaponStack);
+        var gildedEnchantment = EnchantmentUtils.generateEnchantment(weaponStack, getCandidatesForGidling());
         if (gildedEnchantment.isEmpty()) {
             return false;
         }
@@ -143,5 +146,9 @@ public class GildingFoundryScreenHandler extends ScreenHandler {
         for (int i = 0; i < 9; ++i) {
             this.addSlot(new Slot(playerInventory, i, 10 + i * 18, 142));
         }
+    }
+
+    public List<Identifier> getCandidatesForGidling() {
+        return EnchantmentUtils.getEnchantmentsForItem(inventory.getStack(0)).toList();
     }
 }
