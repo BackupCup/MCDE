@@ -13,8 +13,9 @@ import blue.endless.jankson.Comment;
 import blue.endless.jankson.Jankson;
 import blue.endless.jankson.api.DeserializationException;
 import blue.endless.jankson.api.SyntaxError;
+import net.backupcup.mcde.util.EnchantmentList;
 import net.backupcup.mcde.util.EnchantmentSlots;
-import net.backupcup.mcde.util.IdentifierGlobbedList;
+import net.backupcup.mcde.util.IdentifierGlobTagList;
 import net.backupcup.mcde.util.ModTags;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.enchantment.Enchantment;
@@ -349,10 +350,10 @@ public class Config {
              "  \"mcdw\": [\"*\"], // whole namespace\n" + 
              "  \"namespace\": [\"#*\"] // all tags from a namespace\n" +
              "}")
-    private IdentifierGlobbedList list = new IdentifierGlobbedList(List.of(
-        "minecraft:mending",
-        "minecraft:unbreaking"
-    ));
+        private EnchantmentList list = IdentifierGlobTagList.ofWithTags(EnchantmentList::new,
+            "minecraft:mending",
+            "minecraft:unbreaking"
+        );
 
     @Comment("Allow curses to appear")
     private boolean allowCurses = false;
@@ -404,12 +405,12 @@ public class Config {
     @Comment("Enchantments from this pool would be used in trades.\n" +
              "If this pool is empty, then trades will not be affected.\n" +
              "This list supports the same features as 'list' option")
-    private IdentifierGlobbedList villagerBookPool = new IdentifierGlobbedList(List.of("minecraft:unbreaking"));
+    private EnchantmentList villagerBookPool = IdentifierGlobTagList.ofWithTags(EnchantmentList::new, "minecraft:unbreaking");
 
     @Comment("Enchantments from this pool would be used to enchant books in loot tables.\n" +
              "If this pool is empty, then loot tables will not be affected.\n" +
              "This list supports the same features as 'list' option")
-    private IdentifierGlobbedList treasurePool = new IdentifierGlobbedList(List.of());
+    private EnchantmentList treasurePool = IdentifierGlobTagList.ofWithTags(EnchantmentList::new);
 
     @Comment("Sets a base chance for second slot to appear when generating enchantment slots for a new item.\n" +
              "Value must be between 0 and 1")

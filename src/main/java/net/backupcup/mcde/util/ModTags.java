@@ -16,18 +16,26 @@ public class ModTags {
     }
 
     public static boolean isIn(Enchantment enchantment, TagKey<Enchantment> tag) {
-        var key = Registry.ENCHANTMENT.getKey(enchantment);
+        return isIn(enchantment, tag, Registry.ENCHANTMENT);
+    }
+
+    public static boolean isIn(Identifier enchantmentId, TagKey<Enchantment> tag) {
+        return isIn(enchantmentId, tag, Registry.ENCHANTMENT);
+    }
+
+    public static <T> boolean isIn(T obj, TagKey<T> tag, Registry<T> registry) {
+        var key = registry.getKey(obj);
         if (key.isEmpty()) {
             return false;
         }
-        var entry = Registry.ENCHANTMENT.getEntry(key.get());
+        var entry = registry.getEntry(key.get());
         if (entry.isEmpty()) {
             return false;
         }
         return entry.get().isIn(tag);
     }
 
-    public static boolean isIn(Identifier enchantmentId, TagKey<Enchantment> tag) {
-        return isIn(Registry.ENCHANTMENT.get(enchantmentId), tag);
+    public static <T> boolean isIn(Identifier id, TagKey<T> tag, Registry<T> registry) {
+        return isIn(registry.get(id), tag, registry);
     }
 }
