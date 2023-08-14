@@ -1,9 +1,9 @@
 package net.backupcup.mcde.util;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -19,7 +19,7 @@ import blue.endless.jankson.api.SyntaxError;
 import net.minecraft.util.Identifier;
 
 public abstract class IdentifierGlobList<T> {
-    public static record Glob(MatchingEngine engine, String pattern) {
+    protected static record Glob(MatchingEngine engine, String pattern) {
         private Glob(String pattern) {
             this(GlobPattern.compile(pattern), pattern);
         }
@@ -27,8 +27,12 @@ public abstract class IdentifierGlobList<T> {
     protected static final Jankson JANKSON = Jankson.builder().build();
     protected final Map<String, List<Glob>> globs;
 
-    public IdentifierGlobList(Map<String, List<Glob>> namespaces) {
+    protected IdentifierGlobList(Map<String, List<Glob>> namespaces) {
         this.globs = namespaces;
+    }
+
+    public IdentifierGlobList(String... globs) {
+        this(Arrays.stream(globs).collect(toGlobs()));
     }
 
     public Set<String> getGlobs() {
@@ -85,9 +89,5 @@ public abstract class IdentifierGlobList<T> {
                 kvp.getKey(),
                 ((JsonArray)kvp.getValue()).stream().map(e -> ((JsonPrimitive)e).asString())
             )).collect(toGlobsFromMap());
-    }
-
-    public static <T> T of(Function<Map<String, List<Glob>>, T> f, List<String> strings) {
-        return f.apply(strings.stream().collect(toGlobs()));
     }
 }

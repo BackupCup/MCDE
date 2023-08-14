@@ -20,13 +20,18 @@ public abstract class IdentifierGlobTagList<T> extends IdentifierGlobList<T> {
 
     public abstract Registry<T> getRegistry();
 
-    public IdentifierGlobTagList(Map<String, List<Glob>> globs, Map<String, List<Glob>> tags) {
+    protected IdentifierGlobTagList(Map<String, List<Glob>> globs, Map<String, List<Glob>> tags) {
         super(globs);
         this.tags = tags;
     }
 
-    public IdentifierGlobTagList(Map<Boolean, Map<String, List<Glob>>> map) {
+
+    protected IdentifierGlobTagList(Map<Boolean, Map<String, List<Glob>>> map) {
         this(map.get(false), map.get(true));
+    }
+
+    public IdentifierGlobTagList(String... globs) {
+        this(Arrays.stream(globs).collect(toGlobsWithTags()));
     }
 
     public boolean contains(Identifier id) {
@@ -83,9 +88,5 @@ public abstract class IdentifierGlobTagList<T> extends IdentifierGlobList<T> {
     @Override
     protected Identifier getId(T obj) {
         return getRegistry().getId(obj);
-    }
-
-    public static <T extends IdentifierGlobTagList<?>> T ofWithTags(Function<Map<Boolean, Map<String, List<Glob>>>, T> f, String... strings) {
-        return f.apply(Arrays.stream(strings).collect(toGlobsWithTags()));
     }
 }

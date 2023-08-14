@@ -12,7 +12,11 @@ import net.minecraft.advancement.Advancement;
 import net.minecraft.util.Identifier;
 
 public class AdvancementList extends IdentifierGlobList<Advancement> {
-    public AdvancementList(Map<String, List<Glob>> namespaces) {
+    public AdvancementList(String... globs) {
+        super(globs);
+    }
+
+    protected AdvancementList(Map<String, List<Glob>> namespaces) {
         super(namespaces);
     }
 

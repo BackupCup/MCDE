@@ -15,7 +15,6 @@ import blue.endless.jankson.api.DeserializationException;
 import blue.endless.jankson.api.SyntaxError;
 import net.backupcup.mcde.util.EnchantmentList;
 import net.backupcup.mcde.util.EnchantmentSlots;
-import net.backupcup.mcde.util.IdentifierGlobTagList;
 import net.backupcup.mcde.util.ModTags;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.enchantment.Enchantment;
@@ -350,7 +349,7 @@ public class Config {
              "  \"mcdw\": [\"*\"], // whole namespace\n" + 
              "  \"namespace\": [\"#*\"] // all tags from a namespace\n" +
              "}")
-        private EnchantmentList list = IdentifierGlobTagList.ofWithTags(EnchantmentList::new,
+        private EnchantmentList list = new EnchantmentList(
             "minecraft:mending",
             "minecraft:unbreaking"
         );
@@ -405,12 +404,12 @@ public class Config {
     @Comment("Enchantments from this pool would be used in trades.\n" +
              "If this pool is empty, then trades will not be affected.\n" +
              "This list supports the same features as 'list' option")
-    private EnchantmentList villagerBookPool = IdentifierGlobTagList.ofWithTags(EnchantmentList::new, "minecraft:unbreaking");
+    private EnchantmentList villagerBookPool = new EnchantmentList("minecraft:unbreaking");
 
     @Comment("Enchantments from this pool would be used to enchant books in loot tables.\n" +
              "If this pool is empty, then loot tables will not be affected.\n" +
              "This list supports the same features as 'list' option")
-    private EnchantmentList treasurePool = IdentifierGlobTagList.ofWithTags(EnchantmentList::new);
+    private EnchantmentList treasurePool = new EnchantmentList();
 
     @Comment("Sets a base chance for second slot to appear when generating enchantment slots for a new item.\n" +
              "Value must be between 0 and 1")

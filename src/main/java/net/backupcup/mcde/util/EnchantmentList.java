@@ -12,7 +12,11 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.util.registry.Registry;
 
 public class EnchantmentList extends IdentifierGlobTagList<Enchantment> {
-    public EnchantmentList(Map<Boolean, Map<String, List<Glob>>> map) {
+    public EnchantmentList(String... globs) {
+        super(globs);
+    }
+
+    protected EnchantmentList(Map<Boolean, Map<String, List<Glob>>> map) {
         super(map);
     }
 
