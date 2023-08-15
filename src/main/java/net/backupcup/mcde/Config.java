@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import blue.endless.jankson.Comment;
 import blue.endless.jankson.Jankson;
 import blue.endless.jankson.api.DeserializationException;
 import blue.endless.jankson.api.SyntaxError;
+import net.backupcup.mcde.util.AdvancementList;
 import net.backupcup.mcde.util.EnchantmentList;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.ModTags;
@@ -243,6 +245,28 @@ public class Config {
         }
     }
 
+    public static class Unlock {
+        private AdvancementList advancements;
+        private EnchantmentList enchantments;
+
+        public Unlock() {
+            this(new AdvancementList(), new EnchantmentList());
+        }
+
+        public Unlock(AdvancementList advancements, EnchantmentList enchantments) {
+            this.advancements = advancements;
+            this.enchantments = enchantments;
+        }
+
+        public AdvancementList getAdvancements() {
+            return advancements;
+        }
+
+        public EnchantmentList getEnchantments() {
+            return enchantments;
+        }
+    }
+
     public boolean isEnchantmentAllowed(Enchantment enchantment) {
         return isEnchantmentAllowed(Registry.ENCHANTMENT.getId(enchantment));
     }
@@ -332,6 +356,10 @@ public class Config {
 
     public List<Enchantment> getCustomTreasurePool() {
         return Registry.ENCHANTMENT.stream().filter(treasurePool::contains).toList();
+    }
+
+    public List<Unlock> getUnlocks() {
+        return unlocks;
     }
 
     @Comment("Has two possible values:\n" +
@@ -447,4 +475,9 @@ public class Config {
         Map.entry(Identifier.of("minecraft", "adventure/adventuring_time"),             new SlotChances(0.019669f, 0.029746f)),
         Map.entry(Identifier.of("minecraft", "nether/all_effects"),                     new SlotChances(0.020118f, 0.031031f))
     ));
+    
+    private List<Unlock> unlocks = new ArrayList<>(List.of(new Unlock(
+        new AdvancementList("minecraft:story/enter_the_end"),
+        new EnchantmentList("#c:powerful")
+    )));
 }

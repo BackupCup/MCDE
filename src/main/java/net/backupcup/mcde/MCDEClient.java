@@ -24,6 +24,7 @@ public class MCDEClient implements ClientModInitializer {
 
         ClientPlayNetworking.registerGlobalReceiver(MCDEnchantments.SYNC_CONFIG_PACKET, (client, handler, buf, responseSender) -> {
             MCDEnchantments.setConfig(Config.readFromServer(buf));
+            MCDEnchantments.LOGGER.info("Unlocks: {}", MCDEnchantments.getConfig().getUnlocks());
         });
     }
 }

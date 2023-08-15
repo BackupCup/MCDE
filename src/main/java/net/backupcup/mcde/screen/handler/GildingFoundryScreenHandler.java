@@ -1,8 +1,10 @@
 package net.backupcup.mcde.screen.handler;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import net.backupcup.mcde.block.ModBlocks;
+import net.backupcup.mcde.block.entity.GildingFoundryBlockEntity;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.minecraft.entity.player.PlayerEntity;
@@ -77,11 +79,19 @@ public class GildingFoundryScreenHandler extends ScreenHandler {
     @Override
     public boolean onButtonClick(PlayerEntity player, int id) {
         if (!player.isCreative()) {
+            context.run((world, pos) -> {
+                ((GildingFoundryBlockEntity)world.getBlockEntity(pos))
+                    .setLastUser(world.getServer().getPlayerManager().getPlayer(player.getUuid()));
+            });
             startProgress();
             return false;
         }
         var weaponStack = inventory.getStack(0);
-        var gildedEnchantment = EnchantmentUtils.generateEnchantment(weaponStack, getCandidatesForGidling());
+        var gildedEnchantment = EnchantmentUtils.generateEnchantment(
+            weaponStack,
+            context.get((world, pos) -> world.getServer().getPlayerManager().getPlayer(player.getUuid())),
+            getCandidatesForGidling()
+        );
         if (gildedEnchantment.isEmpty()) {
             return false;
         }
@@ -149,6 +159,6 @@ public class GildingFoundryScreenHandler extends ScreenHandler {
     }
 
     public List<Identifier> getCandidatesForGidling() {
-        return EnchantmentUtils.getEnchantmentsForItem(inventory.getStack(0)).toList();
+        return EnchantmentUtils.getEnchantmentsForItem(inventory.getStack(0)).collect(Collectors.toList());
     }
 }

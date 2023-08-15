@@ -1,6 +1,7 @@
 package net.backupcup.mcde.screen.handler;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.block.ModBlocks;
@@ -78,7 +79,11 @@ public class RollBenchScreenHandler extends ScreenHandler {
         var clickedSlot = slots.getSlot(Slots.values()[id / slotsSize]).get();
         Slots toChange;
         Identifier enchantmentId;
-        var newEnchantment = EnchantmentUtils.generateEnchantment(itemStack, getCandidatesForReroll(clickedSlot.getSlot()));
+        var newEnchantment = EnchantmentUtils.generateEnchantment(
+            itemStack,
+            context.get((world, pos) -> world.getServer().getPlayerManager().getPlayer(player.getUuid())),
+            getCandidatesForReroll(clickedSlot.getSlot())
+        );
         if (newEnchantment.isEmpty()) {
             return super.onButtonClick(player, id);
         }
@@ -187,6 +192,6 @@ public class RollBenchScreenHandler extends ScreenHandler {
         candidates = candidates.filter(id -> EnchantmentUtils.isCompatible(enchantmentsNotInClickedSlot, id))
             .filter(id -> EnchantmentUtils.isCompatible(EnchantmentHelper.get(itemStack).keySet().stream()
                         .map(EnchantmentUtils::getEnchantmentId).toList(), id));
-        return candidates.toList();
+        return candidates.collect(Collectors.toList());
     }
 }
