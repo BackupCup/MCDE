@@ -13,6 +13,8 @@ import net.backupcup.mcde.screen.handler.RollBenchScreenHandler;
 import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
 import net.backupcup.mcde.screen.util.ScreenWithSlots;
 import net.backupcup.mcde.util.EnchantmentSlot.Choice;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.Slots;
@@ -27,6 +29,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
+@Environment(EnvType.CLIENT)
 public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> implements ScreenWithSlots {
     private Inventory inventory;
 
@@ -60,7 +63,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
                 .withDimPredicate(choice -> {
                     var slots = EnchantmentSlots.fromItemStack(inventory.getStack(0));
                     return !handler.canReroll(client.player, choice.getEnchantmentId(), slots) ||
-                        handler.getCandidatesForReroll(choice.getSlot().getSlot()).isEmpty();
+                        handler.isSlotLocked(choice.getSlot().getSlot());
                 })
                 .build();
     }
@@ -185,7 +188,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
                     slots.getNextRerollCost(enchantment))
                 .formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
         }
-        if (handler.getCandidatesForReroll(hovered.getSlot().getSlot()).isEmpty()) {
+        if (handler.isSlotLocked(hovered.getSlot().getSlot())) {
             tooltipLines.add(Text.translatable("message.mcde.cant_generate").formatted(Formatting.DARK_RED, Formatting.ITALIC));
         }
         renderTooltip(matrices, tooltipLines, mouseX, mouseY);

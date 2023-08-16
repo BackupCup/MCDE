@@ -13,6 +13,8 @@ import net.backupcup.mcde.screen.handler.RunicTableScreenHandler;
 import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
 import net.backupcup.mcde.screen.util.ScreenWithSlots;
 import net.backupcup.mcde.util.EnchantmentSlot.Chosen;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.Slots;
@@ -29,6 +31,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
+@Environment(EnvType.CLIENT)
 public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> implements ScreenWithSlots {
     private Inventory inventory;
 

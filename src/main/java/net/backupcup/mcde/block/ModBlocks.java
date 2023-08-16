@@ -33,8 +33,4 @@ public class ModBlocks {
         return Registry.register(Registry.ITEM, new Identifier(MCDEnchantments.MOD_ID, name),
                 new BlockItem(block, new FabricItemSettings().group(tab)));
     }
-
-    public static void RegisterModBlocks() {
-        MCDEnchantments.LOGGER.debug("Registering Mod Blocks");
-    }
 }

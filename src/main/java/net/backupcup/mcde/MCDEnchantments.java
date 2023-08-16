@@ -34,8 +34,6 @@ public class MCDEnchantments implements ModInitializer {
 
     @Override
 	public void onInitialize() {
-		ModBlocks.RegisterModBlocks();
-
 		ModScreenHandlers.registerAllScreenHandlers();
 		ModBlockEntities.registerBlockEntities();
 

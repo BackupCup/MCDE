@@ -4,7 +4,9 @@ import net.backupcup.mcde.block.ModBlocks;
 import net.backupcup.mcde.screen.GildingFoundryScreen;
 import net.backupcup.mcde.screen.RollBenchScreen;
 import net.backupcup.mcde.screen.RunicTableScreen;
+import net.backupcup.mcde.screen.handler.GildingFoundryScreenHandler;
 import net.backupcup.mcde.screen.handler.ModScreenHandlers;
+import net.backupcup.mcde.screen.handler.RollBenchScreenHandler;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -24,7 +26,9 @@ public class MCDEClient implements ClientModInitializer {
 
         ClientPlayNetworking.registerGlobalReceiver(MCDEnchantments.SYNC_CONFIG_PACKET, (client, handler, buf, responseSender) -> {
             MCDEnchantments.setConfig(Config.readFromServer(buf));
-            MCDEnchantments.LOGGER.info("Unlocks: {}", MCDEnchantments.getConfig().getUnlocks());
         });
+
+        ClientPlayNetworking.registerGlobalReceiver(RollBenchScreenHandler.LOCKED_SLOTS_PACKET, RollBenchScreenHandler::receiveNewLocks);
+        ClientPlayNetworking.registerGlobalReceiver(GildingFoundryScreenHandler.GILDING_PACKET, GildingFoundryScreenHandler::receiveNewEnchantment);
     }
 }

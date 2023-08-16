@@ -7,6 +7,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.screen.handler.GildingFoundryScreenHandler;
 import net.backupcup.mcde.util.EnchantmentSlots;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
@@ -16,6 +18,7 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
+@Environment(EnvType.CLIENT)
 public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHandler> {
     private Inventory inventory;
     private PlayerEntity player;
@@ -118,7 +121,7 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
             (inventory.getStack(1).getCount() >= MCDEnchantments.getConfig().getGildingCost() || player.isCreative()) &&
             !handler.hasProgress() &&
             !(slots != null && slots.hasGilding()) &&
-            !handler.getCandidatesForGidling().isEmpty();
+            handler.hasNewEnchantment();
     }
 
     private void drawProgress(MatrixStack matrices, int progress) {

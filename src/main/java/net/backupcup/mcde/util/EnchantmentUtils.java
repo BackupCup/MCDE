@@ -237,7 +237,7 @@ public class EnchantmentUtils {
             return Optional.empty();
         }
         owner.ifPresent(p -> candidates.removeIf(getLockedEnchantments(p)::contains));
-        return Optional.of(candidates.get(random.nextInt(candidates.size())));
+        return candidates.isEmpty() ? Optional.empty() : Optional.of(candidates.get(random.nextInt(candidates.size())));
     }
 
     public static Set<Identifier> getAllEnchantmentsInItem(ItemStack itemStack) {
