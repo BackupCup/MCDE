@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import net.backupcup.mcde.MCDEnchantments;
-import net.backupcup.mcde.util.EnchantmentSlot.Choice;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.ItemStack;

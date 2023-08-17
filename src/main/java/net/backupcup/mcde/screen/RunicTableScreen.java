@@ -12,7 +12,6 @@ import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.screen.handler.RunicTableScreenHandler;
 import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
 import net.backupcup.mcde.screen.util.ScreenWithSlots;
-import net.backupcup.mcde.util.EnchantmentSlot.Chosen;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.backupcup.mcde.util.EnchantmentSlots;
@@ -64,13 +63,13 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
             .withDimPredicate(choice -> {
                 int level = 1;
                 boolean isMaxedOut = false;
-                if (choice instanceof Chosen withLevel) {
-                    level = (int)(withLevel.getLevel() + 1);
-                    isMaxedOut = withLevel.isMaxedOut();
+                if (choice.isChosen()) {
+                    level = choice.getLevel() + 1;
+                    isMaxedOut = choice.isMaxedOut();
                 }
                 return isMaxedOut || !RunicTableScreenHandler.canEnchant(client.player, choice.getEnchantmentId(), level) ||
                     (EnchantmentHelper.get(inventory.getStack(0)).keySet().stream().anyMatch(e -> !e.canCombine(choice.getEnchantment())) && 
-                         !(choice instanceof Chosen));
+                         !choice.isChosen());
             })
         .build();
     }

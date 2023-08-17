@@ -10,8 +10,7 @@ import java.util.stream.Collectors;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.backupcup.mcde.MCDEnchantments;
-import net.backupcup.mcde.util.EnchantmentSlot.Choice;
-import net.backupcup.mcde.util.EnchantmentSlot.Chosen;
+import net.backupcup.mcde.util.Choice;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.SlotPosition;
 import net.fabricmc.api.EnvType;
@@ -95,7 +94,7 @@ public class EnchantmentSlotsRenderer {
         screen.drawTexture(matrices, pos.x() - 1, pos.y() - 1, hoverOutlinePos.x(), hoverOutlinePos.y(), 33, 33);
     }
 
-    public void drawIconInSlot(MatrixStack matrices, SlotPosition slot, Chosen choice) {
+    public void drawIconInSlot(MatrixStack matrices, SlotPosition slot, Choice choice) {
         var texPos = MCDEnchantments.getConfig().isEnchantmentPowerful(choice.getEnchantmentId()) ?
             powerfulOutlinePos : outlinePos;
         var pos = slotPos.get(slot);

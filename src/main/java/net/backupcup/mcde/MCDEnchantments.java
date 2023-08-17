@@ -3,7 +3,6 @@ package net.backupcup.mcde;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.backupcup.mcde.block.ModBlocks;
 import net.backupcup.mcde.block.entity.ModBlockEntities;
 import net.backupcup.mcde.screen.handler.ModScreenHandlers;
 import net.fabricmc.api.ModInitializer;

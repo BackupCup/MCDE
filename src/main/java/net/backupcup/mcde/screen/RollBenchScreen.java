@@ -12,7 +12,7 @@ import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.screen.handler.RollBenchScreenHandler;
 import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
 import net.backupcup.mcde.screen.util.ScreenWithSlots;
-import net.backupcup.mcde.util.EnchantmentSlot.Choice;
+import net.backupcup.mcde.util.Choice;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.backupcup.mcde.util.EnchantmentSlots;

@@ -1,6 +1,5 @@
 package net.backupcup.mcde.util;
 
-import net.minecraft.enchantment.Enchantment;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
@@ -22,8 +21,12 @@ public class EnchantmentSlot {
         this.enchantments = enchantments;
     }
 
-    public Optional<Chosen> getChosen() {
-        return chosen.map(pos -> new Chosen(pos, enchantments.get(pos), level));
+    public Optional<SlotPosition> getChosenPosition() {
+        return chosen;
+    }
+
+    public Optional<Choice> getChosen() {
+        return chosen.map(pos -> new Choice(this, pos));
     }
 
     public boolean setChosen(SlotPosition pos, int level) {
@@ -53,80 +56,25 @@ public class EnchantmentSlot {
     }
 
     public List<Choice> choices() {
-        return enchantments.entrySet().stream().map(kvp -> new Choice(kvp.getKey(), kvp.getValue())).toList();
+        return enchantments.keySet().stream().map(pos -> new Choice(this, pos)).toList();
     }
 
-    public class Choice {
-        private SlotPosition choicePos;
-        private Identifier enchantment;
-
-        public Choice(SlotPosition choicePos, Identifier enchantment) {
-            this.choicePos = choicePos;
-            this.enchantment = enchantment;
-        }
-        public EnchantmentSlot getEnchantmentSlot() {
-            return EnchantmentSlot.this;
-        }
-        public SlotPosition getChoicePosition() {
-            return choicePos;
-        }
-        public int ordinal() {
-            return choicePos.ordinal();
-        }
-        public Identifier getEnchantmentId() {
-            return enchantment;
-        }
-        public Enchantment getEnchantment() {
-            return Registry.ENCHANTMENT.get(enchantment);
-        }
-        public int getLevel() {
-            return 1;
-        }
-        public boolean isMaxedOut() {
-            return false;
-        }
-        public boolean isChosen() {
-            return false;
-        }
-    }
-
-    public class Chosen extends Choice {
-        private int level;
-
-        private Chosen(SlotPosition slot, Identifier enchantment, int level) {
-            super(slot, enchantment);
-            this.level = level;
-        }
-
-        @Override
-        public int getLevel() {
-            return level;
-        }
-
-        public void upgrade() {
-            if (!isMaxedOut()) {
-                level++;
-                EnchantmentSlot.this.level++;
-            }
-        }
-
-        @Override
-        public boolean isMaxedOut() {
-            return EnchantmentSlot.isMaxedOut(getEnchantmentId(), level);
-        }
-
-        @Override
-        public boolean isChosen() {
-            return true;
-        }
+    public int getLevel() {
+        return level;
     }
 
     public void setLevel(int level) {
         this.level = level;
     }
 
-    private static boolean isMaxedOut(Identifier enchantmentId, int level) {
-        return level >= Registry.ENCHANTMENT.get(enchantmentId).getMaxLevel();
+    public void upgrade() {
+        if (!isMaxedOut()) {
+            level++;
+        }
+    }
+
+    public boolean isMaxedOut() {
+        return chosen.map(pos -> level >= Registry.ENCHANTMENT.get(enchantments.get(pos)).getMaxLevel()).orElse(false);
     }
 
     public static EnchantmentSlot of(SlotPosition slot, Identifier first) {
