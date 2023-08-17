@@ -66,7 +66,7 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
                     entry.setValue(entry.getValue() + 1);
                 }
             }
-            if (!map.isEmpty()) {
+            if (!map.isEmpty() || levelCost.get() > 0) {
                 result = input.copy();
                 slots.updateItemStack(result);
                 getSlot(2).setStack(result);

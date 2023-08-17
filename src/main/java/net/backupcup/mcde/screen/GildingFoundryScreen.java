@@ -5,8 +5,9 @@ import java.util.stream.IntStream;
 import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.screen.handler.GildingFoundryScreenHandler;
 import net.backupcup.mcde.util.EnchantmentSlots;
-import net.backupcup.mcde.util.EnchantmentUtils;
 import net.minecraft.client.gui.DrawContext;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -14,6 +15,7 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
+@Environment(EnvType.CLIENT)
 public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHandler> {
     private Inventory inventory;
     private PlayerEntity player;
@@ -112,7 +114,7 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
             (inventory.getStack(1).getCount() >= MCDEnchantments.getConfig().getGildingCost() || player.isCreative()) &&
             !handler.hasProgress() &&
             !(slots != null && slots.hasGilding()) &&
-            EnchantmentUtils.canGenerateEnchantment(weapon);
+            handler.hasNewEnchantment();
     }
 
     private void drawProgress(DrawContext ctx, int progress) {

@@ -22,9 +22,9 @@ public class EnchantmentSlot {
         this.enchantments = enchantments;
     }
 
-    public Optional<ChoiceWithLevel> getChosen() {
+    public Optional<Chosen> getChosen() {
         return chosen.isPresent() ?
-            Optional.of(new ChoiceWithLevel(chosen.get(), enchantments.get(chosen.get()), level)) : Optional.empty();
+            Optional.of(new Chosen(chosen.get(), enchantments.get(chosen.get()), level)) : Optional.empty();
     }
 
     public boolean setChosen(Slots chosen, int level) {
@@ -59,18 +59,21 @@ public class EnchantmentSlot {
     }
 
     public class Choice {
-        private Slots slot;
+        private Slots choiceSlot;
         private Identifier enchantment;
 
-        public Choice(Slots slot, Identifier enchantment) {
-            this.slot = slot;
+        public Choice(Slots choiceSlot, Identifier enchantment) {
+            this.choiceSlot = choiceSlot;
             this.enchantment = enchantment;
         }
-        public Slots getSlot() {
-            return slot;
+        public EnchantmentSlot getSlot() {
+            return EnchantmentSlot.this;
+        }
+        public Slots getChoiceSlot() {
+            return choiceSlot;
         }
         public int ordinal() {
-            return slot.ordinal();
+            return choiceSlot.ordinal();
         }
         public Identifier getEnchantmentId() {
             return enchantment;
@@ -78,16 +81,26 @@ public class EnchantmentSlot {
         public Enchantment getEnchantment() {
             return Registries.ENCHANTMENT.get(enchantment);
         }
+        public int getLevel() {
+            return 1;
+        }
+        public boolean isMaxedOut() {
+            return false;
+        }
+        public boolean isChosen() {
+            return false;
+        }
     }
 
-    public class ChoiceWithLevel extends Choice {
+    public class Chosen extends Choice {
         private int level;
 
-        private ChoiceWithLevel(Slots slot, Identifier enchantment, int level) {
+        private Chosen(Slots slot, Identifier enchantment, int level) {
             super(slot, enchantment);
             this.level = level;
         }
 
+        @Override
         public int getLevel() {
             return level;
         }
@@ -99,8 +112,14 @@ public class EnchantmentSlot {
             }
         }
 
+        @Override
         public boolean isMaxedOut() {
             return EnchantmentSlot.isMaxedOut(getEnchantmentId(), level);
+        }
+
+        @Override
+        public boolean isChosen() {
+            return true;
         }
     }
 

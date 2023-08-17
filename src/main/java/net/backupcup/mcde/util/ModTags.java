@@ -3,6 +3,7 @@ package net.backupcup.mcde.util;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.Identifier;
@@ -17,18 +18,26 @@ public class ModTags {
     }
 
     public static boolean isIn(Enchantment enchantment, TagKey<Enchantment> tag) {
-        var key = Registries.ENCHANTMENT.getKey(enchantment);
+        return isIn(enchantment, tag, Registries.ENCHANTMENT);
+    }
+
+    public static boolean isIn(Identifier enchantmentId, TagKey<Enchantment> tag) {
+        return isIn(enchantmentId, tag, Registries.ENCHANTMENT);
+    }
+
+    public static <T> boolean isIn(T obj, TagKey<T> tag, Registry<T> registry) {
+        var key = registry.getKey(obj);
         if (key.isEmpty()) {
             return false;
         }
-        var entry = Registries.ENCHANTMENT.getEntry(key.get());
+        var entry = registry.getEntry(key.get());
         if (entry.isEmpty()) {
             return false;
         }
         return entry.get().isIn(tag);
     }
 
-    public static boolean isIn(Identifier enchantmentId, TagKey<Enchantment> tag) {
-        return isIn(Registries.ENCHANTMENT.get(enchantmentId), tag);
+    public static <T> boolean isIn(Identifier id, TagKey<T> tag, Registry<T> registry) {
+        return isIn(registry.get(id), tag, registry);
     }
 }

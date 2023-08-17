@@ -1,5 +1,9 @@
 package net.backupcup.mcde.block.entity;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.jetbrains.annotations.Nullable;
 
 import net.backupcup.mcde.MCDEnchantments;
@@ -18,6 +22,7 @@ import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -26,6 +31,11 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(2, ItemStack.EMPTY);
     private int gilding_progress;
     private int gilding_tick_counter;
+    private Optional<Identifier> generated = Optional.empty();
+
+    public void setGenerated(Identifier id) {
+        generated = Optional.of(id);
+    }
 
     public DefaultedList<ItemStack> getInventory() {
         return inventory;
@@ -113,13 +123,13 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
     private void finishGilding() {
         gilding_progress = 0;
         gilding_tick_counter = 0;
-        inventory.get(1).decrement(MCDEnchantments.getConfig().getGildingCost());
         var weaponStack = inventory.get(0);
-        var gildedEnchantment = EnchantmentUtils.generateEnchantment(weaponStack);
-        if (gildedEnchantment.isEmpty()) {
+        
+        if (generated.isEmpty()) {
             return;
         }
-        var id = gildedEnchantment.get();
+        inventory.get(1).decrement(MCDEnchantments.getConfig().getGildingCost());
+        var id = generated.get();
         var slots = EnchantmentSlots.fromItemStack(weaponStack);
         slots.setGilding(id);
         slots.updateItemStack(weaponStack);
@@ -128,5 +138,9 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
     private void resetProgress() {
         gilding_progress = 0;
         gilding_tick_counter = 0;
+    }
+
+    public List<Identifier> getCandidatesForGidling() {
+        return EnchantmentUtils.getEnchantmentsForItem(inventory.get(0)).collect(Collectors.toList());
     }
 }

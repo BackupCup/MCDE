@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,8 +14,9 @@ import blue.endless.jankson.Comment;
 import blue.endless.jankson.Jankson;
 import blue.endless.jankson.api.DeserializationException;
 import blue.endless.jankson.api.SyntaxError;
+import net.backupcup.mcde.util.AdvancementList;
+import net.backupcup.mcde.util.EnchantmentList;
 import net.backupcup.mcde.util.EnchantmentSlots;
-import net.backupcup.mcde.util.IdentifierGlobbedList;
 import net.backupcup.mcde.util.ModTags;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.enchantment.Enchantment;
@@ -243,6 +245,28 @@ public class Config {
         }
     }
 
+    public static class Unlock {
+        private AdvancementList advancements;
+        private EnchantmentList enchantments;
+
+        public Unlock() {
+            this(new AdvancementList(), new EnchantmentList());
+        }
+
+        public Unlock(AdvancementList advancements, EnchantmentList enchantments) {
+            this.advancements = advancements;
+            this.enchantments = enchantments;
+        }
+
+        public AdvancementList getAdvancements() {
+            return advancements;
+        }
+
+        public EnchantmentList getEnchantments() {
+            return enchantments;
+        }
+    }
+
     public boolean isEnchantmentAllowed(Enchantment enchantment) {
         return isEnchantmentAllowed(Registries.ENCHANTMENT.getId(enchantment));
     }
@@ -334,25 +358,34 @@ public class Config {
         return Registries.ENCHANTMENT.stream().filter(treasurePool::contains).toList();
     }
 
+    public List<Unlock> getUnlocks() {
+        return unlocks;
+    }
+
     @Comment("Has two possible values:\n" +
              "ALLOW - Only allow enchantments specified in 'list' to appear\n" +
              "DENY - Make enchantments specified in 'list' to never appear")
     private ListType listKind = ListType.DENY;
 
     @Comment("Lists all enchantments to be excluded (or included) when using tables from MCDE\n" + 
-             "You can specify tags (#c:powerful), whole namespaces (mcdw:*), also you can specify all tags from a namespace (#mcdw:*)\n" +
+             "This list and all other fields when mentioned support tags and globs\n" + 
+             "This means you can specify tags (\"#c:powerful\", for example)\n" +
+             "Globs are supported in path part of an identifier (after a ':')\n" +
+             "Examples:\n" +
+             "  \"mcdw:*\" matches a whole namespace,\n" + 
+             "  \"minecraft:*protection\" matches all protection enchantments,\n" +
+             "  \"#namespace:helmet*\" matches all enchantments which are in the tags starting with 'helmet' \n" +
              "The format can also be different, you can specify this list in 'nested' format like so:\n" +
              "\"list\": {\n" + 
              "  \"minecraft\": [\"unbreaking\", \"mending\"],\n" +
              "  \"mcda\": [\"chilling\", \"burning\"],\n" +
              "  \"c\": [\"#powerful\"], // tags\n" +
-             "  \"mcdw\": [\"*\"], // whole namespace\n" + 
-             "  \"namespace\": [\"#*\"] // all tags from a namespace\n" +
+             "  \"mcdw\": [\"*\"], // globs\n" + 
+             "  \"namespace\": [\"#helmet*\"] // all tags from a namespace matching a glob\n" +
              "}")
-    private IdentifierGlobbedList list = new IdentifierGlobbedList(List.of(
-        "minecraft:mending",
+    private EnchantmentList list = new EnchantmentList(
         "minecraft:unbreaking"
-    ));
+    );
 
     @Comment("Allow curses to appear")
     private boolean allowCurses = false;
@@ -404,12 +437,12 @@ public class Config {
     @Comment("Enchantments from this pool would be used in trades.\n" +
              "If this pool is empty, then trades will not be affected.\n" +
              "This list supports the same features as 'list' option")
-    private IdentifierGlobbedList villagerBookPool = new IdentifierGlobbedList(List.of("minecraft:unbreaking"));
+    private EnchantmentList villagerBookPool = new EnchantmentList("minecraft:unbreaking");
 
     @Comment("Enchantments from this pool would be used to enchant books in loot tables.\n" +
              "If this pool is empty, then loot tables will not be affected.\n" +
              "This list supports the same features as 'list' option")
-    private IdentifierGlobbedList treasurePool = new IdentifierGlobbedList(List.of());
+    private EnchantmentList treasurePool = new EnchantmentList();
 
     @Comment("Sets a base chance for second slot to appear when generating enchantment slots for a new item.\n" +
              "Value must be between 0 and 1")
@@ -447,4 +480,13 @@ public class Config {
         Map.entry(Identifier.of("minecraft", "adventure/adventuring_time"),             new SlotChances(0.019669f, 0.029746f)),
         Map.entry(Identifier.of("minecraft", "nether/all_effects"),                     new SlotChances(0.020118f, 0.031031f))
     ));
+    
+    @Comment("List of entries which define what enchantments would unlock after obtaining certain advancements\n" + 
+             "'advancements' field supports globs, so you can specify \"minecraft:story/enter_*\" to mark all advancements which start with 'story/enter_'\n" +
+             "'enchantments' field supports all features 'list' supports\n" +
+             "If entries have overlapping enchantments, they will be unlocked when only one of the entries is done (i.e. all advancements from this entry are obtained)")
+    private List<Unlock> unlocks = new ArrayList<>(List.of(new Unlock(
+        new AdvancementList("minecraft:story/enter_the_end"),
+        new EnchantmentList("#c:powerful")
+    )));
 }

@@ -11,7 +11,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.util.EnchantmentSlot.Choice;
-import net.backupcup.mcde.util.EnchantmentSlot.ChoiceWithLevel;
+import net.backupcup.mcde.util.EnchantmentSlot.Chosen;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.Slots;
 import net.fabricmc.api.EnvType;
@@ -92,7 +92,7 @@ public class EnchantmentSlotsRenderer {
         ctx.drawTexture(defaultGuiTexture, pos.x() - 1, pos.y() - 1, hoverOutlinePos.x(), hoverOutlinePos.y(), 33, 33);
     }
 
-    public void drawIconInSlot(DrawContext ctx, Slots slot, ChoiceWithLevel choice) {
+    public void drawIconInSlot(DrawContext ctx, Slots slot, Chosen choice) {
         var texPos = MCDEnchantments.getConfig().isEnchantmentPowerful(choice.getEnchantmentId()) ?
             powerfulOutlinePos : outlinePos;
         var pos = slotPos.get(slot);
@@ -101,19 +101,19 @@ public class EnchantmentSlotsRenderer {
     }
 
     public void drawIconHoverOutline(DrawContext ctx, Slots slot, Choice choice) {
-        var drawPos = slotPos.get(slot).add(choicePosOffset).add(choiceOffsets.get(choice.getSlot()));
+        var drawPos = slotPos.get(slot).add(choicePosOffset).add(choiceOffsets.get(choice.getChoiceSlot()));
         ctx.drawTexture(defaultGuiTexture, drawPos.x() - 1, drawPos.y() - 1, hoverIconOutlinePos.x(), hoverIconOutlinePos.y(), 25, 25);
     }
 
     public void drawIconOutline(DrawContext ctx, Slots slot, Choice choice) {
-        var drawPos = slotPos.get(slot).add(choicePosOffset).add(choiceOffsets.get(choice.getSlot()));
+        var drawPos = slotPos.get(slot).add(choicePosOffset).add(choiceOffsets.get(choice.getChoiceSlot()));
         var texPos = MCDEnchantments.getConfig().isEnchantmentPowerful(choice.getEnchantmentId()) ?
             iconPowerfulOutlinePos : iconOutlinePos;
         ctx.drawTexture(defaultGuiTexture, drawPos.x() - 1, drawPos.y() - 1, texPos.x(), texPos.y(), 25, 25);
     }
 
     public void drawIconInChoice(DrawContext ctx, Slots slot, Choice choice) {
-        var drawPos = slotPos.get(slot).add(choicePosOffset).add(choiceOffsets.get(choice.getSlot()));
+        var drawPos = slotPos.get(slot).add(choicePosOffset).add(choiceOffsets.get(choice.getChoiceSlot()));
         drawIcon(ctx, drawPos, slot, choice);
     }
 
@@ -143,7 +143,7 @@ public class EnchantmentSlotsRenderer {
                 drawChoices(ctx, slot.getSlot());
 
                 for (var choice : slot.choices()) {
-                    if (isInChoiceBounds(slot.getSlot(), choice.getSlot(), mouseX, mouseY)) {
+                    if (isInChoiceBounds(slot.getSlot(), choice.getChoiceSlot(), mouseX, mouseY)) {
                         drawIconHoverOutline(ctx, slot.getSlot(), choice);
                         hovered = Optional.of(choice);
                     } else {

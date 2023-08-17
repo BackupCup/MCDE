@@ -12,7 +12,9 @@ import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.screen.handler.RunicTableScreenHandler;
 import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
 import net.backupcup.mcde.screen.util.ScreenWithSlots;
-import net.backupcup.mcde.util.EnchantmentSlot.ChoiceWithLevel;
+import net.backupcup.mcde.util.EnchantmentSlot.Chosen;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.Slots;
@@ -29,6 +31,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
+@Environment(EnvType.CLIENT)
 public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> implements ScreenWithSlots {
     private Inventory inventory;
 
@@ -61,13 +64,13 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
             .withDimPredicate(choice -> {
                 int level = 1;
                 boolean isMaxedOut = false;
-                if (choice instanceof ChoiceWithLevel withLevel) {
+                if (choice instanceof Chosen withLevel) {
                     level = (int)(withLevel.getLevel() + 1);
                     isMaxedOut = withLevel.isMaxedOut();
                 }
                 return isMaxedOut || !RunicTableScreenHandler.canEnchant(client.player, choice.getEnchantmentId(), level) ||
                     (EnchantmentHelper.get(inventory.getStack(0)).keySet().stream().anyMatch(e -> !e.canCombine(choice.getEnchantment())) && 
-                         !(choice instanceof ChoiceWithLevel));
+                         !(choice instanceof Chosen));
             })
         .build();
     }
@@ -107,7 +110,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
 
             if (opened.isPresent() && opened.get() == slot.getSlot()) {
                 for (var choice : slot.choices()) {
-                    if (slotsRenderer.isInChoiceBounds(slot.getSlot(), choice.getSlot(), (int) mouseX, (int) mouseY))
+                    if (slotsRenderer.isInChoiceBounds(slot.getSlot(), choice.getChoiceSlot(), (int) mouseX, (int) mouseY)) {
                         if (!slotsRenderer.getDimPredicate().test(choice)) {
                             client.interactionManager.clickButton(handler.syncId, Slots.values().length * slot.ordinal() + choice.ordinal());
                             opened = Optional.empty();
@@ -115,6 +118,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
                         } else {
                             return super.mouseClicked(mouseX, mouseY, button);
                         }
+                    }
                 }
             }
         }
@@ -157,26 +161,27 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
             drawMouseoverTooltip(ctx, mouseX, mouseY);
             return;
         }
-        Enchantment enchantment = hoveredChoice.get().getEnchantment();
-        Identifier enchantmentId = hoveredChoice.get().getEnchantmentId();
+        var hovered = hoveredChoice.get();
+        Enchantment enchantment = hovered.getEnchantment();
+        Identifier enchantmentId = hovered.getEnchantmentId();
         List<Text> tooltipLines = new ArrayList<>();
         int level = 1;
         boolean enoughLevels = RunicTableScreenHandler.canEnchant(client.player, enchantmentId, level);
         MutableText enchantmentName = Text.translatable(enchantment.getTranslationKey())
             .formatted(EnchantmentUtils.formatEnchantment(enchantmentId));
-        if (hoveredChoice.get() instanceof ChoiceWithLevel withLevel) {
+        if (hovered.isChosen()) {
             enchantmentName.append(" ")
-                .append(Text.translatable("enchantment.level." + withLevel.getLevel()))
+                .append(Text.translatable("enchantment.level." + hovered.getLevel()))
                 .append(" ");
-            if (withLevel.isMaxedOut()) {
+            if (hovered.isMaxedOut()) {
                 enchantmentName.append(Text.translatable("message.mcde.max_level"));
                 enoughLevels = true;
             }
             else {
                 enchantmentName
                     .append("→ ")
-                    .append(Text.translatable("enchantment.level." + (withLevel.getLevel() + 1)));
-                level = (int)(withLevel.getLevel() + 1);
+                    .append(Text.translatable("enchantment.level." + (hovered.getLevel() + 1)));
+                level = hovered.getLevel() + 1;
                 enoughLevels = RunicTableScreenHandler.canEnchant(client.player, enchantmentId, level);
 
             }
@@ -196,9 +201,8 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
                         ).formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
         }
 
-        if (!(hoveredChoice.get() instanceof ChoiceWithLevel)){
-            if (EnchantmentHelper.getLevel(hoveredChoice.get().getEnchantment(), itemStack) > 0 &&
-                    !(hoveredChoice.get() instanceof ChoiceWithLevel)) {
+        if (!hovered.isChosen()) {
+            if (EnchantmentHelper.getLevel(hoveredChoice.get().getEnchantment(), itemStack) > 0) {
                 tooltipLines.add(Text.translatable("message.mcde.already_exists").formatted(Formatting.DARK_RED, Formatting.ITALIC));
             } else if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
                 var conflict = EnchantmentHelper.get(itemStack).keySet().stream()

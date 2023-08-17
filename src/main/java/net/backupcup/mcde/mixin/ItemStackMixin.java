@@ -124,7 +124,7 @@ public abstract class ItemStackMixin {
     }
 
     @Inject(method = "hasGlint", at = @At("HEAD"), cancellable = true)
-    private void mcde$hasEnchantments(CallbackInfoReturnable<Boolean> cir) {
+    private void mcde$hasGlint(CallbackInfoReturnable<Boolean> cir) {
         var slots = EnchantmentSlots.fromItemStack((ItemStack)(Object)this);
         if (slots == null) {
             return;
