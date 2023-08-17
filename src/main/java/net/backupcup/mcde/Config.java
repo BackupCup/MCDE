@@ -368,19 +368,24 @@ public class Config {
     private ListType listKind = ListType.DENY;
 
     @Comment("Lists all enchantments to be excluded (or included) when using tables from MCDE\n" + 
-             "You can specify tags (#c:powerful), whole namespaces (mcdw:*), also you can specify all tags from a namespace (#mcdw:*)\n" +
+             "This list and all other fields when mentioned support tags and globs\n" + 
+             "This means you can specify tags (\"#c:powerful\", for example)\n" +
+             "Globs are supported in path part of an identifier (after a ':')\n" +
+             "Examples:\n" +
+             "  \"mcdw:*\" matches a whole namespace,\n" + 
+             "  \"minecraft:*protection\" matches all protection enchantments,\n" +
+             "  \"#namespace:helmet*\" matches all enchantments which are in the tags starting with 'helmet' \n" +
              "The format can also be different, you can specify this list in 'nested' format like so:\n" +
              "\"list\": {\n" + 
              "  \"minecraft\": [\"unbreaking\", \"mending\"],\n" +
              "  \"mcda\": [\"chilling\", \"burning\"],\n" +
              "  \"c\": [\"#powerful\"], // tags\n" +
-             "  \"mcdw\": [\"*\"], // whole namespace\n" + 
-             "  \"namespace\": [\"#*\"] // all tags from a namespace\n" +
+             "  \"mcdw\": [\"*\"], // globs\n" + 
+             "  \"namespace\": [\"#helmet*\"] // all tags from a namespace matching a glob\n" +
              "}")
-        private EnchantmentList list = new EnchantmentList(
-            "minecraft:mending",
-            "minecraft:unbreaking"
-        );
+    private EnchantmentList list = new EnchantmentList(
+        "minecraft:unbreaking"
+    );
 
     @Comment("Allow curses to appear")
     private boolean allowCurses = false;
@@ -476,6 +481,9 @@ public class Config {
         Map.entry(Identifier.of("minecraft", "nether/all_effects"),                     new SlotChances(0.020118f, 0.031031f))
     ));
     
+    @Comment("List of entries which define what enchantments would unlock after obtaining certain advancements\n" + 
+             "'advancements' field supports globs, so you can specify \"minecraft:story/enter_*\" to mark all advancements which start with 'story/enter_'\n" +
+             "'enchantments' field supports all features 'list' supports")
     private List<Unlock> unlocks = new ArrayList<>(List.of(new Unlock(
         new AdvancementList("minecraft:story/enter_the_end"),
         new EnchantmentList("#c:powerful")
