@@ -20,19 +20,24 @@ import net.minecraft.util.Identifier;
 
 public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
     private Map<Slots, EnchantmentSlot> slots;
-    private Optional<Identifier> gilding = Optional.empty();
-    private int nextRerollCost = MCDEnchantments.getConfig().getRerollCostParameters().getNormal().getStartCost();
-    private int nextRerollCostPowerful = MCDEnchantments.getConfig().getRerollCostParameters().getPowerful().getStartCost();
+    private Optional<Identifier> gilding;
+    private int nextRerollCost;
+    private int nextRerollCostPowerful;
 
     public EnchantmentSlots(Map<Slots, EnchantmentSlot> slots, Optional<Identifier> gilding, int nextRerollCost, int nextRerollCostPowerful) {
-        this(slots);
+        this.slots = slots;
         this.gilding = gilding;
         this.nextRerollCost = nextRerollCost;
         this.nextRerollCostPowerful = nextRerollCostPowerful;
     }
 
     public EnchantmentSlots(Map<Slots, EnchantmentSlot> slots) {
-        this.slots = slots;
+        this(
+            slots,
+            Optional.empty(),
+            MCDEnchantments.getConfig().getRerollCostParameters().getNormal().getStartCost(),
+            MCDEnchantments.getConfig().getRerollCostParameters().getPowerful().getStartCost()
+        );
     }
 
     public boolean hasGilding() {
@@ -102,7 +107,7 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
         }
     }
 
-    public static EnchantmentSlots EMPTY = new EnchantmentSlots(Map.of());
+    public static EnchantmentSlots EMPTY = new EnchantmentSlots(Map.of(), Optional.empty(), 0, 0);
 
     public static Builder builder() {
         return new Builder();

@@ -1,12 +1,21 @@
 package net.backupcup.mcde.screen.handler;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.block.ModBlocks;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.Slots;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.networking.v1.PacketSender;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -14,18 +23,29 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
+import net.minecraft.screen.ScreenHandlerListener;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 
-public class RollBenchScreenHandler extends ScreenHandler {
+public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandlerListener {
     private final Inventory inventory = new SimpleInventory(2);
     private final ScreenHandlerContext context;
+    private final PlayerEntity player;
+    private Map<Slots, Boolean> locked = new EnumMap<>(Map.of(Slots.FIRST, false, Slots.SECOND, false, Slots.THIRD, false));
+    public static final Identifier LOCKED_SLOTS_PACKET = Identifier.of(MCDEnchantments.MOD_ID, "locked_slots");
+
     public Inventory getInventory() {
         return inventory;
+    }
+
+    public boolean isSlotLocked(Slots slot) {
+        return locked.get(slot);
     }
 
     public RollBenchScreenHandler(int syncId, PlayerInventory inventory) {
@@ -34,7 +54,7 @@ public class RollBenchScreenHandler extends ScreenHandler {
 
     public RollBenchScreenHandler(int syncId, PlayerInventory playerInventory, ScreenHandlerContext context) {
         super(ModScreenHandlers.ROLL_BENCH_SCREEN_HANDLER, syncId);
-
+        this.player = playerInventory.player;
         this.context = context;
         inventory.onOpen(playerInventory.player);
 
@@ -63,6 +83,7 @@ public class RollBenchScreenHandler extends ScreenHandler {
         });
 
         addListener(EnchantmentUtils.generatorListener(context, playerInventory.player));
+        addListener(this);
 
         addPlayerInventory(playerInventory);
         addPlayerHotbar(playerInventory);
@@ -78,7 +99,7 @@ public class RollBenchScreenHandler extends ScreenHandler {
         var clickedSlot = slots.getSlot(Slots.values()[id / slotsSize]).get();
         Slots toChange;
         Identifier enchantmentId;
-        var newEnchantment = EnchantmentUtils.generateEnchantment(itemStack, getCandidatesForReroll(itemStack, slots, clickedSlot.getSlot()));
+        var newEnchantment = generateEnchantment(player, clickedSlot.getSlot());
         if (newEnchantment.isEmpty()) {
             return super.onButtonClick(player, id);
         }
@@ -91,7 +112,7 @@ public class RollBenchScreenHandler extends ScreenHandler {
                 return super.onButtonClick(player, id);
             }
             clickedSlot.clearChoice();
-            toChange = chosen.getSlot();
+            toChange = chosen.getChoiceSlot();
         } else {
             toChange = Slots.values()[id % slotsSize];
             enchantmentId = clickedSlot.getChoice(toChange).get();
@@ -172,7 +193,9 @@ public class RollBenchScreenHandler extends ScreenHandler {
         }
     }
 
-    public static List<Identifier> getCandidatesForReroll(ItemStack itemStack, EnchantmentSlots slots, Slots clickedSlot) {
+    public List<Identifier> getCandidatesForReroll(Slots clickedSlot) {
+        var itemStack = inventory.getStack(0);
+        var slots = EnchantmentSlots.fromItemStack(itemStack);
         var candidates = EnchantmentUtils.getEnchantmentsNotInItem(itemStack);
         if (!MCDEnchantments.getConfig().isCompatibilityRequired()) {
             return candidates.toList();
@@ -185,6 +208,66 @@ public class RollBenchScreenHandler extends ScreenHandler {
         candidates = candidates.filter(id -> EnchantmentUtils.isCompatible(enchantmentsNotInClickedSlot, id))
             .filter(id -> EnchantmentUtils.isCompatible(EnchantmentHelper.get(itemStack).keySet().stream()
                         .map(EnchantmentUtils::getEnchantmentId).toList(), id));
-        return candidates.toList();
+        return candidates.collect(Collectors.toList());
+    }
+
+    public Optional<Identifier> generateEnchantment(PlayerEntity player, Slots clickedSlot) {
+        return EnchantmentUtils.generateEnchantment(
+            inventory.getStack(0),
+            context.get((world, pos) -> world.getServer().getPlayerManager().getPlayer(player.getUuid())),
+            getCandidatesForReroll(clickedSlot)
+        );
+    }
+
+    private void sendLockedSlots(EnchantmentSlots slots, PlayerEntity player) {
+        var buffer = PacketByteBufs.create();
+        var locked = slots.stream().collect(Collectors.toMap(
+            s -> s.getSlot(),
+            s -> generateEnchantment(player, s.getSlot()).isEmpty(),
+            (lhs, rhs) -> lhs,
+            () -> new EnumMap<>(Slots.class)
+        ));
+        buffer.writeInt(syncId);
+        buffer.writeMap(locked, (buf, s) -> buf.writeEnumConstant(s), (buf, b) -> buf.writeBoolean(b));
+        ServerPlayNetworking.send((ServerPlayerEntity)player, LOCKED_SLOTS_PACKET, buffer);
+    }
+
+
+    public static void receiveNewLocks(MinecraftClient client, ClientPlayNetworkHandler handler, PacketByteBuf buf,
+            PacketSender responseSender) {
+        var player = client.player;
+        if (player == null) {
+            return;
+        }
+        var screenHandler = player.currentScreenHandler;
+        if (screenHandler == null) {
+            return;
+        }
+
+        if (screenHandler.syncId != buf.readInt()) {
+            return;
+        }
+
+        var map = buf.readMap(b -> b.readEnumConstant(Slots.class), b -> b.readBoolean());
+
+        if (screenHandler instanceof RollBenchScreenHandler rbScreenHandler) {
+            client.execute(() -> {
+                rbScreenHandler.locked = map;
+            });
+        }
+    }
+
+
+    @Override
+    public void onPropertyUpdate(ScreenHandler handler, int property, int value) {
+    }
+
+    @Override
+    public void onSlotUpdate(ScreenHandler handler, int slotId, ItemStack stack) {
+        var slots = EnchantmentSlots.fromItemStack(stack);
+        if (slotId != 0 || slots == null) {
+            return;
+        }
+        sendLockedSlots(slots, player);
     }
 }
