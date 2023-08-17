@@ -4,7 +4,7 @@ import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.block.ModBlocks;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
-import net.backupcup.mcde.util.Slots;
+import net.backupcup.mcde.util.SlotPosition;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -60,8 +60,8 @@ public class RunicTableScreenHandler extends ScreenHandler {
         ItemStack itemStack = inventory.getStack(0);
         EnchantmentSlots slots = EnchantmentSlots.fromItemStack(itemStack);
 
-        var slotsSize = Slots.values().length;
-        var clickedSlot = slots.getSlot(Slots.values()[id / slotsSize]).get();
+        var posAmount = SlotPosition.values().length;
+        var clickedSlot = slots.getEnchantmentSlot(SlotPosition.values()[id / posAmount]).get();
         var chosen = clickedSlot.getChosen();
         int level = 1;
         Identifier enchantmentId;
@@ -76,12 +76,12 @@ public class RunicTableScreenHandler extends ScreenHandler {
                 return super.onButtonClick(player, id);
             }
         } else {
-            int choiceSlot = id % slotsSize;
-            enchantmentId = clickedSlot.getChoice(Slots.values()[choiceSlot]).get();
+            int choicePos = id % posAmount;
+            enchantmentId = clickedSlot.getChoice(SlotPosition.values()[choicePos]).get();
             if (!canEnchant(player, enchantmentId, level)) {
                 return super.onButtonClick(player, id);
             }
-            clickedSlot.setChosen(Slots.values()[choiceSlot], level);
+            clickedSlot.setChosen(SlotPosition.values()[choicePos], level);
         }
         slots.updateItemStack(itemStack);
         player.playSound(SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, SoundCategory.BLOCKS, 0.5f, 1f);

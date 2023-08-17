@@ -36,15 +36,15 @@ public abstract class IdentifierGlobTagList<T> extends IdentifierGlobList<T> {
     public boolean contains(Identifier id) {
         return super.contains(id) ||
             getRegistry().streamTags()
-            .filter(tag -> tags.getOrDefault(tag.id().getNamespace(), List.of()).stream().anyMatch(g -> g.engine().matches(tag.id().getPath())))
+            .filter(tag -> tags.getOrDefault(tag.id().getNamespace(), List.of()).stream().anyMatch(glob -> glob.engine().matches(tag.id().getPath())))
             .anyMatch(tag -> ModTags.isIn(id, tag, getRegistry()));
     }
 
     @Override
     public JsonArray toJson() {
         return (JsonArray)JANKSON.toJson(Stream.concat(
-            tags.entrySet().stream().flatMap(kvp -> kvp.getValue().stream().map(g -> "#" + kvp.getKey() + ":" + g.pattern())),
-            globs.entrySet().stream().flatMap(kvp -> kvp.getValue().stream().map(g -> kvp.getKey() + ":" + g.pattern()))
+            tags.entrySet().stream().flatMap(kvp -> kvp.getValue().stream().map(glob -> "#" + kvp.getKey() + ":" + glob.pattern())),
+            globs.entrySet().stream().flatMap(kvp -> kvp.getValue().stream().map(glob -> kvp.getKey() + ":" + glob.pattern()))
         ).toList());
     }
 

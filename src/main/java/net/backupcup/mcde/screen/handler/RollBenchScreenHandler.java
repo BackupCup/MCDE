@@ -10,7 +10,7 @@ import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.block.ModBlocks;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
-import net.backupcup.mcde.util.Slots;
+import net.backupcup.mcde.util.SlotPosition;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -37,14 +37,14 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
     private final Inventory inventory = new SimpleInventory(2);
     private final ScreenHandlerContext context;
     private final PlayerEntity player;
-    private Map<Slots, Boolean> locked = new EnumMap<>(Map.of(Slots.FIRST, false, Slots.SECOND, false, Slots.THIRD, false));
+    private Map<SlotPosition, Boolean> locked = new EnumMap<>(Map.of(SlotPosition.FIRST, false, SlotPosition.SECOND, false, SlotPosition.THIRD, false));
     public static final Identifier LOCKED_SLOTS_PACKET = Identifier.of(MCDEnchantments.MOD_ID, "locked_slots");
 
     public Inventory getInventory() {
         return inventory;
     }
 
-    public boolean isSlotLocked(Slots slot) {
+    public boolean isSlotLocked(SlotPosition slot) {
         return locked.get(slot);
     }
 
@@ -95,11 +95,11 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
         ItemStack lapisLazuliStack = inventory.getStack(1);
         EnchantmentSlots slots = EnchantmentSlots.fromItemStack(itemStack);
 
-        var slotsSize = Slots.values().length;
-        var clickedSlot = slots.getSlot(Slots.values()[id / slotsSize]).get();
-        Slots toChange;
+        var slotsSize = SlotPosition.values().length;
+        var clickedSlot = slots.getEnchantmentSlot(SlotPosition.values()[id / slotsSize]).get();
+        SlotPosition toChange;
         Identifier enchantmentId;
-        var newEnchantment = generateEnchantment(player, clickedSlot.getSlot());
+        var newEnchantment = generateEnchantment(player, clickedSlot.getSlotPosition());
         if (newEnchantment.isEmpty()) {
             return super.onButtonClick(player, id);
         }
@@ -112,9 +112,9 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
                 return super.onButtonClick(player, id);
             }
             clickedSlot.clearChoice();
-            toChange = chosen.getChoiceSlot();
+            toChange = chosen.getChoicePosition();
         } else {
-            toChange = Slots.values()[id % slotsSize];
+            toChange = SlotPosition.values()[id % slotsSize];
             enchantmentId = clickedSlot.getChoice(toChange).get();
 
             if (!canReroll(player, enchantmentId, slots)) {
@@ -193,7 +193,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
         }
     }
 
-    public List<Identifier> getCandidatesForReroll(Slots clickedSlot) {
+    public List<Identifier> getCandidatesForReroll(SlotPosition clickedSlot) {
         var itemStack = inventory.getStack(0);
         var slots = EnchantmentSlots.fromItemStack(itemStack);
         var candidates = EnchantmentUtils.getEnchantmentsNotInItem(itemStack);
@@ -201,7 +201,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
             return candidates.toList();
         }
         var enchantmentsNotInClickedSlot =
-            slots.stream().filter(s -> !s.getSlot().equals(clickedSlot))
+            slots.stream().filter(s -> !s.getSlotPosition().equals(clickedSlot))
             .flatMap(s -> s.choices().stream())
             .map(c -> c.getEnchantmentId())
             .toList();
@@ -211,7 +211,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
         return candidates.collect(Collectors.toList());
     }
 
-    public Optional<Identifier> generateEnchantment(PlayerEntity player, Slots clickedSlot) {
+    public Optional<Identifier> generateEnchantment(PlayerEntity player, SlotPosition clickedSlot) {
         return EnchantmentUtils.generateEnchantment(
             inventory.getStack(0),
             context.get((world, pos) -> world.getServer().getPlayerManager().getPlayer(player.getUuid())),
@@ -222,10 +222,10 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
     private void sendLockedSlots(EnchantmentSlots slots, PlayerEntity player) {
         var buffer = PacketByteBufs.create();
         var locked = slots.stream().collect(Collectors.toMap(
-            s -> s.getSlot(),
-            s -> generateEnchantment(player, s.getSlot()).isEmpty(),
+            s -> s.getSlotPosition(),
+            s -> generateEnchantment(player, s.getSlotPosition()).isEmpty(),
             (lhs, rhs) -> lhs,
-            () -> new EnumMap<>(Slots.class)
+            () -> new EnumMap<>(SlotPosition.class)
         ));
         buffer.writeInt(syncId);
         buffer.writeMap(locked, (buf, s) -> buf.writeEnumConstant(s), (buf, b) -> buf.writeBoolean(b));
@@ -248,7 +248,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
             return;
         }
 
-        var map = buf.readMap(b -> b.readEnumConstant(Slots.class), b -> b.readBoolean());
+        var map = buf.readMap(b -> b.readEnumConstant(SlotPosition.class), b -> b.readBoolean());
 
         if (screenHandler instanceof RollBenchScreenHandler rbScreenHandler) {
             client.execute(() -> {

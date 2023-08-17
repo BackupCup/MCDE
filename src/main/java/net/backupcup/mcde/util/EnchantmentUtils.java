@@ -1,8 +1,8 @@
 package net.backupcup.mcde.util;
 
-import static net.backupcup.mcde.util.Slots.FIRST;
-import static net.backupcup.mcde.util.Slots.SECOND;
-import static net.backupcup.mcde.util.Slots.THIRD;
+import static net.backupcup.mcde.util.SlotPosition.FIRST;
+import static net.backupcup.mcde.util.SlotPosition.SECOND;
+import static net.backupcup.mcde.util.SlotPosition.THIRD;
 import static net.minecraft.util.registry.Registry.ENCHANTMENT;
 
 import java.util.Arrays;
@@ -74,8 +74,8 @@ public class EnchantmentUtils {
         return MCDEnchantments.getConfig().isEnchantmentPowerful(id) ? Formatting.RED : Formatting.LIGHT_PURPLE;
     }
 
-    public static EnchantmentSlots generateEnchantments(ItemStack itemStack, Optional<ServerPlayerEntity> player) {
-        return generateEnchantments(itemStack, player, new LocalRandom(System.nanoTime()));
+    public static EnchantmentSlots generateEnchantments(ItemStack itemStack, Optional<ServerPlayerEntity> optionalPlayer) {
+        return generateEnchantments(itemStack, optionalPlayer, new LocalRandom(System.nanoTime()));
     }
 
     public static boolean isCompatible(Collection<Identifier> present, Identifier enchantment) {
@@ -102,7 +102,7 @@ public class EnchantmentUtils {
         return -significance * baseChance + significance;
     }
 
-    public static EnchantmentSlots generateEnchantments(ItemStack itemStack, Optional<ServerPlayerEntity> player, Random random) {
+    public static EnchantmentSlots generateEnchantments(ItemStack itemStack, Optional<ServerPlayerEntity> optionalPlayer, Random random) {
         var enchantability = itemStack.getItem().getEnchantability();
         var builder = EnchantmentSlots.builder();
         var pool = getEnchantmentsForItem(itemStack).collect(ObjectArrayList.toList());
@@ -112,13 +112,13 @@ public class EnchantmentUtils {
         float secondSlotChance = MCDEnchantments.getConfig().getSecondSlotBaseChance();
         float thirdSlotChance = MCDEnchantments.getConfig().getThirdSlotBaseChance();
 
-        if (player.isPresent()) {
-            var advancementModifier = calculateAdvancementModifiers(player.get());
+        if (optionalPlayer.isPresent()) {
+            var advancementModifier = calculateAdvancementModifiers(optionalPlayer.get());
             secondSlotChance += advancementModifier.getSecondChance();
             thirdSlotChance += advancementModifier.getThirdChance();
             secondSlotChance += calculateEnchantabilityModifier(secondSlotChance, enchantability);
             thirdSlotChance += calculateEnchantabilityModifier(thirdSlotChance, enchantability);
-            pool.removeIf(getLockedEnchantments(player.get())::contains);
+            pool.removeIf(getLockedEnchantments(optionalPlayer.get())::contains);
         };
 
         if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
@@ -212,12 +212,12 @@ public class EnchantmentUtils {
     }
 
 
-    public static Optional<Identifier> generateEnchantment(ItemStack itemStack, Optional<ServerPlayerEntity> owner) {
-        return generateEnchantment(itemStack, owner, new LocalRandom(System.nanoTime()), getPossibleCandidates(itemStack));
+    public static Optional<Identifier> generateEnchantment(ItemStack itemStack, Optional<ServerPlayerEntity> optionalOwner) {
+        return generateEnchantment(itemStack, optionalOwner, new LocalRandom(System.nanoTime()), getPossibleCandidates(itemStack));
     }
 
-    public static Optional<Identifier> generateEnchantment(ItemStack itemStack, Optional<ServerPlayerEntity> owner, List<Identifier> candidates) {
-        return generateEnchantment(itemStack, owner, new LocalRandom(System.nanoTime()), candidates);
+    public static Optional<Identifier> generateEnchantment(ItemStack itemStack, Optional<ServerPlayerEntity> optionalOwner, List<Identifier> candidates) {
+        return generateEnchantment(itemStack, optionalOwner, new LocalRandom(System.nanoTime()), candidates);
     }
 
     public static Set<Identifier> getLockedEnchantments(ServerPlayerEntity player) {
@@ -233,11 +233,11 @@ public class EnchantmentUtils {
         return unlocks.get(false);
     }
 
-    public static Optional<Identifier> generateEnchantment(ItemStack itemStack, Optional<ServerPlayerEntity> owner, Random random, List<Identifier> candidates) {
+    public static Optional<Identifier> generateEnchantment(ItemStack itemStack, Optional<ServerPlayerEntity> optionalOwner, Random random, List<Identifier> candidates) {
         if (candidates.isEmpty()) {
             return Optional.empty();
         }
-        owner.ifPresent(p -> candidates.removeIf(getLockedEnchantments(p)::contains));
+        optionalOwner.ifPresent(player -> candidates.removeIf(getLockedEnchantments(player)::contains));
         return candidates.isEmpty() ? Optional.empty() : Optional.of(candidates.get(random.nextInt(candidates.size())));
     }
 

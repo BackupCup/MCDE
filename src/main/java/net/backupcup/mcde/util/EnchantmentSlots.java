@@ -19,19 +19,19 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
 
 public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
-    private Map<Slots, EnchantmentSlot> slots;
+    private Map<SlotPosition, EnchantmentSlot> slots;
     private Optional<Identifier> gilding;
     private int nextRerollCost;
     private int nextRerollCostPowerful;
 
-    public EnchantmentSlots(Map<Slots, EnchantmentSlot> slots, Optional<Identifier> gilding, int nextRerollCost, int nextRerollCostPowerful) {
+    public EnchantmentSlots(Map<SlotPosition, EnchantmentSlot> slots, Optional<Identifier> gilding, int nextRerollCost, int nextRerollCostPowerful) {
         this.slots = slots;
         this.gilding = gilding;
         this.nextRerollCost = nextRerollCost;
         this.nextRerollCostPowerful = nextRerollCostPowerful;
     }
 
-    public EnchantmentSlots(Map<Slots, EnchantmentSlot> slots) {
+    public EnchantmentSlots(Map<SlotPosition, EnchantmentSlot> slots) {
         this(
             slots,
             Optional.empty(),
@@ -77,19 +77,19 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
     }
 
     public static class Builder {
-        private Map<Slots, EnchantmentSlot> slots = new EnumMap<>(Slots.class);
+        private Map<SlotPosition, EnchantmentSlot> slots = new EnumMap<>(SlotPosition.class);
 
-        public Builder withSlot(Slots slot, Identifier first) {
+        public Builder withSlot(SlotPosition slot, Identifier first) {
             slots.put(slot, EnchantmentSlot.of(slot, first));
             return this;
         }
 
-        public Builder withSlot(Slots slot, Identifier first, Identifier second) {
+        public Builder withSlot(SlotPosition slot, Identifier first, Identifier second) {
             slots.put(slot, EnchantmentSlot.of(slot, first, second));
             return this;
         }
 
-        public Builder withSlot(Slots slot, Identifier first, Identifier second, Identifier third) {
+        public Builder withSlot(SlotPosition slot, Identifier first, Identifier second, Identifier third) {
             slots.put(slot, EnchantmentSlot.of(slot, first, second, third));
             return this;
         }
@@ -113,9 +113,8 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
         return new Builder();
     }
 
-    public Optional<EnchantmentSlot> getSlot(Slots slot) {
-        return slots.size() > slot.ordinal() ?
-            Optional.of(slots.get(slot)) : Optional.empty();
+    public Optional<EnchantmentSlot> getEnchantmentSlot(SlotPosition pos) {
+        return Optional.ofNullable(slots.get(pos));
     }
 
     @Override
@@ -144,8 +143,8 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
         var slots = nbt.getCompound("Slots");
         return new EnchantmentSlots(slots.getKeys().stream()
                 .collect(Collectors.toMap(
-                    key -> Slots.valueOf(key),
-                    key -> EnchantmentSlot.fromNbt(slots.getCompound(key), Slots.valueOf(key))
+                    key -> SlotPosition.valueOf(key),
+                    key -> EnchantmentSlot.fromNbt(slots.getCompound(key), SlotPosition.valueOf(key))
                 )), Optional.ofNullable(nbt.getString("Gilding")).filter(id -> !id.isEmpty()).map(Identifier::tryParse),
                 nbt.getCompound("NextRerollCost").getInt("Normal"),
                 nbt.getCompound("NextRerollCost").getInt("Powerful"));
