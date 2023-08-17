@@ -223,13 +223,14 @@ public class EnchantmentUtils {
     public static Set<Identifier> getLockedEnchantments(ServerPlayerEntity player) {
         var advancements = player.server.getAdvancementLoader().getAdvancements();
         var tracker = player.getAdvancementTracker();
-        var unlocks = MCDEnchantments.getConfig().getUnlocks();
-        return unlocks.stream()
-            .filter(u -> advancements.stream()
+        var unlocks = MCDEnchantments.getConfig().getUnlocks().stream()
+            .collect(Collectors.partitioningBy(u -> advancements.stream()
                 .filter(u.getAdvancements()::contains)
-                .anyMatch(a -> !tracker.getProgress(a).isDone()))
-            .flatMap(u -> getEnchantmentStream().filter(u.getEnchantments()::contains))
-            .collect(Collectors.toSet());
+                .allMatch(a -> tracker.getProgress(a).isDone()),
+                Collectors.flatMapping(u -> getEnchantmentStream().filter(u.getEnchantments()::contains),
+                    Collectors.toSet())));
+        unlocks.get(false).removeIf(unlocks.get(true)::contains);
+        return unlocks.get(false);
     }
 
     public static Optional<Identifier> generateEnchantment(ItemStack itemStack, Optional<ServerPlayerEntity> owner, Random random, List<Identifier> candidates) {

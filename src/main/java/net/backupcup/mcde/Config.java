@@ -483,7 +483,8 @@ public class Config {
     
     @Comment("List of entries which define what enchantments would unlock after obtaining certain advancements\n" + 
              "'advancements' field supports globs, so you can specify \"minecraft:story/enter_*\" to mark all advancements which start with 'story/enter_'\n" +
-             "'enchantments' field supports all features 'list' supports")
+             "'enchantments' field supports all features 'list' supports\n" +
+             "If entries have overlapping enchantments, they will be unlocked when only one of the entries is done (i.e. all advancements from this entry are obtained)")
     private List<Unlock> unlocks = new ArrayList<>(List.of(new Unlock(
         new AdvancementList("minecraft:story/enter_the_end"),
         new EnchantmentList("#c:powerful")
