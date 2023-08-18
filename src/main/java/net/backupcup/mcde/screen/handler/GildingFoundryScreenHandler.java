@@ -45,7 +45,7 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
         return inventory;
     }
 
-    public boolean hasNewEnchantment() {
+    public boolean hasEnchantmentForGilding() {
         return generatedEnchantment.isPresent();
     }
 
