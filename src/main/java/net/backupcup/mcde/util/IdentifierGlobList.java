@@ -41,7 +41,7 @@ public abstract class IdentifierGlobList<T> {
 
     public boolean contains(Identifier id) {
         return globs.getOrDefault(id.getNamespace(), List.of()).stream()
-            .anyMatch(g -> g.engine.matches(id.getPath()));
+            .anyMatch(glob -> glob.engine.matches(id.getPath()));
     }
 
     public boolean contains(T obj) {
@@ -52,15 +52,15 @@ public abstract class IdentifierGlobList<T> {
 
     public JsonArray toJson() {
         return (JsonArray)JANKSON.toJson(globs.entrySet().stream()
-                .flatMap(kvp -> kvp.getValue().stream().map(g -> kvp.getKey() + ":" + g.pattern)).toList());
+                .flatMap(kvp -> kvp.getValue().stream().map(glob -> kvp.getKey() + ":" + glob.pattern)).toList());
     }
 
     protected static Collector<String, ?, Map<String, List<Glob>>> toGlobs() {
         return Collectors.mapping(
-            g -> g.split(":", 2),
+            glob -> glob.split(":", 2),
             Collectors.groupingBy(
-                a -> a[0],
-                Collectors.mapping(a -> new Glob(a[1]), Collectors.toList())
+                parts -> parts[0],
+                Collectors.mapping(parts -> new Glob(parts[1]), Collectors.toList())
             )
         );
     }
