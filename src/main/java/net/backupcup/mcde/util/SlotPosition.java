@@ -1,5 +1,5 @@
 package net.backupcup.mcde.util;
 
-public enum Slots {
+public enum SlotPosition {
     FIRST, SECOND, THIRD
 }
