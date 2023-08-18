@@ -220,6 +220,9 @@ public class EnchantmentUtils {
     }
 
     public static Set<Identifier> getLockedEnchantments(ServerPlayerEntity player) {
+        if (player.isCreative()) {
+            return Set.of();
+        }
         var advancements = player.server.getAdvancementLoader().getAdvancements();
         var tracker = player.getAdvancementTracker();
         var unlocks = MCDEnchantments.getConfig().getUnlocks().stream()
