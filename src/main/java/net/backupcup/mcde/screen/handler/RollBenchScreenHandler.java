@@ -207,7 +207,12 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
             .toList();
         candidates = candidates.filter(id -> EnchantmentUtils.isCompatible(enchantmentsNotInClickedSlot, id))
             .filter(id -> EnchantmentUtils.isCompatible(EnchantmentHelper.get(itemStack).keySet().stream()
-                        .map(EnchantmentUtils::getEnchantmentId).toList(), id));
+                        .map(EnchantmentUtils::getEnchantmentId)
+                        .filter(enchantmentId -> slots.getEnchantmentSlot(clickedSlot)
+                            .flatMap(slot -> slot.getChosen())
+                            .map(c -> !c.getEnchantmentId().equals(enchantmentId))
+                            .orElse(true))
+                        .toList(), id));
         return candidates.collect(Collectors.toList());
     }
 
@@ -256,7 +261,6 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
             });
         }
     }
-
 
     @Override
     public void onPropertyUpdate(ScreenHandler handler, int property, int value) {
