@@ -73,7 +73,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
         this.addSlot(new Slot(inventory, 1, 145, 52) {
             @Override
             public boolean canInsert(ItemStack stack) {
-                return (stack.getItem() == Items.LAPIS_LAZULI);
+                return stack.isOf(Items.LAPIS_LAZULI) || stack.isOf(Items.ECHO_SHARD);
             }
 
             @Override

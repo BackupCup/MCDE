@@ -24,6 +24,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -32,6 +33,14 @@ import net.minecraft.util.Identifier;
 @Environment(EnvType.CLIENT)
 public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> implements ScreenWithSlots {
     private Inventory inventory;
+
+    private static enum RerollItemSilouette {
+        LAPIS, SHARD;
+    }
+
+    private RerollItemSilouette silouette = RerollItemSilouette.LAPIS;
+
+    private float silouetteTimer = 0f;
 
     private static Pattern wrap = Pattern.compile("(\\b.{1,40})(?:\\s+|$)");
 
@@ -78,6 +87,28 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         int posX = ((width - backgroundWidth) / 2) - 2;
         int posY = (height - backgroundHeight) / 2;
         drawTexture(matrices, posX, posY, 0, 0, backgroundWidth + 10, backgroundHeight);
+
+        silouetteTimer += delta;
+        drawTexture(matrices, posX + 146, posY + 51, switch (silouette) {
+            case LAPIS -> 0;
+            case SHARD -> 18;
+        }, 222, 18, 18);
+
+        if (inventory.getStack(1).isEmpty() && silouetteTimer > 20f) {
+            silouette = switch (silouette) {
+                case LAPIS -> RerollItemSilouette.SHARD;
+                case SHARD -> RerollItemSilouette.LAPIS;
+            };
+        } else if (inventory.getStack(1).isOf(Items.LAPIS_LAZULI)) {
+            silouette = RerollItemSilouette.LAPIS;
+        } else if (inventory.getStack(1).isOf(Items.ECHO_SHARD)) {
+            silouette = RerollItemSilouette.SHARD;
+        }
+
+        if (silouetteTimer > 20f) {
+            silouetteTimer = 0;
+        }
+
     }
 
     @Override
@@ -146,6 +177,24 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         renderBackground(matrices);
         super.render(matrices, mouseX, mouseY, delta);
         RenderSystem.setShaderTexture(0, TEXTURE);
+
+        int posX = ((width - backgroundWidth) / 2) - 2;
+        int posY = (height - backgroundHeight) / 2;
+        boolean drawRerollButtonTooltip = false;
+        if (inventory.getStack(1).isOf(Items.ECHO_SHARD)) {
+            int rerollButtonPosX = posX + 168;
+            int rerollButtonPosY = posY + 34;
+            int textureButtonX;
+            if (inventory.getStack(0).isEmpty()) {
+                textureButtonX = 0;
+            } else if (isInBounds(rerollButtonPosX, rerollButtonPosY, mouseX, mouseY, 0, 12, 0, 35)) {
+                textureButtonX = 24;
+                drawRerollButtonTooltip = true;
+            } else {
+                textureButtonX = 12;
+            }
+            drawTexture(matrices, rerollButtonPosX, rerollButtonPosY, textureButtonX, 187, 12, 35);
+        }
         ItemStack itemStack = inventory.getStack(0);
         var slots = EnchantmentSlots.fromItemStack(itemStack);
         if (itemStack.isEmpty() || slots == null) {
@@ -155,6 +204,9 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         }
 
         Optional<Choice> hoveredChoice = slotsRenderer.render(matrices, itemStack, mouseX, mouseY);
+        if (drawRerollButtonTooltip) {
+            renderTooltip(matrices, formatDescription("message.mcde.reroll_button.desc"), mouseX, mouseY);
+        }
 
         if (hoveredChoice.isEmpty()) {
             drawMouseoverTooltip(matrices, mouseX, mouseY);
@@ -175,11 +227,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         }
         tooltipLines.add(enchantmentName);
 
-        Text enchantmentDescription = Text.translatable(translationKey + ".desc");
-        List<MutableText> desc = wrap.matcher(enchantmentDescription.getString())
-            .results().map(res -> Text.literal(res.group(1)).formatted(Formatting.GRAY))
-            .toList();
-        tooltipLines.addAll(desc);
+        tooltipLines.addAll(formatDescription(translationKey + ".desc"));
         if (!canReroll) {
             tooltipLines.add(Text.translatable("message.mcde.not_enough_lapis")
                     .formatted(Formatting.DARK_RED, Formatting.ITALIC));
@@ -204,5 +252,18 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
     @Override
     public void setOpened(Optional<SlotPosition> opened) {
         this.opened = opened;
+    }
+
+    private static List<Text> formatDescription(String translationKey) {
+        return wrap.matcher(Text.translatable(translationKey).getString())
+            .results().map(res -> (Text)Text.literal(res.group(1)).formatted(Formatting.GRAY))
+            .toList();
+    }
+
+    private static boolean isInBounds(int posX, int posY, int mouseX, int mouseY, int startX, int endX, int startY, int endY) {
+        return mouseX >= posX + startX &&
+               mouseX <= posX + endX &&
+               mouseY >= posY + startY &&
+               mouseY <= posY + endY;
     }
 }
