@@ -12,6 +12,7 @@ import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.screen.handler.RollBenchScreenHandler;
 import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
 import net.backupcup.mcde.screen.util.ScreenWithSlots;
+import net.backupcup.mcde.screen.util.TexturePos;
 import net.backupcup.mcde.util.Choice;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -50,6 +51,9 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
 
     private EnchantmentSlotsRenderer slotsRenderer;
 
+    private TexturePos rerollButton;
+    private boolean drawRerollButton;
+
     public RollBenchScreen(RollBenchScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
         this.inventory = handler.getInventory();
@@ -75,6 +79,8 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
                         handler.isSlotLocked(choice.getEnchantmentSlot().getSlotPosition());
                 })
                 .build();
+        drawRerollButton = client.player.isCreative();
+        rerollButton = TexturePos.of(posX + 168, posY + 34);
     }
 
     @Override
@@ -88,12 +94,12 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         int posY = (height - backgroundHeight) / 2;
         drawTexture(matrices, posX, posY, 0, 0, backgroundWidth + 10, backgroundHeight);
 
-        silouetteTimer += delta;
         drawTexture(matrices, posX + 146, posY + 51, switch (silouette) {
             case LAPIS -> 0;
             case SHARD -> 18;
-        }, 222, 18, 18);
+        }, 215, 18, 18);
 
+        silouetteTimer += delta;
         if (inventory.getStack(1).isEmpty() && silouetteTimer > 20f) {
             silouette = switch (silouette) {
                 case LAPIS -> RerollItemSilouette.SHARD;
@@ -169,6 +175,10 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         }
         opened = Optional.empty();
 
+        if (drawRerollButton && !inventory.getStack(0).isEmpty() && isRerollButtonHovered((int)mouseX, (int)mouseY)) {
+            client.interactionManager.clickButton(handler.syncId, RollBenchScreenHandler.REROLL_BUTTON_ID);
+        }
+
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
@@ -178,22 +188,17 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         super.render(matrices, mouseX, mouseY, delta);
         RenderSystem.setShaderTexture(0, TEXTURE);
 
-        int posX = ((width - backgroundWidth) / 2) - 2;
-        int posY = (height - backgroundHeight) / 2;
-        boolean drawRerollButtonTooltip = false;
-        if (inventory.getStack(1).isOf(Items.ECHO_SHARD)) {
-            int rerollButtonPosX = posX + 168;
-            int rerollButtonPosY = posY + 34;
+        drawRerollButton = inventory.getStack(1).isOf(Items.ECHO_SHARD) || client.player.isCreative();
+        if (drawRerollButton) {
             int textureButtonX;
             if (inventory.getStack(0).isEmpty()) {
                 textureButtonX = 0;
-            } else if (isInBounds(rerollButtonPosX, rerollButtonPosY, mouseX, mouseY, 0, 12, 0, 35)) {
-                textureButtonX = 24;
-                drawRerollButtonTooltip = true;
+            } else if (isRerollButtonHovered(mouseX, mouseY)) {
+                textureButtonX = 50;
             } else {
-                textureButtonX = 12;
+                textureButtonX = 25;
             }
-            drawTexture(matrices, rerollButtonPosX, rerollButtonPosY, textureButtonX, 187, 12, 35);
+            drawTexture(matrices, rerollButton.x(), rerollButton.y(), textureButtonX, 187, 25, 28);
         }
         ItemStack itemStack = inventory.getStack(0);
         var slots = EnchantmentSlots.fromItemStack(itemStack);
@@ -204,9 +209,6 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         }
 
         Optional<Choice> hoveredChoice = slotsRenderer.render(matrices, itemStack, mouseX, mouseY);
-        if (drawRerollButtonTooltip) {
-            renderTooltip(matrices, formatDescription("message.mcde.reroll_button.desc"), mouseX, mouseY);
-        }
 
         if (hoveredChoice.isEmpty()) {
             drawMouseoverTooltip(matrices, mouseX, mouseY);
@@ -265,5 +267,9 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
                mouseX <= posX + endX &&
                mouseY >= posY + startY &&
                mouseY <= posY + endY;
+    }
+
+    private boolean isRerollButtonHovered(int mouseX, int mouseY) {
+        return isInBounds(rerollButton.x(), rerollButton.y(), mouseX, mouseY, 0, 25, 0, 28);
     }
 }
