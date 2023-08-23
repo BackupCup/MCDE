@@ -200,12 +200,14 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
             .results().map(res -> Text.literal(res.group(1)).formatted(Formatting.GRAY))
             .toList();
         tooltipLines.addAll(desc);
-        if (!enoughLevels) {
-            tooltipLines.add(Text.translatable("message.mcde.not_enough_levels").formatted(Formatting.DARK_RED, Formatting.ITALIC));
+        if (!hovered.isMaxedOut() && !client.player.isCreative()) {
             tooltipLines.add(Text.translatable(
                         "message.mcde.levels_required",
                         MCDEnchantments.getConfig().getEnchantCost(enchantmentId, level)
                         ).formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
+        }
+        if (!enoughLevels) {
+            tooltipLines.add(Text.translatable("message.mcde.not_enough_levels").formatted(Formatting.DARK_RED, Formatting.ITALIC));
         }
 
         if (!hovered.isChosen()) {

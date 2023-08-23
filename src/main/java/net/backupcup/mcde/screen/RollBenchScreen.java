@@ -230,13 +230,15 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         tooltipLines.add(enchantmentName);
 
         tooltipLines.addAll(formatDescription(translationKey + ".desc"));
+        if (!client.player.isCreative()) {
+            tooltipLines.add(Text.translatable(
+                        "message.mcde.lapis_required",
+                        slots.getNextRerollCost(enchantment))
+                    .formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
+        }
         if (!canReroll) {
             tooltipLines.add(Text.translatable("message.mcde.not_enough_lapis")
                     .formatted(Formatting.DARK_RED, Formatting.ITALIC));
-            tooltipLines.add(Text.translatable(
-                    "message.mcde.lapis_required",
-                    slots.getNextRerollCost(enchantment))
-                .formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
         }
         if (handler.isSlotLocked(hovered.getEnchantmentSlot().getSlotPosition())) {
             tooltipLines.add(Text.translatable("message.mcde.cant_generate").formatted(Formatting.DARK_RED, Formatting.ITALIC));
