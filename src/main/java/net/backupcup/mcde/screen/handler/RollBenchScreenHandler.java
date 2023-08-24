@@ -39,6 +39,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
     private final PlayerEntity player;
     private Map<SlotPosition, Boolean> locked = new EnumMap<>(Map.of(SlotPosition.FIRST, false, SlotPosition.SECOND, false, SlotPosition.THIRD, false));
     public static final Identifier LOCKED_SLOTS_PACKET = Identifier.of(MCDEnchantments.MOD_ID, "locked_slots");
+    public static final int REROLL_BUTTON_ID = -1;
 
     public Inventory getInventory() {
         return inventory;
@@ -73,7 +74,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
         this.addSlot(new Slot(inventory, 1, 145, 52) {
             @Override
             public boolean canInsert(ItemStack stack) {
-                return (stack.getItem() == Items.LAPIS_LAZULI);
+                return stack.isOf(Items.LAPIS_LAZULI) || stack.isOf(Items.ECHO_SHARD);
             }
 
             @Override
@@ -92,9 +93,32 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
     @Override
     public boolean onButtonClick(PlayerEntity player, int id) {
         ItemStack itemStack = inventory.getStack(0);
-        ItemStack lapisLazuliStack = inventory.getStack(1);
+        ItemStack rerollMaterialStack = inventory.getStack(1);
         EnchantmentSlots slots = EnchantmentSlots.fromItemStack(itemStack);
-
+        if (id == REROLL_BUTTON_ID) {
+            var serverPlayer = context.get((world, pos) -> world.getServer().getPlayerManager().getPlayer(player.getUuid()));
+            var gilding = slots.getGilding();
+            EnchantmentSlots newSlots;
+            if (MCDEnchantments.getConfig().doesFullRerollRemoveSlots()) {
+                newSlots = EnchantmentUtils.generateEnchantments(itemStack, serverPlayer);
+            } else {
+                newSlots = EnchantmentUtils.generateEnchantments(
+                    itemStack,
+                    serverPlayer,
+                    Optional.empty(),
+                    slots.getEnchantmentSlot(SlotPosition.SECOND).map(slot -> 1f),
+                    slots.getEnchantmentSlot(SlotPosition.THIRD).map(slot -> 1f)
+                );
+            }
+            gilding.ifPresent(enchantmentId -> newSlots.setGilding(enchantmentId));
+            newSlots.updateItemStack(itemStack);
+            if (!player.isCreative()) {
+                rerollMaterialStack.decrement(1);
+            }
+            player.playSound(SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, SoundCategory.BLOCKS, 0.5f, 1f);
+            inventory.markDirty();
+            return false;
+        }
         var slotsSize = SlotPosition.values().length;
         var clickedSlot = slots.getEnchantmentSlot(SlotPosition.values()[id / slotsSize]).get();
         SlotPosition toChange;
@@ -124,7 +148,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
 
         clickedSlot.changeEnchantment(toChange, newEnchantment.get());
         if (!player.isCreative()) {
-            lapisLazuliStack.decrement(slots.getNextRerollCost(enchantmentId));
+            rerollMaterialStack.decrement(slots.getNextRerollCost(enchantmentId));
         }
         MCDEnchantments.getConfig().getRerollCostParameters().updateCost(slots);
         slots.updateItemStack(itemStack);

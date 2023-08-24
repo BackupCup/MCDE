@@ -318,6 +318,10 @@ public class Config {
         return allowUsingEnchantingTable;
     }
 
+    public boolean doesFullRerollRemoveSlots() {
+        return fullRerollCanRemoveSlots;
+    }
+
     public boolean isAvailabilityForRandomSelectionRespected() {
         return respectAvailabilityForRandomSelection;
     }
@@ -415,6 +419,9 @@ public class Config {
         new RerollCost(30, 3, 3),
         new RerollCost(50, 5, 5)
     );
+
+    @Comment("Whether a full reroll of enchantment slots can decrease amount of them")
+    private boolean fullRerollCanRemoveSlots = true;
 
     @Comment("Allow mixing items in anvil\n" +
              "On true, vanilla anvil behaviour is applied")

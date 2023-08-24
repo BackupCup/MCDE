@@ -12,6 +12,7 @@ import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.screen.handler.RollBenchScreenHandler;
 import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
 import net.backupcup.mcde.screen.util.ScreenWithSlots;
+import net.backupcup.mcde.screen.util.TexturePos;
 import net.backupcup.mcde.util.Choice;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -24,6 +25,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -33,6 +35,14 @@ import net.minecraft.util.Identifier;
 public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> implements ScreenWithSlots {
     private Inventory inventory;
 
+    private static enum RerollItemSilouette {
+        LAPIS, SHARD;
+    }
+
+    private RerollItemSilouette silouette = RerollItemSilouette.LAPIS;
+
+    private float silouetteTimer = 0f;
+
     private static Pattern wrap = Pattern.compile("(\\b.{1,40})(?:\\s+|$)");
 
     private Optional<SlotPosition> opened = Optional.empty();
@@ -40,6 +50,9 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
     private static final Identifier TEXTURE = new Identifier(MCDEnchantments.MOD_ID, "textures/gui/roll_bench.png");
 
     private EnchantmentSlotsRenderer slotsRenderer;
+
+    private TexturePos rerollButton;
+    private boolean drawRerollButton;
 
     public RollBenchScreen(RollBenchScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
@@ -66,6 +79,8 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
                         handler.isSlotLocked(choice.getEnchantmentSlot().getSlotPosition());
                 })
                 .build();
+        drawRerollButton = client.player.isCreative();
+        rerollButton = TexturePos.of(posX + 168, posY + 34);
     }
 
     @Override
@@ -78,6 +93,28 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         int posX = ((width - backgroundWidth) / 2) - 2;
         int posY = (height - backgroundHeight) / 2;
         drawTexture(matrices, posX, posY, 0, 0, backgroundWidth + 10, backgroundHeight);
+
+        drawTexture(matrices, posX + 146, posY + 51, switch (silouette) {
+            case LAPIS -> 0;
+            case SHARD -> 18;
+        }, 215, 18, 18);
+
+        silouetteTimer += delta;
+        if (inventory.getStack(1).isEmpty() && silouetteTimer > 20f) {
+            silouette = switch (silouette) {
+                case LAPIS -> RerollItemSilouette.SHARD;
+                case SHARD -> RerollItemSilouette.LAPIS;
+            };
+        } else if (inventory.getStack(1).isOf(Items.LAPIS_LAZULI)) {
+            silouette = RerollItemSilouette.LAPIS;
+        } else if (inventory.getStack(1).isOf(Items.ECHO_SHARD)) {
+            silouette = RerollItemSilouette.SHARD;
+        }
+
+        if (silouetteTimer > 20f) {
+            silouetteTimer = 0;
+        }
+
     }
 
     @Override
@@ -138,6 +175,10 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         }
         opened = Optional.empty();
 
+        if (drawRerollButton && !inventory.getStack(0).isEmpty() && isRerollButtonHovered((int)mouseX, (int)mouseY)) {
+            client.interactionManager.clickButton(handler.syncId, RollBenchScreenHandler.REROLL_BUTTON_ID);
+        }
+
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
@@ -146,6 +187,19 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         renderBackground(matrices);
         super.render(matrices, mouseX, mouseY, delta);
         RenderSystem.setShaderTexture(0, TEXTURE);
+
+        drawRerollButton = inventory.getStack(1).isOf(Items.ECHO_SHARD) || client.player.isCreative();
+        if (drawRerollButton) {
+            int textureButtonX;
+            if (inventory.getStack(0).isEmpty()) {
+                textureButtonX = 0;
+            } else if (isRerollButtonHovered(mouseX, mouseY)) {
+                textureButtonX = 50;
+            } else {
+                textureButtonX = 25;
+            }
+            drawTexture(matrices, rerollButton.x(), rerollButton.y(), textureButtonX, 187, 25, 28);
+        }
         ItemStack itemStack = inventory.getStack(0);
         var slots = EnchantmentSlots.fromItemStack(itemStack);
         if (itemStack.isEmpty() || slots == null) {
@@ -175,18 +229,16 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         }
         tooltipLines.add(enchantmentName);
 
-        Text enchantmentDescription = Text.translatable(translationKey + ".desc");
-        List<MutableText> desc = wrap.matcher(enchantmentDescription.getString())
-            .results().map(res -> Text.literal(res.group(1)).formatted(Formatting.GRAY))
-            .toList();
-        tooltipLines.addAll(desc);
+        tooltipLines.addAll(formatDescription(translationKey + ".desc"));
+        if (!client.player.isCreative()) {
+            tooltipLines.add(Text.translatable(
+                        "message.mcde.lapis_required",
+                        slots.getNextRerollCost(enchantment))
+                    .formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
+        }
         if (!canReroll) {
             tooltipLines.add(Text.translatable("message.mcde.not_enough_lapis")
                     .formatted(Formatting.DARK_RED, Formatting.ITALIC));
-            tooltipLines.add(Text.translatable(
-                    "message.mcde.lapis_required",
-                    slots.getNextRerollCost(enchantment))
-                .formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
         }
         if (handler.isSlotLocked(hovered.getEnchantmentSlot().getSlotPosition())) {
             tooltipLines.add(Text.translatable("message.mcde.cant_generate").formatted(Formatting.DARK_RED, Formatting.ITALIC));
@@ -204,5 +256,22 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
     @Override
     public void setOpened(Optional<SlotPosition> opened) {
         this.opened = opened;
+    }
+
+    private static List<Text> formatDescription(String translationKey) {
+        return wrap.matcher(Text.translatable(translationKey).getString())
+            .results().map(res -> (Text)Text.literal(res.group(1)).formatted(Formatting.GRAY))
+            .toList();
+    }
+
+    private static boolean isInBounds(int posX, int posY, int mouseX, int mouseY, int startX, int endX, int startY, int endY) {
+        return mouseX >= posX + startX &&
+               mouseX <= posX + endX &&
+               mouseY >= posY + startY &&
+               mouseY <= posY + endY;
+    }
+
+    private boolean isRerollButtonHovered(int mouseX, int mouseY) {
+        return isInBounds(rerollButton.x(), rerollButton.y(), mouseX, mouseY, 0, 25, 0, 28);
     }
 }

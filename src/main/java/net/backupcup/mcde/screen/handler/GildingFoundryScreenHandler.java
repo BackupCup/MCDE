@@ -66,7 +66,7 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
 
             @Override
             public boolean canInsert(ItemStack stack) {
-                return stack.isDamageable();
+                return stack.getItem().isEnchantable(stack);
             }
 
             @Override
@@ -79,7 +79,7 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
 
             @Override
             public boolean canInsert(ItemStack stack) {
-                return (stack.getItem() == Items.GOLD_INGOT);
+                return stack.isOf(Items.GOLD_INGOT);
             }
 
             @Override

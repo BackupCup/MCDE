@@ -232,7 +232,7 @@ public class EnchantmentSlotsRenderer {
         private TexturePos iconOutlinePos = TexturePos.of(170, 171);
         private TexturePos iconPowerfulOutlinePos = TexturePos.of(197, 171);
         private TexturePos hoverIconOutlinePos = TexturePos.of(224, 171);
-        private TexturePos choicePosOffset = TexturePos.of(-17, -38);
+        private TexturePos choicePosOffset = TexturePos.of(-18, -39);
         private TexturePos choiceTexturePos = TexturePos.of(186, 0);
         private ScreenWithSlots screen;
         private Predicate<Choice> dimPredicate;
