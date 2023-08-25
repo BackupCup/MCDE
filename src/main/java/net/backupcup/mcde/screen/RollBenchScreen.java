@@ -14,11 +14,11 @@ import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
 import net.backupcup.mcde.screen.util.ScreenWithSlots;
 import net.backupcup.mcde.screen.util.TexturePos;
 import net.backupcup.mcde.util.Choice;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.SlotPosition;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
@@ -176,7 +176,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         }
         opened = Optional.empty();
 
-        if (drawRerollButton && !inventory.getStack(0).isEmpty() && isRerollButtonHovered((int)mouseX, (int)mouseY)) {
+        if (drawRerollButton && !inventory.getStack(0).isEmpty() && isInRerollButton((int)mouseX, (int)mouseY)) {
             client.interactionManager.clickButton(handler.syncId, RollBenchScreenHandler.REROLL_BUTTON_ID);
         }
 
@@ -189,35 +189,65 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         super.render(matrices, mouseX, mouseY, delta);
         RenderSystem.setShaderTexture(0, TEXTURE);
 
-        drawRerollButton = inventory.getStack(1).isOf(Items.ECHO_SHARD) || client.player.isCreative();
-        if (drawRerollButton) {
-            int textureButtonX;
-            if (inventory.getStack(0).isEmpty()) {
-                textureButtonX = 0;
-            } else if (isRerollButtonHovered(mouseX, mouseY)) {
-                textureButtonX = 50;
-            } else {
-                textureButtonX = 25;
-            }
-            drawTexture(matrices, rerollButton.x(), rerollButton.y(), textureButtonX, 187, 25, 28);
-        }
+        renderRerollButton(matrices, mouseX, mouseY);
+
         ItemStack itemStack = inventory.getStack(0);
         var slots = EnchantmentSlots.fromItemStack(itemStack);
         if (itemStack.isEmpty() || slots == null) {
             drawMouseoverTooltip(matrices, mouseX, mouseY);
-            opened = Optional.empty();
             return;
         }
-
+        for (var slot : slots) {
+            var pos = slot.getSlotPosition();
+            if (!slotsRenderer.isInChoicesBounds(pos, mouseX, mouseY) && opened.map(slotPos -> slotPos.equals(pos)).orElse(false)) {
+                opened = Optional.empty();
+            }
+            if (slotsRenderer.isInSlotBounds(pos, mouseX, mouseY)) {
+                opened = Optional.of(slot.getSlotPosition());
+            }
+        }
         Optional<Choice> hoveredChoice = slotsRenderer.render(matrices, itemStack, mouseX, mouseY);
 
         if (hoveredChoice.isEmpty()) {
             drawMouseoverTooltip(matrices, mouseX, mouseY);
             return;
         }
+        renderTooltip(matrices, hoveredChoice.get(), slots, mouseX, mouseY);
+        drawMouseoverTooltip(matrices, mouseX, mouseY);
+    }
 
-        var hovered = hoveredChoice.get();
+    @Override
+    public Optional<SlotPosition> getOpened() {
+        return opened;
+    }
 
+    @Override
+    public void setOpened(Optional<SlotPosition> opened) {
+        this.opened = opened;
+    }
+
+    private static List<Text> formatDescription(String translationKey) {
+        return wrap.matcher(Text.translatable(translationKey).getString())
+            .results().map(res -> (Text)Text.literal(res.group(1)).formatted(Formatting.GRAY))
+            .toList();
+    }
+
+    protected void renderRerollButton(MatrixStack matrices, int mouseX, int mouseY) {
+        drawRerollButton = inventory.getStack(1).isOf(Items.ECHO_SHARD) || client.player.isCreative();
+        if (drawRerollButton) {
+            int textureButtonX;
+            if (inventory.getStack(0).isEmpty()) {
+                textureButtonX = 0;
+            } else if (isInRerollButton(mouseX, mouseY)) {
+                textureButtonX = 50;
+            } else {
+                textureButtonX = 25;
+            }
+            drawTexture(matrices, rerollButton.x(), rerollButton.y(), textureButtonX, 187, 25, 28);
+        }
+    }
+
+    protected void renderTooltip(MatrixStack matrices, Choice hovered, EnchantmentSlots slots, int x, int y) {
         Identifier enchantment = hovered.getEnchantmentId();
         String translationKey = enchantment.toTranslationKey("enchantment");
         List<Text> tooltipLines = new ArrayList<>();
@@ -244,35 +274,17 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         if (handler.isSlotLocked(hovered.getEnchantmentSlot().getSlotPosition())) {
             tooltipLines.add(Text.translatable("message.mcde.cant_generate").formatted(Formatting.DARK_RED, Formatting.ITALIC));
         }
-        renderTooltip(matrices, tooltipLines, mouseX, mouseY);
-
-        drawMouseoverTooltip(matrices, mouseX, mouseY);
+        renderTooltip(matrices, tooltipLines, x, y);
     }
 
-    @Override
-    public Optional<SlotPosition> getOpened() {
-        return opened;
-    }
-
-    @Override
-    public void setOpened(Optional<SlotPosition> opened) {
-        this.opened = opened;
-    }
-
-    private static List<Text> formatDescription(String translationKey) {
-        return wrap.matcher(Text.translatable(translationKey).getString())
-            .results().map(res -> (Text)Text.literal(res.group(1)).formatted(Formatting.GRAY))
-            .toList();
-    }
-
-    private static boolean isInBounds(int posX, int posY, int mouseX, int mouseY, int startX, int endX, int startY, int endY) {
+    protected static boolean isInBounds(int posX, int posY, int mouseX, int mouseY, int startX, int endX, int startY, int endY) {
         return mouseX >= posX + startX &&
                mouseX <= posX + endX &&
                mouseY >= posY + startY &&
                mouseY <= posY + endY;
     }
 
-    private boolean isRerollButtonHovered(int mouseX, int mouseY) {
+    protected boolean isInRerollButton(int mouseX, int mouseY) {
         return isInBounds(rerollButton.x(), rerollButton.y(), mouseX, mouseY, 0, 25, 0, 28);
     }
 }

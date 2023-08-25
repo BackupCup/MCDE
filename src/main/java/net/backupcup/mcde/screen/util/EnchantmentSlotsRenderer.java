@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
@@ -43,7 +44,6 @@ public class EnchantmentSlotsRenderer {
     private Identifier defaultGuiTexture;
     private float dimColorMultiplier;
     private ResourceManager resourceManager;
-    private boolean touchscreen;
 
     private EnchantmentSlotsRenderer(
             TexturePos outlinePos,
@@ -61,8 +61,7 @@ public class EnchantmentSlotsRenderer {
             Predicate<Choice> dimPredicate,
             Identifier defaultGuiTexture,
             float dimColorMultiplier,
-            ResourceManager resourceManager,
-            boolean touchscreen
+            ResourceManager resourceManager
             ) {
         this.outlinePos = outlinePos;
         this.slotTexturePos = slotTexturePos;
@@ -80,11 +79,6 @@ public class EnchantmentSlotsRenderer {
         this.defaultGuiTexture = defaultGuiTexture;
         this.dimColorMultiplier = dimColorMultiplier;
         this.resourceManager = resourceManager;
-        this.touchscreen = touchscreen;
-    }
-
-    public boolean isTouchscreen() {
-        return touchscreen;
     }
 
     public void drawSlot(MatrixStack matrices, SlotPosition slot) {
@@ -146,14 +140,16 @@ public class EnchantmentSlotsRenderer {
 
         for (var slot : slots) {
             drawSlot(matrices, slot.getSlotPosition());
+            if (isInSlotBounds(slot.getSlotPosition(), mouseX, mouseY))
+                drawHoverOutline(matrices, slot.getSlotPosition());
+
             if (slot.getChosen().isPresent()) {
                 var chosen = slot.getChosen().get();
                 drawIconInSlot(matrices, slot.getSlotPosition(), chosen);
                 if (isInSlotBounds(slot.getSlotPosition(), mouseX, mouseY))
                     hovered = Optional.of(chosen);
+                continue;
             }
-            if (isInSlotBounds(slot.getSlotPosition(), mouseX, mouseY))
-                drawHoverOutline(matrices, slot.getSlotPosition());
 
             if (screen.getOpened().isPresent() && screen.getOpened().get() == slot.getSlotPosition()) {
                 drawChoices(matrices, slot.getSlotPosition());
@@ -173,26 +169,23 @@ public class EnchantmentSlotsRenderer {
     }
 
     public boolean isInSlotBounds(SlotPosition slot, int mouseX, int mouseY) {
-        var pos = slotPos.get(slot).add(TexturePos.of(-1, -1));
-        boolean ButtonBox1 = isInBounds(pos.x(), pos.y(), mouseX, mouseY, 13, 18, 0, 31);
-        boolean ButtonBox2 = isInBounds(pos.x(), pos.y(), mouseX, mouseY, 0, 31, 13, 18);
-        boolean ButtonBox3 = isInBounds(pos.x(), pos.y(), mouseX, mouseY, 6, 25, 6, 25);
-        boolean ButtonBox4 = isInBounds(pos.x(), pos.y(), mouseX, mouseY, 9, 22, 2, 29);
-        boolean ButtonBox5 = isInBounds(pos.x(), pos.y(), mouseX, mouseY, 2, 29, 9, 22);
-
-        return ButtonBox1 || ButtonBox2 || ButtonBox3 || ButtonBox4 || ButtonBox5;
+        var pos = slotPos.get(slot);
+        return IntStream.rangeClosed(0, 13).anyMatch(i -> isInBounds(pos.x(), pos.y(), mouseX, mouseY, 13 - i, 18 + i, i, i)) ||
+            isInBounds(pos.x(), pos.y(), mouseX, mouseY, 0, 30, 14, 16) ||
+            IntStream.rangeClosed(0, 13).anyMatch(i -> isInBounds(pos.x(), pos.y(), mouseX, mouseY, i, 30 - i, i + 17, i + 17));
     }
 
-
     public boolean isInChoiceBounds(SlotPosition slot, SlotPosition choice, int mouseX, int mouseY) {
-        var pos = slotPos.get(slot).add(choicePosOffset).add(choiceOffsets.get(choice)).add(-1, -1);
-        boolean ButtonBox1 = isInBounds(pos.x(), pos.y(), mouseX, mouseY, 10, 13, 0, 23);
-        boolean ButtonBox2 = isInBounds(pos.x(), pos.y(), mouseX, mouseY, 0, 23, 10, 13);
-        boolean ButtonBox3 = isInBounds(pos.x(), pos.y(), mouseX, mouseY, 5, 18, 5, 18);
-        boolean ButtonBox4 = isInBounds(pos.x(), pos.y(), mouseX, mouseY, 7, 16, 2, 21);
-        boolean ButtonBox5 = isInBounds(pos.x(), pos.y(), mouseX, mouseY, 2, 21, 7, 16);
+        var pos = slotPos.get(slot).add(choicePosOffset).add(choiceOffsets.get(choice));
+        return IntStream.rangeClosed(0, 11).anyMatch(i -> isInBounds(pos.x(), pos.y(), mouseX, mouseY, 11 - i, 11 + i, i, i)) ||
+            IntStream.rangeClosed(0, 11).anyMatch(i -> isInBounds(pos.x(), pos.y(), mouseX, mouseY, i, 22 - i, i + 11, i + 11));
+    }
 
-        return ButtonBox1 || ButtonBox2 || ButtonBox3 || ButtonBox4 || ButtonBox5;
+    public boolean isInChoicesBounds(SlotPosition slot, int mouseX, int mouseY) {
+        var pos = slotPos.get(slot).add(choicePosOffset);
+        return IntStream.rangeClosed(0, 32).anyMatch(i -> isInBounds(pos.x(), pos.y(), mouseX, mouseY, 32 - i, 35 + i, i, i)) ||
+            isInBounds(pos.x(), pos.y(), mouseX, mouseY, 0, 66, 33, 33) ||
+            IntStream.rangeClosed(0, 16).anyMatch(i -> isInBounds(pos.x(), pos.y(), mouseX, mouseY, i, 66 - i, i + 34, i + 34));
     }
 
     private static boolean isInBounds(int posX, int posY, int mouseX, int mouseY, int startX, int endX, int startY, int endY) {
@@ -371,8 +364,7 @@ public class EnchantmentSlotsRenderer {
                 dimPredicate,
                 defaultGuiTexture,
                 dimColorMultiplier,
-                resourceManager,
-                touchscreen
+                resourceManager
             );
         }
     }

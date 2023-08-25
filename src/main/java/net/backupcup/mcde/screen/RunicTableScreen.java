@@ -14,6 +14,7 @@ import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
 import net.backupcup.mcde.screen.util.ScreenWithSlots;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.backupcup.mcde.util.Choice;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.SlotPosition;
@@ -156,20 +157,34 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
         super.render(matrices, mouseX, mouseY, delta);
         RenderSystem.setShaderTexture(0, TEXTURE);
         ItemStack itemStack = inventory.getStack(0);
-
-        if (itemStack.isEmpty()) {
+        var slots = EnchantmentSlots.fromItemStack(itemStack);
+        if (itemStack.isEmpty() || slots == null) {
             drawMouseoverTooltip(matrices, mouseX, mouseY);
-            opened = Optional.empty();
             return;
         }
 
+        for (var slot : slots) {
+            var pos = slot.getSlotPosition();
+            if (!slotsRenderer.isInChoicesBounds(pos, mouseX, mouseY) && opened.map(slotPos -> slotPos.equals(pos)).orElse(false)) {
+                opened = Optional.empty();
+            }
+            if (slotsRenderer.isInSlotBounds(pos, mouseX, mouseY)) {
+                opened = Optional.of(slot.getSlotPosition());
+            }
+        }
         var hoveredChoice = slotsRenderer.render(matrices, itemStack, mouseX, mouseY);
 
         if (hoveredChoice.isEmpty()) {
             drawMouseoverTooltip(matrices, mouseX, mouseY);
             return;
         }
-        var hovered = hoveredChoice.get();
+        renderTooltip(matrices, hoveredChoice.get(), slots, mouseX, mouseY);
+
+        drawMouseoverTooltip(matrices, mouseX, mouseY);
+    }
+
+    protected void renderTooltip(MatrixStack matrices, Choice hovered, EnchantmentSlots slots, int x, int y) {
+        var itemStack = inventory.getStack(0);
         Enchantment enchantment = hovered.getEnchantment();
         Identifier enchantmentId = hovered.getEnchantmentId();
         List<Text> tooltipLines = new ArrayList<>();
@@ -212,23 +227,21 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
         }
 
         if (!hovered.isChosen()) {
-            if (EnchantmentHelper.getLevel(hoveredChoice.get().getEnchantment(), itemStack) > 0) {
+            if (EnchantmentHelper.getLevel(hovered.getEnchantment(), itemStack) > 0) {
                 tooltipLines.add(Text.translatable("message.mcde.already_exists").formatted(Formatting.DARK_RED, Formatting.ITALIC));
             } else if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
                 var conflict = EnchantmentHelper.get(itemStack).keySet().stream()
-                    .filter(e -> !e.canCombine(hoveredChoice.get().getEnchantment())).findFirst();
+                    .filter(e -> !e.canCombine(hovered.getEnchantment())).findFirst();
                 if (conflict.isPresent()) {
                     var conflicting = conflict.get();
                     tooltipLines.add(Text.translatable(
-                        "message.mcde.cant_combine",
-                        Text.translatable(conflicting.getTranslationKey())
-                    ).formatted(Formatting.DARK_RED, Formatting.ITALIC));
+                                "message.mcde.cant_combine",
+                                Text.translatable(conflicting.getTranslationKey())
+                                ).formatted(Formatting.DARK_RED, Formatting.ITALIC));
                 }
             }
         }
-        renderTooltip(matrices, tooltipLines, mouseX, mouseY);
-
-        drawMouseoverTooltip(matrices, mouseX, mouseY);
+        renderTooltip(matrices, tooltipLines, x, y);
     }
 
     @Override
