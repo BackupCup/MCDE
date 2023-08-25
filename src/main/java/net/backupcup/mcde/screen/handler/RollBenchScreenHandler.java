@@ -45,8 +45,8 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
         return inventory;
     }
 
-    public boolean isSlotLocked(SlotPosition slot) {
-        return locked.get(slot);
+    public Optional<Boolean> isSlotLocked(SlotPosition slot) {
+        return Optional.ofNullable(locked.get(slot));
     }
 
     public RollBenchScreenHandler(int syncId, PlayerInventory inventory) {

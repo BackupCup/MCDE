@@ -76,12 +76,13 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
             .withDimPredicate(choice -> {
                 var slots = EnchantmentSlots.fromItemStack(inventory.getStack(0));
                 return !handler.canReroll(client.player, choice.getEnchantmentId(), slots) ||
-                    handler.isSlotLocked(choice.getEnchantmentSlot().getSlotPosition());
+                    handler.isSlotLocked(choice.getEnchantmentSlot().getSlotPosition()).orElse(true);
             })
             .withClient(client)
             .build();
         drawRerollButton = client.player.isCreative();
         rerollButton = TexturePos.of(posX + 168, posY + 34);
+        touchButton = TexturePos.of(posX + 8, posY + 57);
     }
 
     @Override
@@ -271,7 +272,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
             tooltipLines.add(Text.translatable("message.mcde.not_enough_lapis")
                     .formatted(Formatting.DARK_RED, Formatting.ITALIC));
         }
-        if (handler.isSlotLocked(hovered.getEnchantmentSlot().getSlotPosition())) {
+        if (handler.isSlotLocked(hovered.getEnchantmentSlot().getSlotPosition()).orElse(true)) {
             tooltipLines.add(Text.translatable("message.mcde.cant_generate").formatted(Formatting.DARK_RED, Formatting.ITALIC));
         }
         renderTooltip(matrices, tooltipLines, x, y);
