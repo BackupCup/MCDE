@@ -12,6 +12,7 @@ import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.screen.handler.RunicTableScreenHandler;
 import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
 import net.backupcup.mcde.screen.util.ScreenWithSlots;
+import net.backupcup.mcde.screen.util.TextWrapUtils;
 import net.backupcup.mcde.screen.util.TexturePos;
 import net.backupcup.mcde.util.Choice;
 import net.backupcup.mcde.util.EnchantmentSlots;
@@ -35,7 +36,6 @@ import net.minecraft.util.Pair;
 
 @Environment(EnvType.CLIENT)
 public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> implements ScreenWithSlots {
-    private static final Pattern WRAP = Pattern.compile("(\\S.{1,35})(?:\\s+|$)");
     private static final Identifier TEXTURE =
         new Identifier(MCDEnchantments.MOD_ID, "textures/gui/runic_table.png");
     private Inventory inventory;
@@ -252,26 +252,26 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
         }
         tooltipLines.add(enchantmentName);
 
-        tooltipLines.addAll(wrapText(enchantment.getTranslationKey() + ".desc", Formatting.GRAY));
+        tooltipLines.addAll(TextWrapUtils.wrapText(width, enchantment.getTranslationKey() + ".desc", Formatting.GRAY));
         if (!hovered.isMaxedOut() && !client.player.isCreative()) {
-            tooltipLines.addAll(wrapText(Text.translatable(
+            tooltipLines.addAll(TextWrapUtils.wrapText(width, Text.translatable(
                             "message.mcde.levels_required",
                             MCDEnchantments.getConfig().getEnchantCost(enchantmentId, level)),
                         Formatting.ITALIC, Formatting.DARK_GRAY));
         }
         if (!enoughLevels) {
-            tooltipLines.addAll(wrapText("message.mcde.not_enough_levels", Formatting.DARK_RED, Formatting.ITALIC));
+            tooltipLines.addAll(TextWrapUtils.wrapText(width, "message.mcde.not_enough_levels", Formatting.DARK_RED, Formatting.ITALIC));
         }
 
         if (!hovered.isChosen()) {
             if (EnchantmentHelper.getLevel(hovered.getEnchantment(), itemStack) > 0) {
-                tooltipLines.addAll(wrapText("message.mcde.already_exists", Formatting.DARK_RED, Formatting.ITALIC));
+                tooltipLines.addAll(TextWrapUtils.wrapText(width, "message.mcde.already_exists", Formatting.DARK_RED, Formatting.ITALIC));
             } else if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
                 var conflict = EnchantmentHelper.get(itemStack).keySet().stream()
                     .filter(e -> !e.canCombine(hovered.getEnchantment())).findFirst();
                 if (conflict.isPresent()) {
                     var conflicting = conflict.get();
-                    tooltipLines.addAll(wrapText(Text.translatable(
+                    tooltipLines.addAll(TextWrapUtils.wrapText(width, Text.translatable(
                                     "message.mcde.cant_combine",
                                     Text.translatable(conflicting.getTranslationKey())),
                                 Formatting.DARK_RED, Formatting.ITALIC));
@@ -304,23 +304,5 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
 
     protected boolean isInTouchButton(int mouseX, int mouseY) {
         return isInBounds(touchButton.x(), touchButton.y(), mouseX, mouseY, 0, 13, 0, 13);
-    }
-
-    private static List<Text> wrapText(String translationKey, Formatting formatting) {
-        return WRAP.matcher(Text.translatable(translationKey).getString())
-            .results().map(res -> (Text)Text.literal(res.group(1)).formatted(formatting))
-            .toList();
-    }
-
-    private static List<Text> wrapText(String translationKey, Formatting... formatting) {
-        return WRAP.matcher(Text.translatable(translationKey).getString())
-            .results().map(res -> (Text)Text.literal(res.group(1)).formatted(formatting))
-            .toList();
-    }
-
-    private static List<Text> wrapText(Text text, Formatting... formatting) {
-        return WRAP.matcher(text.getString())
-            .results().map(res -> (Text)Text.literal(res.group(1)).formatted(formatting))
-            .toList();
     }
 }

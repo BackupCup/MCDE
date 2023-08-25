@@ -3,7 +3,6 @@ package net.backupcup.mcde.screen;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -12,6 +11,7 @@ import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.screen.handler.RollBenchScreenHandler;
 import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
 import net.backupcup.mcde.screen.util.ScreenWithSlots;
+import net.backupcup.mcde.screen.util.TextWrapUtils;
 import net.backupcup.mcde.screen.util.TexturePos;
 import net.backupcup.mcde.util.Choice;
 import net.backupcup.mcde.util.EnchantmentSlots;
@@ -37,7 +37,6 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
     private static enum RerollItemSilouette {
         LAPIS, SHARD;
     }
-    private static final Pattern WRAP = Pattern.compile("(\\S.{1,35})(?:\\s+|$)");
     private static final Identifier TEXTURE = new Identifier(MCDEnchantments.MOD_ID, "textures/gui/roll_bench.png");
     private Inventory inventory;
     private RerollItemSilouette silouette = RerollItemSilouette.LAPIS;
@@ -265,18 +264,6 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         this.opened = opened;
     }
 
-    private static List<Text> wrapText(String translationKey, Formatting formatting) {
-        return WRAP.matcher(Text.translatable(translationKey).getString())
-            .results().map(res -> (Text)Text.literal(res.group(1)).formatted(formatting))
-            .toList();
-    }
-
-    private static List<Text> wrapText(Text text, Formatting... formatting) {
-        return WRAP.matcher(text.getString())
-            .results().map(res -> (Text)Text.literal(res.group(1)).formatted(formatting))
-            .toList();
-    }
-
     protected void renderRerollButton(MatrixStack matrices, int mouseX, int mouseY) {
         drawRerollButton = inventory.getStack(1).isOf(Items.ECHO_SHARD) || client.player.isCreative();
         if (drawRerollButton) {
@@ -305,18 +292,18 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         }
         tooltipLines.add(enchantmentName);
 
-        tooltipLines.addAll(wrapText(translationKey + ".desc", Formatting.GRAY));
+        tooltipLines.addAll(TextWrapUtils.wrapText(width, translationKey + ".desc", Formatting.GRAY));
         if (!client.player.isCreative()) {
-            tooltipLines.addAll(wrapText(Text.translatable(
+            tooltipLines.addAll(TextWrapUtils.wrapText(width, Text.translatable(
                         "message.mcde.lapis_required",
                         slots.getNextRerollCost(enchantment)), Formatting.ITALIC, Formatting.DARK_GRAY));
         }
         if (!canReroll) {
-            tooltipLines.addAll(wrapText(Text.translatable("message.mcde.not_enough_lapis"),
+            tooltipLines.addAll(TextWrapUtils.wrapText(width, Text.translatable("message.mcde.not_enough_lapis"),
                     Formatting.DARK_RED, Formatting.ITALIC));
         }
         if (handler.isSlotLocked(hovered.getEnchantmentSlot().getSlotPosition()).orElse(true)) {
-            tooltipLines.addAll(wrapText(Text.translatable("message.mcde.cant_generate"), Formatting.DARK_RED, Formatting.ITALIC));
+            tooltipLines.addAll(TextWrapUtils.wrapText(width, Text.translatable("message.mcde.cant_generate"), Formatting.DARK_RED, Formatting.ITALIC));
         }
         renderTooltip(matrices, tooltipLines, x, y);
     }
