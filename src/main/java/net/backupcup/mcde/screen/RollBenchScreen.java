@@ -30,29 +30,25 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Pair;
 
 @Environment(EnvType.CLIENT)
 public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> implements ScreenWithSlots {
-    private Inventory inventory;
-
     private static enum RerollItemSilouette {
         LAPIS, SHARD;
     }
-
-    private RerollItemSilouette silouette = RerollItemSilouette.LAPIS;
-
-    private float silouetteTimer = 0f;
-
-    private static Pattern wrap = Pattern.compile("(\\b.{1,40})(?:\\s+|$)");
-
-    private Optional<SlotPosition> opened = Optional.empty();
-
+    private static final Pattern WRAP = Pattern.compile("(\\S.{1,35})(?:\\s+|$)");
     private static final Identifier TEXTURE = new Identifier(MCDEnchantments.MOD_ID, "textures/gui/roll_bench.png");
-
+    private Inventory inventory;
+    private RerollItemSilouette silouette = RerollItemSilouette.LAPIS;
+    private float silouetteTimer = 0f;
+    private Optional<SlotPosition> opened = Optional.empty();
+    private Optional<Pair<SlotPosition, SlotPosition>> selected = Optional.empty();
     private EnchantmentSlotsRenderer slotsRenderer;
 
     private TexturePos rerollButton;
     private boolean drawRerollButton;
+    private TexturePos touchButton;
 
     public RollBenchScreen(RollBenchScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
@@ -141,23 +137,40 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
             return super.mouseClicked(mouseX, mouseY, button);
         EnchantmentSlots slots = EnchantmentSlots.fromItemStack(stack);
 
+        if (isTouchscreen() && selected.isPresent() && isInTouchButton((int)mouseX, (int)mouseY)) {
+            var slotPos = selected.get().getLeft();
+            var choicePos = selected.get().getRight();
+            if (slots.getEnchantmentSlot(slotPos).map(slot -> slotsRenderer.getDimPredicate().test(new Choice(slot, choicePos))).orElse(false)) {
+                return false;
+            }
+            if (slots.getEnchantmentSlot(slotPos).filter(slot -> slot.getChosen().isPresent()).isPresent()) {
+                selected = Optional.empty();
+                opened = Optional.of(slotPos);
+            }
+            client.interactionManager.clickButton(handler.syncId, SlotPosition.values().length * slotPos.ordinal() + choicePos.ordinal());
+            return false;
+        }
+
         for (var slot : slots) {
             if (slotsRenderer.isInSlotBounds(slot.getSlotPosition(), (int) mouseX, (int) mouseY)) {
                 if (slot.getChosen().isPresent()) {
                     var chosen = slot.getChosen().get();
-                    if (!slotsRenderer.getDimPredicate().test(chosen)) {
-                        client.interactionManager.clickButton(handler.syncId, SlotPosition.values().length * slot.ordinal());
-                        opened = Optional.of(slot.getSlotPosition());
-                    }
-                    else {
+                    if (isTouchscreen()) {
+                        selected = Optional.of(new Pair<>(slot.getSlotPosition(), chosen.getChoicePosition()));
                         opened = Optional.empty();
+                    } else if (!slotsRenderer.getDimPredicate().test(chosen)) {
+                        client.interactionManager.clickButton(handler.syncId, SlotPosition.values().length * slot.ordinal());
                     }
                     return super.mouseClicked(mouseX, mouseY, button);
                 }
                 if (opened.isEmpty()) {
                     opened = Optional.of(slot.getSlotPosition());
+                } else if (opened.get() == slot.getSlotPosition()) {
+                    opened = Optional.empty();
+                    selected = Optional.empty();
                 } else {
-                    opened = opened.get() == slot.getSlotPosition() ? Optional.empty() : Optional.of(slot.getSlotPosition());
+                    opened = Optional.of(slot.getSlotPosition());
+                    selected = Optional.empty();
                 }
                 return super.mouseClicked(mouseX, mouseY, button);
             }
@@ -165,20 +178,21 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
             if (opened.isPresent() && opened.get() == slot.getSlotPosition()) {
                 for (var choice : slot.choices()) {
                     if (slotsRenderer.isInChoiceBounds(slot.getSlotPosition(), choice.getChoicePosition(), (int) mouseX, (int) mouseY)) {
-                        if (!slotsRenderer.getDimPredicate().test(choice)) {
+                        if (isTouchscreen()) {
+                            selected = Optional.of(new Pair<>(slot.getSlotPosition(), choice.getChoicePosition()));
+                        } else if (!slotsRenderer.getDimPredicate().test(choice)) {
                             client.interactionManager.clickButton(handler.syncId, SlotPosition.values().length * slot.ordinal() + choice.ordinal());
-                            return super.mouseClicked(mouseX, mouseY, button);
-                        } else {
-                            return super.mouseClicked(mouseX, mouseY, button);
                         }
+                        return super.mouseClicked(mouseX, mouseY, button);
                     }
                 }
             }
         }
         opened = Optional.empty();
-
+        selected = Optional.empty();
         if (drawRerollButton && !inventory.getStack(0).isEmpty() && isInRerollButton((int)mouseX, (int)mouseY)) {
             client.interactionManager.clickButton(handler.syncId, RollBenchScreenHandler.REROLL_BUTTON_ID);
+            return false;
         }
 
         return super.mouseClicked(mouseX, mouseY, button);
@@ -192,28 +206,52 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
 
         renderRerollButton(matrices, mouseX, mouseY);
 
+        int posX = ((width - backgroundWidth) / 2) - 2;
+        int posY = (height - backgroundHeight) / 2;
+        if (isTouchscreen()) {
+            drawTexture(matrices, touchButton.x(), touchButton.y(), 36, 215, 13, 13);
+        }
+
         ItemStack itemStack = inventory.getStack(0);
         var slots = EnchantmentSlots.fromItemStack(itemStack);
         if (itemStack.isEmpty() || slots == null) {
             drawMouseoverTooltip(matrices, mouseX, mouseY);
             return;
         }
-        for (var slot : slots) {
-            var pos = slot.getSlotPosition();
-            if (!slotsRenderer.isInChoicesBounds(pos, mouseX, mouseY) && opened.map(slotPos -> slotPos.equals(pos)).orElse(false)) {
-                opened = Optional.empty();
-            }
-            if (slotsRenderer.isInSlotBounds(pos, mouseX, mouseY)) {
-                opened = Optional.of(slot.getSlotPosition());
-            }
-        }
-        Optional<Choice> hoveredChoice = slotsRenderer.render(matrices, itemStack, mouseX, mouseY);
 
-        if (hoveredChoice.isEmpty()) {
-            drawMouseoverTooltip(matrices, mouseX, mouseY);
-            return;
+        if (!isTouchscreen()) {
+            for (var slot : slots) {
+                var pos = slot.getSlotPosition();
+                if (!slotsRenderer.isInChoicesBounds(pos, mouseX, mouseY) && opened.map(slotPos -> slotPos.equals(pos)).orElse(false)) {
+                    opened = Optional.empty();
+                }
+                if (slotsRenderer.isInSlotBounds(pos, mouseX, mouseY)) {
+                    opened = Optional.of(slot.getSlotPosition());
+                }
+            }
         }
-        renderTooltip(matrices, hoveredChoice.get(), slots, mouseX, mouseY);
+
+        Optional<Choice> hoveredChoice = slotsRenderer.render(matrices, itemStack, mouseX, mouseY);
+        if (isTouchscreen()) {
+            selected.flatMap(pair -> slots.getEnchantmentSlot(pair.getLeft())
+                    .map(slot -> new Choice(slot, pair.getRight()))).ifPresent(choice -> {
+                renderTooltip(matrices, choice, slots, posX, posY + 88);
+                if (choice.isChosen()) {
+                    slotsRenderer.drawHoverOutline(matrices, choice.getEnchantmentSlot().getSlotPosition());
+                } else {
+                    slotsRenderer.drawIconHoverOutline(matrices, choice.getEnchantmentSlot().getSlotPosition(), choice);
+                }
+                if (!slotsRenderer.getDimPredicate().test(choice)) {
+                    int buttonX = 49;
+                    if (isInTouchButton(mouseX, mouseY)) {
+                        buttonX = 62;
+                    }
+                    drawTexture(matrices, touchButton.x(), touchButton.y(), buttonX, 215, 13, 13);
+                }
+            });
+        } else {
+            hoveredChoice.ifPresent(choice -> renderTooltip(matrices, choice, slots, mouseX, mouseY));
+        }
         drawMouseoverTooltip(matrices, mouseX, mouseY);
     }
 
@@ -227,9 +265,15 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         this.opened = opened;
     }
 
-    private static List<Text> formatDescription(String translationKey) {
-        return wrap.matcher(Text.translatable(translationKey).getString())
-            .results().map(res -> (Text)Text.literal(res.group(1)).formatted(Formatting.GRAY))
+    private static List<Text> wrapText(String translationKey, Formatting formatting) {
+        return WRAP.matcher(Text.translatable(translationKey).getString())
+            .results().map(res -> (Text)Text.literal(res.group(1)).formatted(formatting))
+            .toList();
+    }
+
+    private static List<Text> wrapText(Text text, Formatting... formatting) {
+        return WRAP.matcher(text.getString())
+            .results().map(res -> (Text)Text.literal(res.group(1)).formatted(formatting))
             .toList();
     }
 
@@ -261,19 +305,18 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         }
         tooltipLines.add(enchantmentName);
 
-        tooltipLines.addAll(formatDescription(translationKey + ".desc"));
+        tooltipLines.addAll(wrapText(translationKey + ".desc", Formatting.GRAY));
         if (!client.player.isCreative()) {
-            tooltipLines.add(Text.translatable(
+            tooltipLines.addAll(wrapText(Text.translatable(
                         "message.mcde.lapis_required",
-                        slots.getNextRerollCost(enchantment))
-                    .formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
+                        slots.getNextRerollCost(enchantment)), Formatting.ITALIC, Formatting.DARK_GRAY));
         }
         if (!canReroll) {
-            tooltipLines.add(Text.translatable("message.mcde.not_enough_lapis")
-                    .formatted(Formatting.DARK_RED, Formatting.ITALIC));
+            tooltipLines.addAll(wrapText(Text.translatable("message.mcde.not_enough_lapis"),
+                    Formatting.DARK_RED, Formatting.ITALIC));
         }
         if (handler.isSlotLocked(hovered.getEnchantmentSlot().getSlotPosition()).orElse(true)) {
-            tooltipLines.add(Text.translatable("message.mcde.cant_generate").formatted(Formatting.DARK_RED, Formatting.ITALIC));
+            tooltipLines.addAll(wrapText(Text.translatable("message.mcde.cant_generate"), Formatting.DARK_RED, Formatting.ITALIC));
         }
         renderTooltip(matrices, tooltipLines, x, y);
     }
@@ -287,5 +330,13 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
 
     protected boolean isInRerollButton(int mouseX, int mouseY) {
         return isInBounds(rerollButton.x(), rerollButton.y(), mouseX, mouseY, 0, 25, 0, 28);
+    }
+
+    protected boolean isInTouchButton(int mouseX, int mouseY) {
+        return isInBounds(touchButton.x(), touchButton.y(), mouseX, mouseY, 0, 13, 0, 13);
+    }
+
+    private boolean isTouchscreen() {
+        return client.options.getTouchscreen().getValue();
     }
 }
