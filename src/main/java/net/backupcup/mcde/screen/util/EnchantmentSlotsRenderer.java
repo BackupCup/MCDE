@@ -19,6 +19,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
+import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
 @Environment(EnvType.CLIENT)
@@ -41,6 +42,8 @@ public class EnchantmentSlotsRenderer {
     private Predicate<Choice> dimPredicate;
     private Identifier defaultGuiTexture;
     private float dimColorMultiplier;
+    private ResourceManager resourceManager;
+    private boolean touchscreen;
 
     private EnchantmentSlotsRenderer(
             TexturePos outlinePos,
@@ -57,7 +60,9 @@ public class EnchantmentSlotsRenderer {
             ScreenWithSlots screen,
             Predicate<Choice> dimPredicate,
             Identifier defaultGuiTexture,
-            float dimColorMultiplier
+            float dimColorMultiplier,
+            ResourceManager resourceManager,
+            boolean touchscreen
             ) {
         this.outlinePos = outlinePos;
         this.slotTexturePos = slotTexturePos;
@@ -74,6 +79,12 @@ public class EnchantmentSlotsRenderer {
         this.dimPredicate = dimPredicate;
         this.defaultGuiTexture = defaultGuiTexture;
         this.dimColorMultiplier = dimColorMultiplier;
+        this.resourceManager = resourceManager;
+        this.touchscreen = touchscreen;
+    }
+
+    public boolean isTouchscreen() {
+        return touchscreen;
     }
 
     public void drawSlot(MatrixStack matrices, SlotPosition slot) {
@@ -195,7 +206,7 @@ public class EnchantmentSlotsRenderer {
         Identifier enchantmentID = choice.getEnchantmentId();
         Identifier textureID = getTextureId(enchantmentID);
 
-        RenderSystem.setShaderTexture(0, MinecraftClient.getInstance().getResourceManager().getResource(textureID).isPresent() ?
+        RenderSystem.setShaderTexture(0, resourceManager.getResource(textureID).isPresent() ?
                 textureID : missingEnchantTexture);
         if (dimPredicate.test(choice)) {
             RenderSystem.setShaderColor(dimColorMultiplier, dimColorMultiplier, dimColorMultiplier, 1.0f);
@@ -238,6 +249,8 @@ public class EnchantmentSlotsRenderer {
         private Predicate<Choice> dimPredicate;
         private Identifier defaultGuiTexture;
         private float dimColorMultiplier = 0.5f;
+        private boolean touchscreen = false;
+        private ResourceManager resourceManager;
 
         public Builder withSlotPositions(TexturePos first, TexturePos second, TexturePos third) {
             slotMap = Map.of(SlotPosition.FIRST, first, SlotPosition.SECOND, second, SlotPosition.THIRD, third);
@@ -335,6 +348,12 @@ public class EnchantmentSlotsRenderer {
             return this;
         }
 
+        public Builder withClient(MinecraftClient client) {
+            this.resourceManager = client.getResourceManager();
+            this.touchscreen = client.options.getTouchscreen().getValue();
+            return this;
+        }
+
         public EnchantmentSlotsRenderer build() {
             return new EnchantmentSlotsRenderer(
                 outlinePos,
@@ -351,7 +370,9 @@ public class EnchantmentSlotsRenderer {
                 screen,
                 dimPredicate,
                 defaultGuiTexture,
-                dimColorMultiplier
+                dimColorMultiplier,
+                resourceManager,
+                touchscreen
             );
         }
     }

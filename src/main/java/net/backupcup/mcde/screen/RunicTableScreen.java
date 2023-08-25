@@ -71,7 +71,8 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
                     (EnchantmentHelper.get(inventory.getStack(0)).keySet().stream().anyMatch(e -> !e.canCombine(choice.getEnchantment())) && 
                          !choice.isChosen());
             })
-        .build();
+            .withClient(client)
+            .build();
     }
 
     // For some reason without this, it crashes with AbstractMethodException

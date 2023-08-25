@@ -70,15 +70,16 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         int posX = ((width - backgroundWidth) / 2) - 2;
         int posY = (height - backgroundHeight) / 2;
         slotsRenderer = EnchantmentSlotsRenderer.builder()
-                .withScreen(this)
-                .withDefaultGuiTexture(TEXTURE)
-                .withDefaultSlotPositions(posX, posY)
-                .withDimPredicate(choice -> {
-                    var slots = EnchantmentSlots.fromItemStack(inventory.getStack(0));
-                    return !handler.canReroll(client.player, choice.getEnchantmentId(), slots) ||
-                        handler.isSlotLocked(choice.getEnchantmentSlot().getSlotPosition());
-                })
-                .build();
+            .withScreen(this)
+            .withDefaultGuiTexture(TEXTURE)
+            .withDefaultSlotPositions(posX, posY)
+            .withDimPredicate(choice -> {
+                var slots = EnchantmentSlots.fromItemStack(inventory.getStack(0));
+                return !handler.canReroll(client.player, choice.getEnchantmentId(), slots) ||
+                    handler.isSlotLocked(choice.getEnchantmentSlot().getSlotPosition());
+            })
+            .withClient(client)
+            .build();
         drawRerollButton = client.player.isCreative();
         rerollButton = TexturePos.of(posX + 168, posY + 34);
     }
