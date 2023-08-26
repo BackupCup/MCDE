@@ -242,7 +242,6 @@ public class EnchantmentSlotsRenderer {
         private Predicate<Choice> dimPredicate;
         private Identifier defaultGuiTexture;
         private float dimColorMultiplier = 0.5f;
-        private boolean touchscreen = false;
         private ResourceManager resourceManager;
 
         public Builder withSlotPositions(TexturePos first, TexturePos second, TexturePos third) {
@@ -343,7 +342,6 @@ public class EnchantmentSlotsRenderer {
 
         public Builder withClient(MinecraftClient client) {
             this.resourceManager = client.getResourceManager();
-            this.touchscreen = client.options.getTouchscreen().getValue();
             return this;
         }
 

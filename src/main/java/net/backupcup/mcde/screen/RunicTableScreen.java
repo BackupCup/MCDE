@@ -3,7 +3,6 @@ package net.backupcup.mcde.screen;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 import com.mojang.blaze3d.systems.RenderSystem;
