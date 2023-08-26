@@ -1,8 +1,8 @@
 # Introduction
-Now with existance of both MC Dungeons Weapons and MC Dungeons Armor mods for Fabric, the only part of the gear expirience of Miencraft Dungeons that's missing is it's unique enchanting system. Well, MC Dungeons Enchantments brings this system into Minecraft Java!
+Now with existance of both MC Dungeons Weapons and MC Dungeons Armor mods for Fabric, the only part of the gear expirience of Miencraft Dungeons that's missing is it's unique enchanting system. Well, MC Dungeons Enchanting brings this system into Minecraft Java!
 
 The Enchanting table has been removed from the survival gameplay and replaced with it's new version - Runic Table.
-MC Dungeons Enchantments has integrated support for both MC Dungeons Weapons and MC Dungeons Armors
+MC Dungeons Enchanting has integrated support for both MC Dungeons Weapons and MC Dungeons Armors
 
 
 ## WIP Warning
@@ -20,7 +20,7 @@ As of right now, the mod adds only two blocks:
 Absolutely! I only ask that you provide a link back to this page.
 
 ### I've seen your mod on other sites. Did you post it and are they safe?
-I have not, nor do I plan to, post my mod on any other sites than Curseforge, Modrinth or my GitHub page. If you have downloaded my mod from somewhere else, 1. It isn't from me and 2. It may have some kind of malicious files or have been modified in some way. I urge you to delete the file, run a full virus and malware scan and, if you want to use MC Dungeons Enchantments, I recommend to download it from [CurseForge](https://legacy.curseforge.com/minecraft/mc-mods/mc-dungeons-enchantments), [Modrinth](https://modrinth.com/mod/mc-dungeons-enchanting) or [GitHub](https://github.com/EndLone/MCDE/releases).
+I have not, nor do I plan to, post my mod on any other sites than Curseforge, Modrinth or my GitHub page. If you have downloaded my mod from somewhere else, 1. It isn't from me and 2. It may have some kind of malicious files or have been modified in some way. I urge you to delete the file, run a full virus and malware scan and, if you want to use MC Dungeons Enchanting, I recommend to download it from [CurseForge](https://curseforge.com/minecraft/mc-mods/mc-dungeons-enchanting), [Modrinth](https://modrinth.com/mod/mc-dungeons-enchanting) or [GitHub](https://github.com/EndLone/MCDE/releases).
 
 ### 1.12.2?
 No, just no.

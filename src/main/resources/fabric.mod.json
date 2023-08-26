@@ -3,15 +3,15 @@
   "id": "mcde",
   "version": "${version}",
 
-  "name": "Minecraft Dungeons: Enchanting",
+  "name": "MC Dungeons: Enchanting",
   "description": "Brings the Enchantment system from Minecraft Dungeons to Minecraft",
   "authors": [
     "BackupCup",
     "Iamnotagenius"
   ],
   "contact": {
-    "curseforge": "https://legacy.curseforge.com/minecraft/mc-mods/mc-dungeons-enchantments",
-    "modrinth": "https://modrinth.com/mod/mc-dungeons-enchantments",
+    "curseforge": "https://curseforge.com/minecraft/mc-mods/mc-dungeons-enchanting",
+    "modrinth": "https://modrinth.com/mod/mc-dungeons-enchanting",
     "sources": "https://github.com/EndLone/MCDE",
     "issues": "https://github.com/EndLone/MCDE/issues"
   },
