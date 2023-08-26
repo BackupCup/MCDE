@@ -1,6 +1,7 @@
 package net.backupcup.mcde.mixin;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -123,14 +124,10 @@ public abstract class ItemStackMixin {
         return newList;
     }
 
-    @Inject(method = "hasGlint", at = @At("HEAD"), cancellable = true)
-    private void mcde$hasGlint(CallbackInfoReturnable<Boolean> cir) {
-        var slots = EnchantmentSlots.fromItemStack((ItemStack)(Object)this);
-        if (slots == null) {
-            return;
-        }
-        if (slots.stream().anyMatch(s -> s.getChosen().isPresent())) {
-            cir.setReturnValue(true);
-        }
+    @ModifyReturnValue(method = "hasEnchantments", at = @At("RETURN"))
+    private boolean mcde$hasEnchantments(boolean original) {
+        return Optional.ofNullable(EnchantmentSlots.fromItemStack((ItemStack)(Object)this)).map(
+                slots -> slots.stream().anyMatch(slot -> slot.getChosen().isPresent())
+        ).filter(any -> any).orElse(original);
     }
 }
