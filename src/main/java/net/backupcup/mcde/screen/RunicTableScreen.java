@@ -3,7 +3,6 @@ package net.backupcup.mcde.screen;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -12,11 +11,14 @@ import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.screen.handler.RunicTableScreenHandler;
 import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
 import net.backupcup.mcde.screen.util.ScreenWithSlots;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
+import net.backupcup.mcde.screen.util.TextWrapUtils;
+import net.backupcup.mcde.screen.util.TexturePos;
+import net.backupcup.mcde.util.Choice;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.SlotPosition;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
@@ -29,19 +31,18 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Pair;
 
 @Environment(EnvType.CLIENT)
 public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> implements ScreenWithSlots {
-    private Inventory inventory;
-
-    private static Pattern wrap = Pattern.compile("(\\b.{1,40})(?:\\s+|$)");
-
-    private Optional<SlotPosition> opened = Optional.empty();
-
     private static final Identifier TEXTURE =
-            new Identifier(MCDEnchantments.MOD_ID, "textures/gui/runic_table.png");
-
+        new Identifier(MCDEnchantments.MOD_ID, "textures/gui/runic_table.png");
+    private Inventory inventory;
+    private Optional<SlotPosition> opened = Optional.empty();
+    private Optional<Pair<SlotPosition, SlotPosition>> selected = Optional.empty();
     private EnchantmentSlotsRenderer slotsRenderer;
+
+    private TexturePos touchButton;
 
     public RunicTableScreen(RunicTableScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
@@ -71,7 +72,9 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
                     (EnchantmentHelper.get(inventory.getStack(0)).keySet().stream().anyMatch(e -> !e.canCombine(choice.getEnchantment())) && 
                          !choice.isChosen());
             })
-        .build();
+            .withClient(client)
+            .build();
+        touchButton = TexturePos.of(posX + 8, posY + 57);
     }
 
     @Override
@@ -92,18 +95,33 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
         if (stack.isEmpty()) return super.mouseClicked(mouseX, mouseY, button);
         EnchantmentSlots slots = EnchantmentSlots.fromItemStack(stack);
 
+        if (isTouchscreen() && selected.isPresent() && isInTouchButton((int)mouseX, (int)mouseY)) {
+            var slot = selected.get().getLeft();
+            var choice = selected.get().getRight();
+            client.interactionManager.clickButton(handler.syncId, SlotPosition.values().length * slot.ordinal() + choice.ordinal());
+            return false;
+        }
+
         for (var slot : slots) {
             if (slotsRenderer.isInSlotBounds(slot.getSlotPosition(), (int)mouseX, (int)mouseY)) {
                 if (slot.getChosen().isPresent()) {
-                    client.interactionManager.clickButton(handler.syncId, SlotPosition.values().length * slot.ordinal());
+                    var chosen = slot.getChosen().get();
+                    if (isTouchscreen()) {
+                        selected = Optional.of(new Pair<>(slot.getSlotPosition(), chosen.getChoicePosition()));
+                        opened = Optional.empty();
+                    } else {
+                        client.interactionManager.clickButton(handler.syncId, SlotPosition.values().length * slot.ordinal());
+                    }
                     return super.mouseClicked(mouseX, mouseY, button);
                 }
                 if (opened.isEmpty()) {
                     opened = Optional.of(slot.getSlotPosition());
-                }
-                else {
-                    opened = opened.get() == slot.getSlotPosition() ?
-                        Optional.empty() : Optional.of(slot.getSlotPosition());
+                } else if (opened.get() == slot.getSlotPosition()) {
+                    opened = Optional.empty();
+                    selected = Optional.empty();
+                } else {
+                    opened = Optional.of(slot.getSlotPosition());
+                    selected = Optional.empty();
                 }
                 return super.mouseClicked(mouseX, mouseY, button);
             }
@@ -111,18 +129,18 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
             if (opened.isPresent() && opened.get() == slot.getSlotPosition()) {
                 for (var choice : slot.choices()) {
                     if (slotsRenderer.isInChoiceBounds(slot.getSlotPosition(), choice.getChoicePosition(), (int) mouseX, (int) mouseY)) {
-                        if (!slotsRenderer.getDimPredicate().test(choice)) {
+                        if (isTouchscreen()) {
+                            selected = Optional.of(new Pair<>(slot.getSlotPosition(), choice.getChoicePosition()));
+                        } else if (!slotsRenderer.getDimPredicate().test(choice)) {
                             client.interactionManager.clickButton(handler.syncId, SlotPosition.values().length * slot.ordinal() + choice.ordinal());
-                            opened = Optional.empty();
-                            return super.mouseClicked(mouseX, mouseY, button);
-                        } else {
-                            return super.mouseClicked(mouseX, mouseY, button);
                         }
+                        return super.mouseClicked(mouseX, mouseY, button);
                     }
                 }
             }
         }
         opened = Optional.empty();
+        selected = Optional.empty();
 
         return super.mouseClicked(mouseX, mouseY, button);
     }
@@ -148,20 +166,58 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
         super.render(matrices, mouseX, mouseY, delta);
         RenderSystem.setShaderTexture(0, TEXTURE);
         ItemStack itemStack = inventory.getStack(0);
-
-        if (itemStack.isEmpty()) {
+        var slots = EnchantmentSlots.fromItemStack(itemStack);
+        int posX = ((width - backgroundWidth) / 2) - 2;
+        int posY = (height - backgroundHeight) / 2;
+        touchButton = TexturePos.of(posX + -4, posY + 54);
+        if (isTouchscreen()) {
+            drawTexture(matrices, touchButton.x(), touchButton.y(), 0, 187, 13, 13);
+        }
+        if (itemStack.isEmpty() || slots == null) {
             drawMouseoverTooltip(matrices, mouseX, mouseY);
-            opened = Optional.empty();
             return;
+        }
+
+        if (!isTouchscreen()) {
+            for (var slot : slots) {
+                var pos = slot.getSlotPosition();
+                if (!slotsRenderer.isInChoicesBounds(pos, mouseX, mouseY) && opened.map(slotPos -> slotPos.equals(pos)).orElse(false)) {
+                    opened = Optional.empty();
+                }
+                if (slotsRenderer.isInSlotBounds(pos, mouseX, mouseY)) {
+                    opened = Optional.of(slot.getSlotPosition());
+                }
+            }
         }
 
         var hoveredChoice = slotsRenderer.render(matrices, itemStack, mouseX, mouseY);
 
-        if (hoveredChoice.isEmpty()) {
-            drawMouseoverTooltip(matrices, mouseX, mouseY);
-            return;
+        if (isTouchscreen()) {
+            selected.flatMap(pair -> slots.getEnchantmentSlot(pair.getLeft())
+                    .map(slot -> new Choice(slot, pair.getRight()))).ifPresent(choice -> {
+                renderTooltip(matrices, choice, slots, posX, posY + 88);
+                if (choice.isChosen()) {
+                    slotsRenderer.drawHoverOutline(matrices, choice.getEnchantmentSlot().getSlotPosition());
+                } else {
+                    slotsRenderer.drawIconHoverOutline(matrices, choice.getEnchantmentSlot().getSlotPosition(), choice);
+                }
+                if (!slotsRenderer.getDimPredicate().test(choice)) {
+                    int buttonX = 13;
+                    if (isInTouchButton(mouseX, mouseY)) {
+                        buttonX = 26;
+                    }
+                    drawTexture(matrices, touchButton.x(), touchButton.y(), buttonX, 187, 13, 13);
+                }
+            });
+        } else {
+            hoveredChoice.ifPresent(choice -> renderTooltip(matrices, choice, slots, mouseX, mouseY));
         }
-        var hovered = hoveredChoice.get();
+
+        drawMouseoverTooltip(matrices, mouseX, mouseY);
+    }
+
+    protected void renderTooltip(MatrixStack matrices, Choice hovered, EnchantmentSlots slots, int x, int y) {
+        var itemStack = inventory.getStack(0);
         Enchantment enchantment = hovered.getEnchantment();
         Identifier enchantmentId = hovered.getEnchantmentId();
         List<Text> tooltipLines = new ArrayList<>();
@@ -188,37 +244,33 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
         }
         tooltipLines.add(enchantmentName);
 
-        Text enchantmentDescription = Text.translatable(enchantment.getTranslationKey() + ".desc");
-        List<MutableText> desc = wrap.matcher(enchantmentDescription.getString())
-            .results().map(res -> Text.literal(res.group(1)).formatted(Formatting.GRAY))
-            .toList();
-        tooltipLines.addAll(desc);
+        tooltipLines.addAll(TextWrapUtils.wrapText(width, enchantment.getTranslationKey() + ".desc", Formatting.GRAY));
+        if (!hovered.isMaxedOut() && !client.player.isCreative()) {
+            tooltipLines.addAll(TextWrapUtils.wrapText(width, Text.translatable(
+                            "message.mcde.levels_required",
+                            MCDEnchantments.getConfig().getEnchantCost(enchantmentId, level)),
+                        Formatting.ITALIC, Formatting.DARK_GRAY));
+        }
         if (!enoughLevels) {
-            tooltipLines.add(Text.translatable("message.mcde.not_enough_levels").formatted(Formatting.DARK_RED, Formatting.ITALIC));
-            tooltipLines.add(Text.translatable(
-                        "message.mcde.levels_required",
-                        MCDEnchantments.getConfig().getEnchantCost(enchantmentId, level)
-                        ).formatted(Formatting.ITALIC, Formatting.DARK_GRAY));
+            tooltipLines.addAll(TextWrapUtils.wrapText(width, "message.mcde.not_enough_levels", Formatting.DARK_RED, Formatting.ITALIC));
         }
 
         if (!hovered.isChosen()) {
-            if (EnchantmentHelper.getLevel(hoveredChoice.get().getEnchantment(), itemStack) > 0) {
-                tooltipLines.add(Text.translatable("message.mcde.already_exists").formatted(Formatting.DARK_RED, Formatting.ITALIC));
+            if (EnchantmentHelper.getLevel(hovered.getEnchantment(), itemStack) > 0) {
+                tooltipLines.addAll(TextWrapUtils.wrapText(width, "message.mcde.already_exists", Formatting.DARK_RED, Formatting.ITALIC));
             } else if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
                 var conflict = EnchantmentHelper.get(itemStack).keySet().stream()
-                    .filter(e -> !e.canCombine(hoveredChoice.get().getEnchantment())).findFirst();
+                    .filter(e -> !e.canCombine(hovered.getEnchantment())).findFirst();
                 if (conflict.isPresent()) {
                     var conflicting = conflict.get();
-                    tooltipLines.add(Text.translatable(
-                        "message.mcde.cant_combine",
-                        Text.translatable(conflicting.getTranslationKey())
-                    ).formatted(Formatting.DARK_RED, Formatting.ITALIC));
+                    tooltipLines.addAll(TextWrapUtils.wrapText(width, Text.translatable(
+                                    "message.mcde.cant_combine",
+                                    Text.translatable(conflicting.getTranslationKey())),
+                                Formatting.DARK_RED, Formatting.ITALIC));
                 }
             }
         }
-        renderTooltip(matrices, tooltipLines, mouseX, mouseY);
-
-        drawMouseoverTooltip(matrices, mouseX, mouseY);
+        renderTooltip(matrices, tooltipLines, x, y);
     }
 
     @Override
@@ -229,5 +281,20 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
     @Override
     public void setOpened(Optional<SlotPosition> opened) {
         this.opened = opened;
+    }
+
+    private boolean isTouchscreen() {
+        return client.options.getTouchscreen().getValue();
+    }
+
+    protected static boolean isInBounds(int posX, int posY, int mouseX, int mouseY, int startX, int endX, int startY, int endY) {
+        return mouseX >= posX + startX &&
+               mouseX <= posX + endX &&
+               mouseY >= posY + startY &&
+               mouseY <= posY + endY;
+    }
+
+    protected boolean isInTouchButton(int mouseX, int mouseY) {
+        return isInBounds(touchButton.x(), touchButton.y(), mouseX, mouseY, 0, 13, 0, 13);
     }
 }

@@ -54,5 +54,6 @@
   "message.mcde.cant_generate": "Can't generate a new enchantment",
   "message.mcde.error.config.general": "An error occured while loading config. Using defaults. Check out logs for details",
   "message.mcde.already_exists": "Enchantment is already applied",
-  "message.mcde.cant_combine": "Can't combine with %s"
+  "message.mcde.cant_combine": "Can't combine with %s",
+  "message.mcde.reroll_button.desc": "Rerolls the amount of available slots and their enchantments."
 }
