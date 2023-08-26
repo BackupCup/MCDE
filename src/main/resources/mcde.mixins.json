@@ -8,7 +8,8 @@
       "EnchantBookFactoryMixin",
       "AnvilScreenHandlerMixin",
       "EnchantingTableBlockMixin",
-      "EnchantRandomlyLootFunctionMixin"
+      "EnchantRandomlyLootFunctionMixin",
+      "GrindstoneScreenHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

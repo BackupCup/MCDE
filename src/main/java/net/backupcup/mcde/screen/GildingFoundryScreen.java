@@ -18,7 +18,7 @@ import net.minecraft.util.Identifier;
 @Environment(EnvType.CLIENT)
 public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHandler> {
     private Inventory inventory;
-    private PlayerEntity player;
+    private PlayerEntity playerEntity;
 
     private static final Identifier TEXTURE =
             new Identifier(MCDEnchantments.MOD_ID, "textures/gui/gilding_foundry.png");
@@ -34,7 +34,7 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
     public GildingFoundryScreen(GildingFoundryScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
         this.inventory = handler.getInventory();
-        this.player = inventory.player;
+        this.playerEntity = inventory.player;
     }
 
     @Override
@@ -111,7 +111,7 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
         var weapon = inventory.getStack(0);
         var slots = EnchantmentSlots.fromItemStack(weapon);
         return !weapon.isEmpty() &&
-            (inventory.getStack(1).getCount() >= MCDEnchantments.getConfig().getGildingCost() || player.isCreative()) &&
+            (inventory.getStack(1).getCount() >= MCDEnchantments.getConfig().getGildingCost() || playerEntity.isCreative()) &&
             !handler.hasProgress() &&
             !(slots != null && slots.hasGilding()) &&
             handler.hasEnchantmentForGilding();

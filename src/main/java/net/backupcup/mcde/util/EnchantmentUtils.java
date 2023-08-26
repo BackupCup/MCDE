@@ -74,10 +74,6 @@ public class EnchantmentUtils {
         return MCDEnchantments.getConfig().isEnchantmentPowerful(id) ? Formatting.RED : Formatting.LIGHT_PURPLE;
     }
 
-    public static EnchantmentSlots generateEnchantments(ItemStack itemStack, Optional<ServerPlayerEntity> optionalPlayer) {
-        return generateEnchantments(itemStack, optionalPlayer, new LocalRandom(System.nanoTime()));
-    }
-
     public static boolean isCompatible(Collection<Identifier> present, Identifier enchantment) {
         return present.stream().allMatch(id -> ENCHANTMENT.get(enchantment).canCombine(ENCHANTMENT.get(id)));
     }
@@ -102,22 +98,49 @@ public class EnchantmentUtils {
         return -significance * baseChance + significance;
     }
 
+    public static EnchantmentSlots generateEnchantments(ItemStack itemStack, Optional<ServerPlayerEntity> optionalPlayer) {
+        return generateEnchantments(itemStack, optionalPlayer, new LocalRandom(System.nanoTime()));
+    }
+
+    public static EnchantmentSlots generateEnchantments(
+        ItemStack itemStack,
+        Optional<ServerPlayerEntity> optionalPlayer,
+        Optional<Float> optionalThreeChoiceChance,
+        Optional<Float> optionalSecondSlotChance,
+        Optional<Float> optionalThirdSlotChance
+    ) {
+        return generateEnchantments(itemStack, optionalPlayer, new LocalRandom(System.nanoTime()), optionalThreeChoiceChance, optionalSecondSlotChance, optionalThirdSlotChance);
+    }
+
     public static EnchantmentSlots generateEnchantments(ItemStack itemStack, Optional<ServerPlayerEntity> optionalPlayer, Random random) {
+        return generateEnchantments(itemStack, optionalPlayer, random, Optional.empty(), Optional.empty(), Optional.empty());
+    }
+
+    public static EnchantmentSlots generateEnchantments(
+        ItemStack itemStack,
+        Optional<ServerPlayerEntity> optionalPlayer,
+        Random random,
+        Optional<Float> optionalThreeChoiceChance,
+        Optional<Float> optionalSecondSlotChance,
+        Optional<Float> optionalThirdSlotChance
+    ) {
         var enchantability = itemStack.getItem().getEnchantability();
         var builder = EnchantmentSlots.builder();
         var pool = getEnchantmentsForItem(itemStack).collect(ObjectArrayList.toList());
         boolean isTwoChoiceGenerated = false;
         boolean isSecondSlotGenerated = false;
-        float threeChoiceChance = 0.5f + enchantability / 100f;
-        float secondSlotChance = MCDEnchantments.getConfig().getSecondSlotBaseChance();
-        float thirdSlotChance = MCDEnchantments.getConfig().getThirdSlotBaseChance();
+        float threeChoiceChance = optionalThreeChoiceChance.orElse(0.5f + enchantability / 100f);
+        float secondSlotChance = optionalSecondSlotChance.orElseGet(MCDEnchantments.getConfig()::getSecondSlotBaseChance);
+        float thirdSlotChance = optionalThirdSlotChance.orElseGet(MCDEnchantments.getConfig()::getThirdSlotBaseChance);
 
         if (optionalPlayer.isPresent()) {
             var advancementModifier = calculateAdvancementModifiers(optionalPlayer.get());
-            secondSlotChance += advancementModifier.getSecondChance();
-            thirdSlotChance += advancementModifier.getThirdChance();
-            secondSlotChance += calculateEnchantabilityModifier(secondSlotChance, enchantability);
-            thirdSlotChance += calculateEnchantabilityModifier(thirdSlotChance, enchantability);
+            if (optionalSecondSlotChance.isEmpty()) {
+                secondSlotChance += advancementModifier.getSecondChance() + calculateEnchantabilityModifier(secondSlotChance, enchantability);
+            }
+            if (optionalThirdSlotChance.isEmpty()) {
+                thirdSlotChance += advancementModifier.getThirdChance() + calculateEnchantabilityModifier(thirdSlotChance, enchantability);
+            }
             pool.removeIf(getLockedEnchantments(optionalPlayer.get())::contains);
         };
 
@@ -203,8 +226,8 @@ public class EnchantmentUtils {
                 }
                 context.run((world, pos) -> {
                     var server = world.getServer();
-                    var serverPlayer = Optional.ofNullable(server.getPlayerManager().getPlayer(player.getUuid()));
-                    EnchantmentUtils.generateEnchantments(stack, serverPlayer).updateItemStack(stack);
+                    var serverPlayerEntity = Optional.ofNullable(server.getPlayerManager().getPlayer(player.getUuid()));
+                    EnchantmentUtils.generateEnchantments(stack, serverPlayerEntity).updateItemStack(stack);
                     handler.setStackInSlot(0, 0, stack);
                 });
             }
