@@ -226,8 +226,8 @@ public class EnchantmentUtils {
                 }
                 context.run((world, pos) -> {
                     var server = world.getServer();
-                    var serverPlayer = Optional.ofNullable(server.getPlayerManager().getPlayer(player.getUuid()));
-                    EnchantmentUtils.generateEnchantments(stack, serverPlayer).updateItemStack(stack);
+                    var serverPlayerEntity = Optional.ofNullable(server.getPlayerManager().getPlayer(player.getUuid()));
+                    EnchantmentUtils.generateEnchantments(stack, serverPlayerEntity).updateItemStack(stack);
                     handler.setStackInSlot(0, 0, stack);
                 });
             }

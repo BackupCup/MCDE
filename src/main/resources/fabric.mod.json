@@ -10,10 +10,10 @@
     "Iamnotagenius"
   ],
   "contact": {
-    "curseforge": "https://curseforge.com/minecraft/mc-mods/mc-dungeons-enchanting",
-    "modrinth": "https://modrinth.com/mod/mc-dungeons-enchanting",
-    "sources": "https://github.com/EndLone/MCDE",
-    "issues": "https://github.com/EndLone/MCDE/issues"
+    "curseforge": "https://www.curseforge.com/minecraft/mc-mods/mc-dungeons-enchanting",
+    "modrinth": "https://www.modrinth.com/mod/mc-dungeons-enchanting",
+    "sources": "https://www.github.com/EndLone/MCDE",
+    "issues": "https://www.github.com/EndLone/MCDE/issues"
   },
 
   "license": "Timefall Development License 1.1",

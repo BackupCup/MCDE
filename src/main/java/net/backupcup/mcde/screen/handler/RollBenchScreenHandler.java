@@ -36,7 +36,7 @@ import net.minecraft.util.Identifier;
 public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandlerListener {
     private final Inventory inventory = new SimpleInventory(2);
     private final ScreenHandlerContext context;
-    private final PlayerEntity player;
+    private final PlayerEntity playerEntity;
     private Map<SlotPosition, Boolean> locked = new EnumMap<>(Map.of(SlotPosition.FIRST, false, SlotPosition.SECOND, false, SlotPosition.THIRD, false));
     public static final Identifier LOCKED_SLOTS_PACKET = Identifier.of(MCDEnchantments.MOD_ID, "locked_slots");
     public static final int REROLL_BUTTON_ID = -1;
@@ -55,7 +55,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
 
     public RollBenchScreenHandler(int syncId, PlayerInventory playerInventory, ScreenHandlerContext context) {
         super(ModScreenHandlers.ROLL_BENCH_SCREEN_HANDLER, syncId);
-        this.player = playerInventory.player;
+        this.playerEntity = playerInventory.player;
         this.context = context;
         inventory.onOpen(playerInventory.player);
 
@@ -96,15 +96,15 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
         ItemStack rerollMaterialStack = inventory.getStack(1);
         EnchantmentSlots slots = EnchantmentSlots.fromItemStack(itemStack);
         if (id == REROLL_BUTTON_ID) {
-            var serverPlayer = context.get((world, pos) -> world.getServer().getPlayerManager().getPlayer(player.getUuid()));
+            var serverPlayerEntity = context.get((world, pos) -> world.getServer().getPlayerManager().getPlayer(player.getUuid()));
             var gilding = slots.getGilding();
             EnchantmentSlots newSlots;
-            if (MCDEnchantments.getConfig().doesFullRerollRemoveSlots()) {
-                newSlots = EnchantmentUtils.generateEnchantments(itemStack, serverPlayer);
+            if (MCDEnchantments.getConfig().canFullRerollRemoveSlots()) {
+                newSlots = EnchantmentUtils.generateEnchantments(itemStack, serverPlayerEntity);
             } else {
                 newSlots = EnchantmentUtils.generateEnchantments(
                     itemStack,
-                    serverPlayer,
+                    serverPlayerEntity,
                     Optional.empty(),
                     slots.getEnchantmentSlot(SlotPosition.SECOND).map(slot -> 1f),
                     slots.getEnchantmentSlot(SlotPosition.THIRD).map(slot -> 1f)
@@ -296,6 +296,6 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
         if (slotId != 0 || slots == null) {
             return;
         }
-        sendLockedSlots(slots, player);
+        sendLockedSlots(slots, playerEntity);
     }
 }

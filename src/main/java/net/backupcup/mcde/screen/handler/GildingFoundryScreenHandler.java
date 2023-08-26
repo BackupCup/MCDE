@@ -32,7 +32,7 @@ import net.minecraft.util.Identifier;
 public class GildingFoundryScreenHandler extends ScreenHandler implements ScreenHandlerListener {
     public static final Identifier GILDING_PACKET = Identifier.of(MCDEnchantments.MOD_ID, "gilding");
     private final Inventory inventory;
-    private final PlayerEntity player;
+    private final PlayerEntity playerEntity;
     private final ScreenHandlerContext context;
     private final PropertyDelegate propertyDelegate;
     private Optional<Identifier> generatedEnchantment = Optional.empty();
@@ -56,7 +56,7 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
     public GildingFoundryScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, PropertyDelegate delegate, ScreenHandlerContext context) {
         super(ModScreenHandlers.GILDING_FOUNDRY_SCREEN_HANDLER, syncId);
         this.context = context;
-        this.player = playerInventory.player;
+        this.playerEntity = playerInventory.player;
         checkSize(inventory, 1);
         this.inventory = inventory;
         inventory.onOpen(playerInventory.player);
@@ -220,7 +220,7 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
             return;
         }
 
-        generatedEnchantment = generateEnchantment(player);
+        generatedEnchantment = generateEnchantment(playerEntity);
         if (generatedEnchantment.isEmpty()) {
             return;
         }
@@ -228,7 +228,7 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
             var buffer = PacketByteBufs.create();
             buffer.writeInt(syncId);
             buffer.writeOptional(generatedEnchantment, (buf, e) -> buf.writeIdentifier(e));
-            ServerPlayNetworking.send(world.getServer().getPlayerManager().getPlayer(player.getUuid()), GILDING_PACKET, buffer);
+            ServerPlayNetworking.send(world.getServer().getPlayerManager().getPlayer(playerEntity.getUuid()), GILDING_PACKET, buffer);
         });
     }
 }

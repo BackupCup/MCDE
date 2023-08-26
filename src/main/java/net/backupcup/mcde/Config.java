@@ -318,7 +318,7 @@ public class Config {
         return allowUsingEnchantingTable;
     }
 
-    public boolean doesFullRerollRemoveSlots() {
+    public boolean canFullRerollRemoveSlots() {
         return fullRerollCanRemoveSlots;
     }
 

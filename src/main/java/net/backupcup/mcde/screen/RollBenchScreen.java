@@ -35,7 +35,7 @@ import net.minecraft.util.Pair;
 @Environment(EnvType.CLIENT)
 public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> implements ScreenWithSlots {
     private static enum RerollItemSilouette {
-        LAPIS, SHARD;
+        LAPIS, ECHO_SHARD;
     }
     private static final Identifier TEXTURE = new Identifier(MCDEnchantments.MOD_ID, "textures/gui/roll_bench.png");
     private Inventory inventory;
@@ -93,19 +93,19 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
 
         drawTexture(matrices, posX + 146, posY + 51, switch (silouette) {
             case LAPIS -> 0;
-            case SHARD -> 18;
+            case ECHO_SHARD -> 18;
         }, 215, 18, 18);
 
         silouetteTimer += delta;
         if (inventory.getStack(1).isEmpty() && silouetteTimer > 20f) {
             silouette = switch (silouette) {
-                case LAPIS -> RerollItemSilouette.SHARD;
-                case SHARD -> RerollItemSilouette.LAPIS;
+                case LAPIS -> RerollItemSilouette.ECHO_SHARD;
+                case ECHO_SHARD -> RerollItemSilouette.LAPIS;
             };
         } else if (inventory.getStack(1).isOf(Items.LAPIS_LAZULI)) {
             silouette = RerollItemSilouette.LAPIS;
         } else if (inventory.getStack(1).isOf(Items.ECHO_SHARD)) {
-            silouette = RerollItemSilouette.SHARD;
+            silouette = RerollItemSilouette.ECHO_SHARD;
         }
 
         if (silouetteTimer > 20f) {
