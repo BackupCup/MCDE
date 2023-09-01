@@ -8,7 +8,7 @@ import net.minecraft.util.registry.Registry;
 
 public class ModTags {
     public static class Items {
-        public static final TagKey<Item> WEAPONS = TagKey.of(Registry.ITEM_KEY, new Identifier("c", "weapons"));
+        public static final TagKey<Item> WEAPONS = TagKey.of(Registry.ITEM_KEY, new Identifier("c", "weapon_enchantments_allowed"));
     }
 
     public static class Enchantments {
