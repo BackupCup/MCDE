@@ -10,7 +10,7 @@ import net.minecraft.util.Identifier;
 
 public class ModTags {
     public static class Items {
-        public static final TagKey<Item> WEAPONS = TagKey.of(RegistryKeys.ITEM, new Identifier("c", "weapons"));
+        public static final TagKey<Item> WEAPONS = TagKey.of(RegistryKeys.ITEM, new Identifier("c", "weapon_enchantments_allowed"));
     }
 
     public static class Enchantments {
