@@ -58,8 +58,11 @@ public class RunicTableScreenHandler extends ScreenHandler {
     @Override
     public boolean onButtonClick(PlayerEntity player, int id) {
         ItemStack itemStack = inventory.getStack(0);
-        EnchantmentSlots slots = EnchantmentSlots.fromItemStack(itemStack);
-
+        var slotsOptional = EnchantmentSlots.fromItemStack(itemStack);
+        if (slotsOptional.isEmpty()) {
+            return onButtonClick(player, id);
+        }
+        var slots = slotsOptional.get();
         var posAmount = SlotPosition.values().length;
         var clickedSlot = slots.getEnchantmentSlot(SlotPosition.values()[id / posAmount]).get();
         var chosen = clickedSlot.getChosen();

@@ -1,7 +1,6 @@
 package net.backupcup.mcde.mixin;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -46,11 +45,12 @@ public abstract class ItemStackMixin {
     )
     private NbtList mcde$removeMcdeManagedEnchantments(NbtList list) {
         var itemStack = (ItemStack)(Object)this;
-        var slots = EnchantmentSlots.fromItemStack(itemStack);
+        var slotsOptional = EnchantmentSlots.fromItemStack(itemStack);
 
-        if (slots == null) {
+        if (slotsOptional.isEmpty()) {
             return list;
         }
+        var slots = slotsOptional.get();
         var map = EnchantmentHelper.get(itemStack);
         for (var slot : slots) {
             slot.getChosen().ifPresent(chosen -> map.remove(chosen.getEnchantment()));
@@ -74,10 +74,11 @@ public abstract class ItemStackMixin {
         locals = LocalCapture.CAPTURE_FAILHARD
     )
     private void mcde$appendEnchantmentLines(PlayerEntity player, TooltipContext context, CallbackInfoReturnable<List<Text>> cir, List<Text> tooltip) {
-        var slots = EnchantmentSlots.fromItemStack((ItemStack)(Object)this);
-        if (slots == null) {
+        var slotsOptional = EnchantmentSlots.fromItemStack((ItemStack)(Object)this);
+        if (slotsOptional.isEmpty()) {
             return;
         }
+        var slots = slotsOptional.get();
 
         for (var slot : slots) {
             if (slot.getChosen().isPresent()) {
@@ -103,10 +104,11 @@ public abstract class ItemStackMixin {
             return list;
         }
     
-        var slots = EnchantmentSlots.fromItemStack((ItemStack)(Object)this);
-        if (slots == null) {
+        var slotsOptional = EnchantmentSlots.fromItemStack((ItemStack)(Object)this);
+        if (slotsOptional.isEmpty()) {
             return list;
         }
+        var slots = slotsOptional.get();
 
         var newList = list.copy();
 
@@ -126,7 +128,7 @@ public abstract class ItemStackMixin {
 
     @ModifyReturnValue(method = "hasEnchantments", at = @At("RETURN"))
     private boolean mcde$hasEnchantments(boolean original) {
-        return Optional.ofNullable(EnchantmentSlots.fromItemStack((ItemStack)(Object)this)).map(
+        return EnchantmentSlots.fromItemStack((ItemStack)(Object)this).map(
                 slots -> slots.stream().anyMatch(slot -> slot.getChosen().isPresent())
         ).filter(any -> any).orElse(original);
     }
