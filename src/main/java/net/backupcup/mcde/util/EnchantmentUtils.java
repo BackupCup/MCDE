@@ -221,7 +221,7 @@ public class EnchantmentUtils {
 
             @Override
             public void onSlotUpdate(ScreenHandler handler, int slotId, ItemStack stack) {
-                if (slotId != 0 || stack.isEmpty() || EnchantmentSlots.fromItemStack(stack) != null) {
+                if (slotId != 0 || stack.isEmpty() || EnchantmentSlots.fromItemStack(stack).isPresent()) {
                     return;
                 }
                 context.run((world, pos) -> {
@@ -271,10 +271,11 @@ public class EnchantmentUtils {
         var present = EnchantmentHelper.get(itemStack).keySet().stream()
             .map(key -> ENCHANTMENT.getId(key))
             .collect(Collectors.toSet());
-        var slots = EnchantmentSlots.fromItemStack(itemStack);
-        if (slots == null) {
+        var slotsOptional = EnchantmentSlots.fromItemStack(itemStack);
+        if (slotsOptional.isEmpty()) {
             return present;
         }
+        var slots = slotsOptional.get();
         slots.stream()
             .flatMap(s -> s.choices().stream())
             .map(c -> c.getEnchantmentId()).forEach(present::add);

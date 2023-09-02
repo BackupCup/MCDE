@@ -37,15 +37,16 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
     private void mcde$mixSlots(CallbackInfo ci) {
         var input = getSlot(0).getStack();
         var other = getSlot(1).getStack();
-        var slots = EnchantmentSlots.fromItemStack(input);
+        var slotsOptional = EnchantmentSlots.fromItemStack(input);
         ItemStack result = ItemStack.EMPTY;
-        if (slots == null) {
+        if (slotsOptional.isEmpty()) {
             if (EnchantmentSlots.fromItemStack(other) != null) {
                 getSlot(2).setStack(ItemStack.EMPTY);
                 ci.cancel();
             }
             return;
         }
+        var slots = slotsOptional.get();
         if (MCDEnchantments.getConfig().isEnchantingWithBooksAllowed() && other.isOf(Items.ENCHANTED_BOOK)) {
             levelCost.set(slots.merge(other));
             var map = EnchantmentHelper.get(other);

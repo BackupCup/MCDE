@@ -68,11 +68,13 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
             .withScreen(this)
             .withDefaultGuiTexture(TEXTURE)
             .withDefaultSlotPositions(posX, posY)
-            .withDimPredicate(choice -> {
-                var slots = EnchantmentSlots.fromItemStack(inventory.getStack(0));
-                return !handler.canReroll(client.player, choice.getEnchantmentId(), slots) ||
-                    handler.isSlotLocked(choice.getEnchantmentSlot().getSlotPosition()).orElse(true);
-            })
+            .withDimPredicate(
+                choice -> EnchantmentSlots.fromItemStack(inventory.getStack(0))
+                .map(
+                    slots -> !handler.canReroll(client.player, choice.getEnchantmentId(), slots) ||
+                        handler.isSlotLocked(choice.getEnchantmentSlot().getSlotPosition()).orElse(true)
+                ).orElse(true)
+            )
             .withClient(client)
             .build();
         drawRerollButton = client.player.isCreative();
@@ -134,8 +136,11 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
 
         if (stack.isEmpty())
             return super.mouseClicked(mouseX, mouseY, button);
-        EnchantmentSlots slots = EnchantmentSlots.fromItemStack(stack);
-
+        var slotsOptional = EnchantmentSlots.fromItemStack(stack);
+        if (slotsOptional.isEmpty()) {
+            return mouseClicked(mouseX, mouseY, button);
+        }
+        var slots = slotsOptional.get();
         if (isTouchscreen() && selected.isPresent() && isInTouchButton((int)mouseX, (int)mouseY)) {
             var slotPos = selected.get().getLeft();
             var choicePos = selected.get().getRight();
@@ -212,12 +217,12 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         }
 
         ItemStack itemStack = inventory.getStack(0);
-        var slots = EnchantmentSlots.fromItemStack(itemStack);
-        if (itemStack.isEmpty() || slots == null) {
+        var slotsOptional = EnchantmentSlots.fromItemStack(itemStack);
+        if (itemStack.isEmpty() || slotsOptional.isEmpty()) {
             drawMouseoverTooltip(matrices, mouseX, mouseY);
             return;
         }
-
+        var slots = slotsOptional.get();
         if (!isTouchscreen()) {
             for (var slot : slots) {
                 var pos = slot.getSlotPosition();

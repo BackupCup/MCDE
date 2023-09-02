@@ -116,11 +116,11 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
 
     private boolean isGildingButtonClickable() {
         var weapon = inventory.getStack(0);
-        var slots = EnchantmentSlots.fromItemStack(weapon);
+        var slotsOptional = EnchantmentSlots.fromItemStack(weapon);
         return !weapon.isEmpty() &&
             (inventory.getStack(1).getCount() >= MCDEnchantments.getConfig().getGildingCost() || playerEntity.isCreative()) &&
             !handler.hasProgress() &&
-            !(slots != null && slots.hasGilding()) &&
+            slotsOptional.filter(EnchantmentSlots::hasGilding).isEmpty() &&
             handler.hasEnchantmentForGilding();
     }
 

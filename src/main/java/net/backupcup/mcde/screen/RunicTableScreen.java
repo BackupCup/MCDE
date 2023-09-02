@@ -98,9 +98,11 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
 
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         ItemStack stack = inventory.getStack(0);
-
-        if (stack.isEmpty()) return super.mouseClicked(mouseX, mouseY, button);
-        EnchantmentSlots slots = EnchantmentSlots.fromItemStack(stack);
+        var slotsOptional = EnchantmentSlots.fromItemStack(stack);
+        if (stack.isEmpty() || slotsOptional.isEmpty()) {
+            return super.mouseClicked(mouseX, mouseY, button);
+        }
+        var slots = slotsOptional.get();
 
         if (isTouchscreen() && selected.isPresent() && isInTouchButton((int)mouseX, (int)mouseY)) {
             var slot = selected.get().getLeft();
@@ -173,18 +175,18 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
         super.render(matrices, mouseX, mouseY, delta);
         RenderSystem.setShaderTexture(0, TEXTURE);
         ItemStack itemStack = inventory.getStack(0);
-        var slots = EnchantmentSlots.fromItemStack(itemStack);
+        var slotsOptional = EnchantmentSlots.fromItemStack(itemStack);
         int posX = ((width - backgroundWidth) / 2) - 2;
         int posY = (height - backgroundHeight) / 2;
         touchButton = TexturePos.of(posX + -4, posY + 54);
         if (isTouchscreen()) {
             drawTexture(matrices, touchButton.x(), touchButton.y(), 0, 187, 13, 13);
         }
-        if (itemStack.isEmpty() || slots == null) {
+        if (itemStack.isEmpty() || slotsOptional.isEmpty()) {
             drawMouseoverTooltip(matrices, mouseX, mouseY);
             return;
         }
-
+        var slots = slotsOptional.get();
         if (!isTouchscreen()) {
             for (var slot : slots) {
                 var pos = slot.getSlotPosition();
