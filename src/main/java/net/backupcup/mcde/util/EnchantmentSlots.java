@@ -149,8 +149,8 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
                 nbt.getCompound("NextRerollCost").getInt("Powerful"));
     }
 
-    public static EnchantmentSlots fromItemStack(ItemStack itemStack) {
-        return EnchantmentSlots.fromNbt(itemStack.getSubNbt("MCDEnchantments"));
+    public static Optional<EnchantmentSlots> fromItemStack(ItemStack itemStack) {
+        return Optional.ofNullable(EnchantmentSlots.fromNbt(itemStack.getSubNbt("MCDEnchantments")));
     }
 
     public void updateItemStack(ItemStack itemStack) {

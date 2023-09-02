@@ -127,11 +127,11 @@ public class EnchantmentSlotsRenderer {
 
     public Optional<Choice> render(DrawContext ctx, ItemStack itemStack, int mouseX, int mouseY) {
         Optional<Choice> hovered = Optional.empty();
-        EnchantmentSlots slots = EnchantmentSlots.fromItemStack(itemStack);
-        if (slots == null) {
+        var slotsOptional = EnchantmentSlots.fromItemStack(itemStack);
+        if (slotsOptional.isEmpty()) {
             return hovered;
         }
-
+        var slots = slotsOptional.get();
         for (var slot : slots) {
             drawSlot(ctx, slot.getSlotPosition());
             if (isInSlotBounds(slot.getSlotPosition(), mouseX, mouseY))

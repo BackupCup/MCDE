@@ -94,7 +94,11 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
     public boolean onButtonClick(PlayerEntity player, int id) {
         ItemStack itemStack = inventory.getStack(0);
         ItemStack rerollMaterialStack = inventory.getStack(1);
-        EnchantmentSlots slots = EnchantmentSlots.fromItemStack(itemStack);
+        var slotsOptional = EnchantmentSlots.fromItemStack(itemStack);
+        if (slotsOptional.isEmpty()) {
+            return onButtonClick(player, id);
+        }
+        var slots = slotsOptional.get();
         if (id == REROLL_BUTTON_ID) {
             var serverPlayerEntity = context.get((world, pos) -> world.getServer().getPlayerManager().getPlayer(player.getUuid()));
             var gilding = slots.getGilding();
@@ -219,7 +223,11 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
 
     public List<Identifier> getCandidatesForReroll(SlotPosition clickedSlot) {
         var itemStack = inventory.getStack(0);
-        var slots = EnchantmentSlots.fromItemStack(itemStack);
+        var slotsOptional = EnchantmentSlots.fromItemStack(itemStack);
+        if (slotsOptional.isEmpty()) {
+            return List.of();
+        }
+        var slots = slotsOptional.get();
         var candidates = EnchantmentUtils.getEnchantmentsNotInItem(itemStack);
         if (!MCDEnchantments.getConfig().isCompatibilityRequired()) {
             return candidates.toList();
@@ -292,10 +300,11 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
 
     @Override
     public void onSlotUpdate(ScreenHandler handler, int slotId, ItemStack stack) {
-        var slots = EnchantmentSlots.fromItemStack(stack);
-        if (slotId != 0 || slots == null) {
+        if (slotId != 0) {
             return;
         }
-        sendLockedSlots(slots, playerEntity);
+        EnchantmentSlots.fromItemStack(stack).ifPresent(
+            slots -> sendLockedSlots(slots, playerEntity)
+        );
     }
 }
