@@ -105,9 +105,10 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
         var weaponStack = inventory.getStack(0);
         var enchantmentId = generatedEnchantment.get();
         if (player.isCreative()) {
-            var slots = EnchantmentSlots.fromItemStack(weaponStack);
-            slots.setGilding(enchantmentId);
-            slots.updateItemStack(weaponStack);
+            EnchantmentSlots.fromItemStack(weaponStack).ifPresent(slots -> {
+                slots.setGilding(enchantmentId);
+                slots.updateItemStack(weaponStack);
+            });
             return false;
         }
         context.run((world, pos) -> {

@@ -19,11 +19,12 @@ public abstract class GrindstoneScreenHandlerMixin extends ScreenHandler {
 
     @ModifyReturnValue(method = "grind", at = @At("RETURN"))
     private ItemStack mcde$removeChoiceOnGrind(ItemStack itemStack) {
-        var slots = EnchantmentSlots.fromItemStack(itemStack);
-        for (var slot : slots) {
-            slot.clearChoice();
-        }
-        slots.updateItemStack(itemStack);
+        EnchantmentSlots.fromItemStack(itemStack).ifPresent(slots -> {
+            for (var slot : slots) {
+                slot.clearChoice();
+            }
+            slots.updateItemStack(itemStack);
+        });
         return itemStack;
     }
 }
