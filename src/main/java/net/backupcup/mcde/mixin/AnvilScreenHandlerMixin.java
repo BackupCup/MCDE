@@ -40,7 +40,7 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
         var slotsOptional = EnchantmentSlots.fromItemStack(input);
         ItemStack result = ItemStack.EMPTY;
         if (slotsOptional.isEmpty()) {
-            if (EnchantmentSlots.fromItemStack(other) != null) {
+            if (EnchantmentSlots.fromItemStack(other).isPresent()) {
                 getSlot(2).setStack(ItemStack.EMPTY);
                 ci.cancel();
             }
@@ -96,7 +96,7 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
             if (other.isEmpty()) {
                 return;
             }
-            if (EnchantmentSlots.fromItemStack(input) != null || EnchantmentSlots.fromItemStack(other) != null) {
+            if (EnchantmentSlots.fromItemStack(input).isPresent() || EnchantmentSlots.fromItemStack(other).isPresent()) {
                 getSlot(2).setStack(ItemStack.EMPTY);
                 ci.cancel();
                 return;
@@ -142,7 +142,7 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
         var other = getSlot(1).getStack();
         var left = EnchantmentHelper.get(input);
         var right = EnchantmentHelper.get(other);
-        if (right.isEmpty() || EnchantmentSlots.fromItemStack(input) != null) {
+        if (right.isEmpty() || EnchantmentSlots.fromItemStack(input).isPresent()) {
             return;
         }
         levelCost.set(left.entrySet().stream()
