@@ -216,8 +216,7 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
 
     @Override
     public void onSlotUpdate(ScreenHandler handler, int slotId, ItemStack stack) {
-        var slots = EnchantmentSlots.fromItemStack(stack);
-        if (slotId != 0 || slots == null) {
+        if (slotId != 0 || EnchantmentSlots.fromItemStack(stack).isEmpty()) {
             return;
         }
 
