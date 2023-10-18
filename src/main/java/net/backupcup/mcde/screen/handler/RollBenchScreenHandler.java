@@ -230,7 +230,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
         var slots = slotsOptional.get();
         var candidates = EnchantmentUtils.getEnchantmentsNotInItem(itemStack);
         if (!MCDEnchantments.getConfig().isCompatibilityRequired()) {
-            return candidates.toList();
+            return candidates.collect(Collectors.toList());
         }
         var enchantmentsNotInClickedSlot =
             slots.stream().filter(s -> !s.getSlotPosition().equals(clickedSlot))
