@@ -15,6 +15,7 @@ import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.stat.Stats;
 import net.minecraft.util.Identifier;
 
 public class RunicTableScreenHandler extends ScreenHandler {
@@ -87,6 +88,9 @@ public class RunicTableScreenHandler extends ScreenHandler {
             clickedSlot.setChosen(SlotPosition.values()[choicePos], level);
         }
         slots.updateItemStack(itemStack);
+        if (clickedSlot.isMaxedOut()) {
+            player.incrementStat(Stats.ENCHANT_ITEM);
+        }
         player.playSound(SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, SoundCategory.BLOCKS, 0.5f, 1f);
         if (!player.isCreative()) {
             player.addExperienceLevels(-MCDEnchantments.getConfig().getEnchantCost(enchantmentId, level));
