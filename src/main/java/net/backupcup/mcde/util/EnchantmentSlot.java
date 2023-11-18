@@ -109,13 +109,18 @@ public class EnchantmentSlot {
 
     public static EnchantmentSlot fromNbt(NbtCompound nbt, SlotPosition slot) {
         var choices = nbt.getCompound("Choices");
-        var newSlot = new EnchantmentSlot(slot, choices.getKeys().stream()
+        var choiceMap = choices.getKeys().stream()
                 .collect(Collectors.toMap(
                     key -> SlotPosition.valueOf(key),
                     key -> Identifier.tryParse(choices.getString(key))
-                )));
+                ));
+        choiceMap.entrySet().removeIf(entry -> Registry.ENCHANTMENT.get(entry.getValue()) == null);
+        var newSlot = new EnchantmentSlot(slot, choiceMap);
         if (nbt.contains("Chosen")) {
-            newSlot.setChosen(SlotPosition.valueOf(nbt.getString("Chosen")), nbt.getShort("Level"));
+            var chosenSlot = SlotPosition.valueOf(nbt.getString("Chosen"));
+            if (choiceMap.containsKey(chosenSlot)) {
+                newSlot.setChosen(chosenSlot, nbt.getShort("Level"));
+            }
         }
         return newSlot;
     }
