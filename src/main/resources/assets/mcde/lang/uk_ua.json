@@ -50,9 +50,10 @@
   "message.mcde.not_enough_levels": "Недостатньо рівнів досвіду",
   "message.mcde.lapis_required": "(%d лазуриту необхідно)",
   "message.mcde.not_enough_lapis": "Недостатньо лазуриту",
-  "item.tooltip.gilded": "[Позолочено] - %s",
+  "item.tooltip.gilded": "[Позолочено] — %s",
   "message.mcde.cant_generate": "Неможливо згенерувати нове зачарування",
   "message.mcde.error.config.general": "Сталася помилка під час завантаження конфігурацій. Використовуючи типові. Перегляньте журнали для подробиць",
   "message.mcde.already_exists": "Зачарування вже застосовано",
-  "message.mcde.cant_combine": "Неможливо поєднати з %s"
+  "message.mcde.cant_combine": "Неможливо поєднати з %s",
+  "message.mcde.reroll_button.desc": "Перезавантажує кількість доступних слотів і їхні зачарування."
 }

@@ -416,8 +416,8 @@ public class Config {
     @Comment("Sets amount of lapis needed for reroll\n" +
              "For each reroll, the cost is either increased or decreased by step")
     private RerollCostParameters rerollCost = new RerollCostParameters(
-        new RerollCost(30, 3, 3),
-        new RerollCost(50, 5, 5)
+        new RerollCost(15, 1, 3),
+        new RerollCost(25, 3, 5)
     );
 
     @Comment("Whether a full reroll of enchantment slots can decrease amount of them")

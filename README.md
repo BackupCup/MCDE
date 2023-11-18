@@ -4,13 +4,8 @@ Now with existance of both MC Dungeons Weapons and MC Dungeons Armor mods for Fa
 The Enchanting table has been removed from the survival gameplay and replaced with it's new version - Runic Table.
 MC Dungeons Enchanting has integrated support for both MC Dungeons Weapons and MC Dungeons Armors
 
-
-## WIP Warning
-This mod is a **work in progress**. As such, some aspects may feel unbalanced.
-
-
 # Content
-As of right now, the mod adds only two blocks: 
+As of right now, the mod adds only three blocks: 
  - Runic Table - the main block, acts as a new enchanting table. Randomly generates a list of enchantments that one Item can take.
  - Roll Bench - an additional block which rerolls a single enchantment per use, costs lapis lazuli. The cost is respective of the level you'd spend to activate this enchantment.
  - Gilding Foundry - at cost of gold ingots applies a random permanent enchantment to the item.
