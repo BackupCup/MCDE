@@ -84,7 +84,8 @@ public abstract class ItemStackMixin {
             if (slot.getChosen().isPresent()) {
                 var chosen =  slot.getChosen().get();
                 var name = Text.translatable(chosen.getEnchantmentId().toTranslationKey("enchantment"));
-                if (Registries.ENCHANTMENT.get(chosen.getEnchantmentId()).getMaxLevel() > 1) {
+                var enchantment = Registries.ENCHANTMENT.get(chosen.getEnchantmentId());
+                if (enchantment.getMaxLevel() > 1) {
                     name.append(" ")
                         .append(Text.translatable("enchantment.level." + chosen.getLevel()));
                 }
