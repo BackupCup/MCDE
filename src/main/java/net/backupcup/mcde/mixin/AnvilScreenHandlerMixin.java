@@ -158,12 +158,12 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
                     EnchantmentHelper.getEnchantmentId(kvp.getKey()),
                     kvp.getValue()
                 )).sum() +
-            (newItemName.isBlank() ? 0 : 1));
+            (newItemName != null && newItemName.isBlank() ? 0 : 1));
     }
 
     @Unique
     private void mcde$setCustomNameToResult() {
-        if (newItemName.isBlank()) {
+        if (newItemName == null || newItemName.isBlank()) {
             return;
         }
         var input = getSlot(0).getStack();
