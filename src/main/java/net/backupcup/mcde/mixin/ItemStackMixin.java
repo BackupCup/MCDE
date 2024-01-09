@@ -99,34 +99,6 @@ public abstract class ItemStackMixin {
         }
     }
 
-    @ModifyReturnValue(method = "getEnchantments", at = @At("RETURN"))
-    private NbtList mcde$getEnchantments(NbtList list) {
-        if (!hasNbt()) {
-            return list;
-        }
-    
-        var slotsOptional = EnchantmentSlots.fromItemStack((ItemStack)(Object)this);
-        if (slotsOptional.isEmpty()) {
-            return list;
-        }
-        var slots = slotsOptional.get();
-
-        var newList = list.copy();
-
-        for (var slot : slots) {
-            slot.getChosen().ifPresent(chosen -> {
-                newList.add(EnchantmentHelper.createNbt(chosen.getEnchantmentId(), chosen.getLevel()));
-            });
-        }
-
-        if (!slots.hasGilding()) {
-            return newList;
-        }
-        var gilded = slots.getGilding().get();
-        newList.add(EnchantmentHelper.createNbt(gilded, 1));
-        return newList;
-    }
-
     @ModifyReturnValue(method = "hasEnchantments", at = @At("RETURN"))
     private boolean mcde$hasEnchantments(boolean original) {
         return EnchantmentSlots.fromItemStack((ItemStack)(Object)this).map(
