@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -18,6 +19,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
 
 public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
+    public static final String ENCHANTMENT_SLOTS_KEY = "MCDEnchantments";
     private Map<SlotPosition, EnchantmentSlot> slots;
     private Optional<Identifier> gilding;
     private int nextRerollCost;
@@ -135,26 +137,46 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
         return root;
     }
 
-    public static EnchantmentSlots fromNbt(NbtCompound nbt) {
+    public void putChosenEnchantments(ItemStack itemStack) {
+        var enchantments = EnchantmentHelper.get(itemStack);
+        enchantments.putAll(slots.values().stream()
+                .flatMap(slot -> slot.getChosen().stream())
+                .collect(Collectors.toMap(Choice::getEnchantment, Choice::getLevel)));
+        gilding.ifPresent(id -> enchantments.put(EnchantmentUtils.getEnchantment(id), 1));
+        EnchantmentHelper.set(enchantments, itemStack);
+    }
+
+    public void removeChosenEnchantments(ItemStack itemStack) {
+        var enchantments = EnchantmentHelper.get(itemStack);
+        var chosen = slots.values().stream()
+            .flatMap(slot -> slot.getChosen().map(c -> c.getEnchantment()).stream())
+            .toList();
+        enchantments.entrySet().removeIf(kvp -> chosen.contains(kvp.getKey()));
+        EnchantmentHelper.set(enchantments, itemStack);
+    }
+
+    public static EnchantmentSlots fromNbt(NbtCompound nbt, Map<Enchantment, Integer> enchantments) {
         if (nbt == null) {
             return null;
         }
         var slots = nbt.getCompound("Slots");
         return new EnchantmentSlots(slots.getKeys().stream()
-                .collect(Collectors.toMap(
-                    key -> SlotPosition.valueOf(key),
-                    key -> EnchantmentSlot.fromNbt(slots.getCompound(key), SlotPosition.valueOf(key))
-                )), Optional.ofNullable(nbt.getString("Gilding")).filter(id -> !id.isEmpty()).map(Identifier::tryParse),
+                    .map(key -> EnchantmentSlot.fromNbt(slots.getCompound(key), SlotPosition.valueOf(key), enchantments))
+                    .filter(slot -> slot.getChosen().filter(c -> c.getLevel() == 0).isEmpty())
+                    .collect(Collectors.toMap(EnchantmentSlot::getSlotPosition, Function.identity())),
+                Optional.ofNullable(Identifier.tryParse(nbt.getString("Gilding")))
+                    .filter(id -> enchantments.containsKey(EnchantmentUtils.getEnchantment(id))),
                 nbt.getCompound("NextRerollCost").getInt("Normal"),
                 nbt.getCompound("NextRerollCost").getInt("Powerful"));
     }
 
     public static Optional<EnchantmentSlots> fromItemStack(ItemStack itemStack) {
-        return Optional.ofNullable(EnchantmentSlots.fromNbt(itemStack.getSubNbt("MCDEnchantments")));
+        return Optional.ofNullable(fromNbt(itemStack.getSubNbt(ENCHANTMENT_SLOTS_KEY), EnchantmentHelper.get(itemStack)));
     }
 
     public void updateItemStack(ItemStack itemStack) {
-        itemStack.setSubNbt("MCDEnchantments", toNbt());
+        itemStack.setSubNbt(ENCHANTMENT_SLOTS_KEY, toNbt());
+        putChosenEnchantments(itemStack);
     }
 
     @Override

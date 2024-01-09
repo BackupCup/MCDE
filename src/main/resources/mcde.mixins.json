@@ -9,7 +9,8 @@
       "AnvilScreenHandlerMixin",
       "EnchantingTableBlockMixin",
       "EnchantRandomlyLootFunctionMixin",
-      "GrindstoneScreenHandlerMixin"
+      "GrindstoneScreenHandlerMixin",
+      "GrindstoneScreenHandlerMixin$Slot3"
   ],
   "injectors": {
     "defaultRequire": 1
