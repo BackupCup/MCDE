@@ -66,6 +66,10 @@ public class EnchantmentUtils {
             .filter(target -> target.isAcceptableItem(item)).toList();
     }
 
+    public static Enchantment getEnchantment(Identifier enchantmentId) {
+        return ENCHANTMENT.get(enchantmentId);
+    }
+
     public static Identifier getEnchantmentId(Enchantment enchantment) {
         return ENCHANTMENT.getId(enchantment);
     }
@@ -289,6 +293,12 @@ public class EnchantmentUtils {
         return candidates;
     }
 
+    public static boolean isGilding(Enchantment enchantment, ItemStack itemStack) {
+        return EnchantmentSlots.fromItemStack(itemStack)
+                .flatMap(slots -> slots.getGilding().map(EnchantmentUtils::getEnchantment))
+                .filter(gilding -> enchantment.equals(gilding)).isPresent();
+    }
+
     private static List<Identifier> getPossibleCandidates(ItemStack itemStack) {
         var present = getAllEnchantmentsInItem(itemStack);
         var candidates = getAllEnchantmentsForItem(itemStack)
@@ -298,4 +308,6 @@ public class EnchantmentUtils {
         }
          return candidates.toList();
     }
+
+
 }
