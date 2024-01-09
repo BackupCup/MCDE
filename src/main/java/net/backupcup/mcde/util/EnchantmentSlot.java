@@ -5,6 +5,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
@@ -77,6 +80,14 @@ public class EnchantmentSlot {
         return chosen.map(pos -> level >= Registries.ENCHANTMENT.get(enchantments.get(pos)).getMaxLevel()).orElse(false);
     }
 
+    public void removeChosenEnchantment(ItemStack itemStack) {
+        getChosen().ifPresent(c -> {
+            var enchantments = EnchantmentHelper.get(itemStack);
+            enchantments.remove(c.getEnchantment());
+            EnchantmentHelper.set(enchantments, itemStack);
+        });
+    }
+
     public static EnchantmentSlot of(SlotPosition slot, Identifier first) {
         return new EnchantmentSlot(slot, Map.of(SlotPosition.FIRST, first));
     }
@@ -102,24 +113,23 @@ public class EnchantmentSlot {
         root.put("Choices", choices);
         if (chosen.isPresent()) {
             root.putString("Chosen", chosen.get().name());
-            root.putInt("Level", level);
         }
         return root;
     }
 
-    public static EnchantmentSlot fromNbt(NbtCompound nbt, SlotPosition slot) {
+    public static EnchantmentSlot fromNbt(NbtCompound nbt, SlotPosition slot, Map<Enchantment, Integer> enchantments) {
         var choices = nbt.getCompound("Choices");
         var choiceMap = choices.getKeys().stream()
                 .collect(Collectors.toMap(
                     key -> SlotPosition.valueOf(key),
                     key -> Identifier.tryParse(choices.getString(key))
                 ));
-        choiceMap.entrySet().removeIf(entry -> Registries.ENCHANTMENT.get(entry.getValue()) == null);
+        choiceMap.entrySet().removeIf(entry -> EnchantmentUtils.getEnchantment(entry.getValue()) == null);
         var newSlot = new EnchantmentSlot(slot, choiceMap);
         if (nbt.contains("Chosen")) {
             var chosenSlot = SlotPosition.valueOf(nbt.getString("Chosen"));
             if (choiceMap.containsKey(chosenSlot)) {
-                newSlot.setChosen(chosenSlot, nbt.getShort("Level"));
+                newSlot.setChosen(chosenSlot, enchantments.getOrDefault(EnchantmentUtils.getEnchantment(choiceMap.get(chosenSlot)), 0));
             }
         }
         return newSlot;
