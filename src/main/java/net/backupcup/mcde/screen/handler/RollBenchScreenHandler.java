@@ -115,6 +115,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
                 );
             }
             gilding.ifPresent(enchantmentId -> newSlots.setGilding(enchantmentId));
+            slots.removeChosenEnchantments(itemStack);
             newSlots.updateItemStack(itemStack);
             if (!player.isCreative()) {
                 rerollMaterialStack.decrement(1);
@@ -139,6 +140,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
             if (!canReroll(player, enchantmentId, slots)) {
                 return super.onButtonClick(player, id);
             }
+            clickedSlot.removeChosenEnchantment(itemStack);
             clickedSlot.clearChoice();
             toChange = chosen.getChoicePosition();
         } else {
