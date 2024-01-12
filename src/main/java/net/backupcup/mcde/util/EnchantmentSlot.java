@@ -1,16 +1,18 @@
 package net.backupcup.mcde.util;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class EnchantmentSlot {
     private SlotPosition slot;
@@ -102,7 +104,21 @@ public class EnchantmentSlot {
 
     @Override
     public String toString() {
-        return String.format("%s (%s)", enchantments, chosen);
+        var builder = new StringBuilder();
+        builder.append('[');
+        builder.append(Arrays.stream(SlotPosition.values()).flatMap(pos -> {
+            if (!enchantments.containsKey(pos)) {
+                return Stream.empty();
+            }
+
+            if (chosen.isPresent() && pos == chosen.get()) {
+                return Stream.of(String.format("(%s {%d})", enchantments.get(pos), level));
+            }
+
+            return Stream.of(enchantments.get(pos).toString());
+        }).collect(Collectors.joining(", ")));
+        builder.append(']');
+        return builder.toString();
     }
 
     public NbtCompound toNbt() {

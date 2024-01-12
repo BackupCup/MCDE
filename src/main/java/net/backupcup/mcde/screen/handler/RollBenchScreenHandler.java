@@ -11,6 +11,7 @@ import net.backupcup.mcde.block.ModBlocks;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.SlotPosition;
+import net.backupcup.mcde.util.SlotsGenerator;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -104,15 +105,20 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
             var gilding = slots.getGilding();
             EnchantmentSlots newSlots;
             if (MCDEnchantments.getConfig().canFullRerollRemoveSlots()) {
-                newSlots = EnchantmentUtils.generateEnchantments(itemStack, serverPlayerEntity);
+                newSlots = SlotsGenerator.forItemStack(itemStack)
+                    .withOptionalOwner(serverPlayerEntity)
+                    .build()
+                    .generateEnchantments();
             } else {
-                newSlots = EnchantmentUtils.generateEnchantments(
-                    itemStack,
-                    serverPlayerEntity,
-                    Optional.empty(),
-                    slots.getEnchantmentSlot(SlotPosition.SECOND).map(slot -> 1f),
-                    slots.getEnchantmentSlot(SlotPosition.THIRD).map(slot -> 1f)
-                );
+                var generatorBuilder = SlotsGenerator.forItemStack(itemStack)
+                    .withOptionalOwner(serverPlayerEntity);
+                if (slots.getEnchantmentSlot(SlotPosition.SECOND).isPresent()) {
+                    generatorBuilder.withSecondSlotAbsoluteChance(1f);
+                }
+                if (slots.getEnchantmentSlot(SlotPosition.THIRD).isPresent()) {
+                    generatorBuilder.withThirdSlotAbsoluteChance(1f);
+                } 
+                newSlots = generatorBuilder.build().generateEnchantments();
             }
             gilding.ifPresent(enchantmentId -> newSlots.setGilding(enchantmentId));
             slots.removeChosenEnchantments(itemStack);
@@ -168,7 +174,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
             return true;
         }
         ItemStack lapisLazuliStack = inventory.getStack(1);
-        return lapisLazuliStack.getCount() >= slots.getNextRerollCost(enchantmentId);
+        return lapisLazuliStack.isOf(Items.LAPIS_LAZULI) && lapisLazuliStack.getCount() >= slots.getNextRerollCost(enchantmentId);
     }
 
     @Override
