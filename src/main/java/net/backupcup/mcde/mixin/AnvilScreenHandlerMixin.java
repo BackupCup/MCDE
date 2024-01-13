@@ -109,6 +109,12 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
 
         result = input.copy();
         levelCost.set(slots.merge(other));
+        if (slots.getGilding().isPresent()) {
+            var gilding = EnchantmentUtils.getEnchantment(slots.getGilding().get());
+            var map = EnchantmentHelper.get(result);
+            map.remove(gilding);
+            EnchantmentHelper.set(map, result);
+        }
         slots.removeGilding();
         slots.updateItemStack(result);
 
