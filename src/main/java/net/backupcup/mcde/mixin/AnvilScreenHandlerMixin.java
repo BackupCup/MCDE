@@ -59,7 +59,9 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
             var iter = map.entrySet().iterator();
             while (iter.hasNext()) {
                 var entry = iter.next();
-                if (!entry.getKey().isAcceptableItem(input) || (present.containsKey(entry.getKey()) && present.get(entry.getKey()) > entry.getValue())) {
+                if (!entry.getKey().isAcceptableItem(input) ||
+                        (present.containsKey(entry.getKey()) && present.get(entry.getKey()) > entry.getValue()) ||
+                        slots.getGilding().filter(g -> EnchantmentUtils.getEnchantment(g).equals(entry.getKey())).isPresent()) {
                     iter.remove();
                     continue;
                 }
