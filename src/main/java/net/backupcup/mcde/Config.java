@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import blue.endless.jankson.Comment;
 import blue.endless.jankson.Jankson;
@@ -240,8 +241,24 @@ public class Config {
             return third;
         }
 
+        public void setSecondChance(float second) {
+            this.second = second;
+        }
+
+        public void setThirdChance(float third) {
+            this.third = third;
+        }
+
         public static SlotChances add(SlotChances lhs, SlotChances rhs) {
             return new SlotChances(lhs.second + rhs.second, lhs.third + rhs.third);
+        }
+
+        public static SlotChances add(SlotChances lhs, float rhs) {
+            return new SlotChances(lhs.second + rhs, lhs.third + rhs);
+        }
+
+        public static SlotChances apply(SlotChances chances, Function<Float, Float> f) {
+            return new SlotChances(f.apply(chances.second), f.apply(chances.third));
         }
     }
 
@@ -340,6 +357,10 @@ public class Config {
 
     public float getThirdSlotBaseChance() {
         return thirdSlotBaseChance;
+    }
+
+    public SlotChances getSlotBaseChances() {
+        return new SlotChances(secondSlotBaseChance, thirdSlotBaseChance);
     }
 
     public Map<Identifier, SlotChances> getProgressChances() {
