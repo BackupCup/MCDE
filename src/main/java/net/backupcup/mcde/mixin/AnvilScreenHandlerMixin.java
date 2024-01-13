@@ -51,10 +51,9 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
             levelCost.set(slots.merge(other));
             var map = EnchantmentHelper.get(other);
             var present = EnchantmentHelper.get(input);
-            slots.stream().forEach(slot -> slot.getChosen().ifPresent(c -> map.remove(c.getEnchantment())));
             if (MCDEnchantments.getConfig().isCompatibilityRequired() && !player.isCreative()) {
                 map.entrySet().removeIf(kvp -> present.keySet().stream()
-                        .anyMatch(e -> !kvp.getKey().canCombine(e)));
+                        .anyMatch(e -> !kvp.getKey().canCombine(e) && !e.equals(kvp.getKey())));
             }
             var iter = map.entrySet().iterator();
             while (iter.hasNext()) {
