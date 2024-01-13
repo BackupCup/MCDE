@@ -8,10 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.IntStream;
-
-import com.ibm.icu.impl.units.MeasureUnitImpl.InitialCompoundPart;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.backupcup.mcde.Config.SlotChances;
@@ -25,17 +22,13 @@ import net.minecraft.util.math.random.LocalRandom;
 import net.minecraft.util.math.random.Random;
 
 public class SlotsGenerator {
-    private ItemStack itemStack;
     private ObjectArrayList<Identifier> pool;
-    private Optional<ServerPlayerEntity> optionalOwner;
     private Random random;
 
     private float threeChoiceChance;
     private SlotChances slotChances;
 
     public SlotsGenerator(ItemStack itemStack, Optional<ServerPlayerEntity> optionalOwner, Random random, float threeChoiceChance, SlotChances slotChances) {
-        this.itemStack = itemStack;
-        this.optionalOwner = optionalOwner;
         this.random = random;
 
         this.threeChoiceChance = threeChoiceChance;
@@ -44,7 +37,6 @@ public class SlotsGenerator {
         pool = EnchantmentUtils.getEnchantmentsForItem(itemStack).collect(ObjectArrayList.toList());
 
         if (optionalOwner.isPresent()) {
-            MCDEnchantments.LOGGER.info("Removing locked enchantments: {}", EnchantmentUtils.getLockedEnchantments(optionalOwner.get()));
             pool.removeIf(EnchantmentUtils.getLockedEnchantments(optionalOwner.get())::contains);
         };
 
@@ -60,24 +52,15 @@ public class SlotsGenerator {
         var pool = (ObjectArrayList<Identifier>)Util.copyShuffled(this.pool, random);
         boolean isTwoChoiceGenerated = false;
 
-        // TODO: prioritize incompatible enchantments in the same slot
-
-        MCDEnchantments.LOGGER.info("Pool: {}", pool);
-        MCDEnchantments.LOGGER.info("Pool's size: {}", pool.size());
-
         if (pool.isEmpty()) {
             return EnchantmentSlots.EMPTY;
         }
 
         isTwoChoiceGenerated = generateSlot(FIRST, pool, builder, isTwoChoiceGenerated);
 
-        MCDEnchantments.LOGGER.info("Generated first slot: {}", builder.getSlot(FIRST).get());
-
         if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
-            MCDEnchantments.LOGGER.info("Removed incompatible enchantments: {}", removeIncompatible(pool, builder));
+            removeIncompatible(pool, builder);
         }
-
-        MCDEnchantments.LOGGER.info("Remaining pool: {}", pool);
 
         if (pool.isEmpty()) {
             return builder.build();
@@ -85,16 +68,14 @@ public class SlotsGenerator {
 
         if (random.nextFloat() < slotChances.getSecondChance()) {
             isTwoChoiceGenerated = generateSlot(SECOND, pool, builder, isTwoChoiceGenerated);
-            MCDEnchantments.LOGGER.info("Generated Second slot: {}", builder.getSlot(SECOND).get());
         }
         else {
             return builder.build();
         }
 
         if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
-            MCDEnchantments.LOGGER.info("Removed incompatible enchantments: {}", removeIncompatible(pool, builder));
+            removeIncompatible(pool, builder);
         }
-        MCDEnchantments.LOGGER.info("Remaining pool: {}", pool);
 
         if (pool.isEmpty()) {
             return builder.build();
@@ -102,7 +83,6 @@ public class SlotsGenerator {
 
         if (random.nextFloat() < slotChances.getThirdChance()) {
             isTwoChoiceGenerated = generateSlot(THIRD, pool, builder, isTwoChoiceGenerated);
-            MCDEnchantments.LOGGER.info("Generated third slot: {}", builder.getSlot(THIRD).get());
         }
 
         return builder.build();
