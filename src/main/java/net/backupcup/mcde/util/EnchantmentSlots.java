@@ -103,6 +103,10 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
             return added;
         }
 
+        public Optional<EnchantmentSlot> getSlot(SlotPosition pos) {
+            return Optional.ofNullable(slots.get(pos));
+        }
+
         public EnchantmentSlots build() {
             return new EnchantmentSlots(Collections.unmodifiableMap(slots));
         }
