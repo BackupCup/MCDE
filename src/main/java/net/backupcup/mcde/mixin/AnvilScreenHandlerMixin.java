@@ -1,5 +1,7 @@
 package net.backupcup.mcde.mixin;
 
+import java.util.Optional;
+
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -11,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
+import net.backupcup.mcde.util.SlotsGenerator;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -37,7 +40,17 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
     private void mcde$mixSlots(CallbackInfo ci) {
         var input = getSlot(0).getStack();
         var other = getSlot(1).getStack();
-        var slotsOptional = EnchantmentSlots.fromItemStack(input);
+        var slotsOptional = EnchantmentSlots.fromItemStack(input).or(() -> {
+            if (!input.getItem().isEnchantable(input)) {
+                return Optional.empty();
+            }
+            var optionalOwner = context.get((world, pos) -> world.getServer().getPlayerManager().getPlayer(player.getUuid()));
+            MCDEnchantments.LOGGER.info("Generating slots in anvil for {}", optionalOwner);
+            return Optional.of(SlotsGenerator.forItemStack(input)
+                .withOptionalOwner(optionalOwner)
+                .build()
+                .generateEnchantments());
+        });
         ItemStack result = ItemStack.EMPTY;
         if (slotsOptional.isEmpty()) {
             if (EnchantmentSlots.fromItemStack(other).isPresent()) {
