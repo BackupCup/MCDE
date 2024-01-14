@@ -172,8 +172,6 @@ public class SlotsGenerator {
                 right -= 2;
                 found = 2;
             }
-            pool.remove(left);
-            right--;
         }
     }
 

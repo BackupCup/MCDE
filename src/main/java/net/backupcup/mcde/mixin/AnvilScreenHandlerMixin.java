@@ -1,5 +1,7 @@
 package net.backupcup.mcde.mixin;
 
+import java.util.Optional;
+
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -11,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
+import net.backupcup.mcde.util.SlotsGenerator;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -37,7 +40,17 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
     private void mcde$mixSlots(CallbackInfo ci) {
         var input = getSlot(0).getStack();
         var other = getSlot(1).getStack();
-        var slotsOptional = EnchantmentSlots.fromItemStack(input);
+        var slotsOptional = EnchantmentSlots.fromItemStack(input).or(() -> {
+            if (!input.getItem().isEnchantable(input)) {
+                return Optional.empty();
+            }
+            var optionalOwner = context.get((world, pos) -> world.getServer().getPlayerManager().getPlayer(player.getUuid()));
+            MCDEnchantments.LOGGER.info("Generating slots in anvil for {}", optionalOwner);
+            return Optional.of(SlotsGenerator.forItemStack(input)
+                .withOptionalOwner(optionalOwner)
+                .build()
+                .generateEnchantments());
+        });
         ItemStack result = ItemStack.EMPTY;
         if (slotsOptional.isEmpty()) {
             if (EnchantmentSlots.fromItemStack(other).isPresent()) {
@@ -51,15 +64,16 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
             levelCost.set(slots.merge(other));
             var map = EnchantmentHelper.get(other);
             var present = EnchantmentHelper.get(input);
-            slots.stream().forEach(slot -> slot.getChosen().ifPresent(c -> map.remove(c.getEnchantment())));
             if (MCDEnchantments.getConfig().isCompatibilityRequired() && !player.isCreative()) {
                 map.entrySet().removeIf(kvp -> present.keySet().stream()
-                        .anyMatch(e -> !kvp.getKey().canCombine(e)));
+                        .anyMatch(e -> !kvp.getKey().canCombine(e) && !e.equals(kvp.getKey())));
             }
             var iter = map.entrySet().iterator();
             while (iter.hasNext()) {
                 var entry = iter.next();
-                if (!entry.getKey().isAcceptableItem(input) || (present.containsKey(entry.getKey()) && present.get(entry.getKey()) > entry.getValue())) {
+                if (!entry.getKey().isAcceptableItem(input) ||
+                        (present.containsKey(entry.getKey()) && present.get(entry.getKey()) > entry.getValue()) ||
+                        slots.getGilding().filter(g -> EnchantmentUtils.getEnchantment(g).equals(entry.getKey())).isPresent()) {
                     iter.remove();
                     continue;
                 }
