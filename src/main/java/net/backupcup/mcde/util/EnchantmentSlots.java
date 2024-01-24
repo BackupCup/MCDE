@@ -192,32 +192,16 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
         return slots.values().stream();
     }
 
-    public int merge(Map<Enchantment, Integer> enchantmentMap) {
-        int cost = 0;
-        for (var slot : this) {
-            if (slot.getChosen().isEmpty()) {
-                continue;
-            }
-            var chosen = slot.getChosen().get();
-            var enchantment = chosen.getEnchantment();
-            if (!enchantmentMap.containsKey(enchantment)) {
-                continue;
-            }
-            if (chosen.getLevel() >= chosen.getEnchantment().getMaxLevel()) {
-                continue;
-            }
-            var otherLvl = enchantmentMap.get(enchantment);
-            if (otherLvl < chosen.getLevel()) {
-                continue;
-            }
-            var upgrade = chosen.getLevel() == otherLvl ? 1 : otherLvl - chosen.getLevel();
-            cost += MCDEnchantments.getConfig().getEnchantCost(chosen.getEnchantmentId(), upgrade);
-            slot.setLevel(chosen.getLevel() + upgrade);
+    public EnchantmentSlots merge(EnchantmentSlots other) {
+        var mergedSlotMap = new EnumMap<SlotPosition, EnchantmentSlot>(slots);
+        for (var kvp : other.slots.entrySet()) {
+            mergedSlotMap.putIfAbsent(kvp.getKey(), kvp.getValue());
         }
-        return cost;
-    }
-
-    public int merge(ItemStack itemStack) {
-        return merge(EnchantmentHelper.get(itemStack));
+        return new EnchantmentSlots(
+            mergedSlotMap,
+            gilding,
+            (nextRerollCost + other.nextRerollCost) / 2,
+            (nextRerollCostPowerful + other.nextRerollCostPowerful) / 2
+        );
     }
 }
