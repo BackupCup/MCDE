@@ -162,8 +162,8 @@ public class EnchantmentUtils {
 
     public static boolean isGilding(Enchantment enchantment, ItemStack itemStack) {
         return EnchantmentSlots.fromItemStack(itemStack)
-                .flatMap(slots -> slots.getGilding().map(EnchantmentUtils::getEnchantment))
-                .filter(gilding -> enchantment.equals(gilding)).isPresent();
+                .map(slots -> slots.getGilding().contains(EnchantmentUtils.getEnchantmentId(enchantment)))
+                .orElse(false);
     }
 
     private static List<Identifier> getPossibleCandidates(ItemStack itemStack) {

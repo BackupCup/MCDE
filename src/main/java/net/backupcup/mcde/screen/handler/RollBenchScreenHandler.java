@@ -120,7 +120,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
                 } 
                 newSlots = generatorBuilder.build().generateEnchantments();
             }
-            gilding.ifPresent(enchantmentId -> newSlots.setGilding(enchantmentId));
+            newSlots.addAllGilding(gilding);
             slots.removeChosenEnchantments(itemStack);
             newSlots.updateItemStack(itemStack);
             if (!player.isCreative()) {

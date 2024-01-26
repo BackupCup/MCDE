@@ -131,7 +131,7 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
         inventory.get(1).decrement(MCDEnchantments.getConfig().getGildingCost());
         var id = generated.get();
         EnchantmentSlots.fromItemStack(weaponStack).ifPresent(slots -> {
-            slots.setGilding(id);
+            slots.addGilding(id);
             slots.updateItemStack(weaponStack);
         });
     }
