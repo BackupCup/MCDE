@@ -106,6 +106,11 @@ public class EnchantmentSlotsRenderer {
         RenderSystem.setShaderTexture(0, defaultGuiTexture);
         screen.drawTexture(matrices, pos.x(), pos.y(), texPos.x(), texPos.y(), 31, 31);
         drawIcon(matrices, pos.add(4, 4), slot, choice);
+        getLevelTexture(choice.getLevel()).ifPresent(texture -> {
+            RenderSystem.setShaderTexture(0, texture);
+            MCDEnchantments.LOGGER.info("texture: {} is drawn on {} {}", texture, pos.x() - 1, pos.y() - 5);
+            DrawableHelper.drawTexture(matrices, pos.x() - 1, pos.y() - 5, 0f, 0f, 33, 41, 64, 64);
+        });
     }
 
     public void drawIconHoverOutline(MatrixStack matrices, SlotPosition slot, Choice choice) {
@@ -221,6 +226,16 @@ public class EnchantmentSlotsRenderer {
                 enchantmentID.getPath()
             )
         );
+    }
+
+    public static Optional<Identifier> getLevelTexture(int level) {
+        return Optional.of(level)
+            .filter(lvl -> lvl >= 2)
+            .map(lvl -> Math.min(lvl, 7))
+            .map(lvl -> Identifier.of(
+                MCDEnchantments.MOD_ID,
+                String.format("textures/gui/slot_levels/%d.png", lvl)
+            ));
     }
 
     public static class Builder {
