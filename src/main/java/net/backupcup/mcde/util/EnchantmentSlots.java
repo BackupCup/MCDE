@@ -181,7 +181,7 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
     }
 
     public static EnchantmentSlots fromNbt(NbtCompound nbt, Map<Enchantment, Integer> enchantments) {
-        if (nbt == null) {
+        if (nbt.isEmpty()) {
             return null;
         }
         var slots = nbt.getCompound("Slots");
