@@ -19,6 +19,7 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Items;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.MathHelper;
 
 @Environment(EnvType.CLIENT)
 public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHandler> {
@@ -138,6 +139,16 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
             else {
                 drawTexture(matrices, buttonX, buttonY, buttonOffset.x(), buttonOffset.y(), 76, 12);
             }
+
+            int color = hexToColor("#F6F6F6");
+            int shadow = hexToColor("#6e2727");
+            var text = Text.translatable("ui.mcde.gilding_button");
+            if (buttonOffset.equals(EMERALD_BUTTON_OFFSET)) {
+                shadow = hexToColor("#165a4c");
+                text = Text.translatable("ui.mcde.regilding_button");
+            }
+            textRenderer.draw(matrices, text, buttonX + (76 - textRenderer.getWidth(text)) / 2 + 1, buttonY + 2 + 1, shadow);
+            textRenderer.draw(matrices, text, buttonX + (76 - textRenderer.getWidth(text)) / 2, buttonY + 2, color);
         }
 
         drawProgress(matrices, handler.getProgress());
@@ -220,5 +231,13 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
         }
         return inventory.getStack(1).isOf(Items.EMERALD) ?
             EMERALD_BUTTON_OFFSET : GOLD_BUTTON_OFFSET;
+    }
+
+    private static int hexToColor(String hex) {
+        return MathHelper.packRgb(
+            Integer.parseInt(hex.substring(1, 3), 16),
+            Integer.parseInt(hex.substring(3, 5), 16),
+            Integer.parseInt(hex.substring(5, 7), 16)
+        );
     }
 }

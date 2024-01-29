@@ -42,7 +42,7 @@
   "enchantment.minecraft.multishot.desc": "Scaglia ulteriori frecce in direzioni casuali.",
   "enchantment.minecraft.quick_charge.desc": "Aumenta la velocit\u00e0 di ricarica delle balestre.",
   "enchantment.minecraft.piercing.desc": "Permette ai proiettili di perforare le creature, attraversandole.",
-  "enchantment.minecraft.soul_speed.desc": "Aumenta la velocit\u00e0 di movimento su blocchi di anime."
+  "enchantment.minecraft.soul_speed.desc": "Aumenta la velocit\u00e0 di movimento su blocchi di anime.",
   "enchantment.minecraft.swift_sneak.desc": "Aumenta la velocità furtiva da accovacciato.",
 
   "message.mcde.max_level": "(Livello massimo)",
@@ -55,5 +55,7 @@
   "message.mcde.error.config.general": "Errore durante il caricamento dei config. Utilizzando config di base. Controlla i log per dettagli",
   "message.mcde.already_exists": "L'incantamento è già applicato",
   "message.mcde.cant_combine": "Impossibile combinare con %s",
-  "message.mcde.reroll_button.desc": "Rilancia il numero di slot utilizzabili e il loro incantamento."
+  "message.mcde.reroll_button.desc": "Rilancia il numero di slot utilizzabili e il loro incantamento.",
+  "ui.mcde.gilding_button": "Dòri",
+  "ui.mcde.regilding_button": "Ridòri"
 }

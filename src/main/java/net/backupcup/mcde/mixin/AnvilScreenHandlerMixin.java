@@ -46,7 +46,6 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
     )
     private int mcde$adjustPrice(int original, @Local Enchantment enchantment, @Local(index = 15) int level, @Local(index = 17) int rarity) {
         int cost = MCDEnchantments.getConfig().getEnchantCost(EnchantmentHelper.getEnchantmentId(enchantment), level);
-        MCDEnchantments.LOGGER.debug("Adding cost of {} ({}) instead of original {}", enchantment.getName(level).getString(), cost, rarity * level);
         return original + cost - rarity * level;
     }
 

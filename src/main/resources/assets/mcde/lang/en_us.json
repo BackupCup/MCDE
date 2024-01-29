@@ -55,5 +55,7 @@
   "message.mcde.error.config.general": "An error occured while loading config. Using defaults. Check out logs for details",
   "message.mcde.already_exists": "Enchantment is already applied",
   "message.mcde.cant_combine": "Can't combine with %s",
-  "message.mcde.reroll_button.desc": "Rerolls the amount of available slots and their enchantments."
+  "message.mcde.reroll_button.desc": "Rerolls the amount of available slots and their enchantments.",
+  "ui.mcde.gilding_button": "Gild",
+  "ui.mcde.regilding_button": "Regild"
 }

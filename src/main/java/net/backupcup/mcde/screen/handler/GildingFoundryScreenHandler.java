@@ -60,8 +60,6 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
             ScreenHandlerContext.EMPTY,
             buf.readOptional(r -> r.readIdentifier())
         );
-        MCDEnchantments.LOGGER.info("Client constructor {}", syncId);
-        MCDEnchantments.LOGGER.info("generatedEnchantment: {}", generatedEnchantment);
     }
 
     public GildingFoundryScreenHandler(
@@ -80,8 +78,6 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
         inventory.onOpen(playerInventory.player);
         this.propertyDelegate = delegate;
         this.generatedEnchantment = generatedEnchantment;
-        MCDEnchantments.LOGGER.info("Server constructor {}", syncId);
-        MCDEnchantments.LOGGER.info("generatedEnchantment: {}", generatedEnchantment);
 
         this.addSlot(new Slot(inventory, 0, 82, 17) {
 
@@ -125,7 +121,6 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
         }
         var weaponStack = player.isCreative() ? inventory.getStack(0) : inventory.getStack(0).copy();
         var enchantmentId = generatedEnchantment.get();
-        MCDEnchantments.LOGGER.info("generatedEnchantment: {}", enchantmentId);
         EnchantmentSlots.fromItemStack(weaponStack).ifPresent(slots -> {
             if (slots.hasGilding()) {
                 var map = EnchantmentHelper.get(weaponStack);
@@ -224,7 +219,6 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
             buffer.writeInt(syncId);
             buffer.writeOptional(generatedEnchantment, (buf, e) -> buf.writeIdentifier(e));
             ServerPlayNetworking.send(serverPlayer, GILDING_PACKET, buffer);
-            MCDEnchantments.LOGGER.info("Sending packet to Client");
         });
     }
 
@@ -240,7 +234,6 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
             return;
         }
         int syncId = buf.readInt();
-        MCDEnchantments.LOGGER.info("Recieved packet with syncId: {}, syncId of handler: {}, handler: {}", syncId, screenHandler.syncId, screenHandler);
 
         if (screenHandler.syncId != syncId) {
             return;
@@ -248,7 +241,6 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
 
         if (screenHandler instanceof GildingFoundryScreenHandler gfScreenHandler) {
             gfScreenHandler.generatedEnchantment = buf.readOptional(b -> b.readIdentifier());
-            MCDEnchantments.LOGGER.info("Recieved new enchantment: {}", gfScreenHandler.generatedEnchantment);
         }
     }
 
