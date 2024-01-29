@@ -58,7 +58,11 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
         return gilding.contains(EnchantmentUtils.getEnchantmentId(id));
     }
 
-    public Set<Identifier> getGilding() {
+    public Set<Enchantment> getGildingEnchantments() {
+        return gilding.stream().collect(Collectors.mapping(EnchantmentUtils::getEnchantment, Collectors.toSet()));
+    }
+
+    public Set<Identifier> getGildingIds() {
         return gilding;
     }
 
@@ -72,6 +76,10 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
 
     public void removeGilding(Identifier gilding) {
         this.gilding.remove(gilding);
+    }
+
+    public void removeAllGildings() {
+        this.gilding.clear();
     }
 
     public int getNextRerollCost() {

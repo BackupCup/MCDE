@@ -52,7 +52,7 @@ public abstract class ItemStackMixin {
         var list = original.copy();
         list.removeIf(e -> slots.stream().flatMap(slot -> slot.getChosen().stream())
                 .anyMatch(c -> c.getEnchantmentId().equals(EnchantmentHelper.getIdFromNbt((NbtCompound)e))));
-        list.removeIf(e -> slots.getGilding().contains(EnchantmentHelper.getIdFromNbt((NbtCompound)e)));
+        list.removeIf(e -> slots.getGildingIds().contains(EnchantmentHelper.getIdFromNbt((NbtCompound)e)));
         return list;
     }
 
@@ -84,7 +84,7 @@ public abstract class ItemStackMixin {
                 tooltip.add(name.formatted(EnchantmentUtils.formatEnchantment(chosen.getEnchantmentId())));
             }
         }
-        for (var gilded : slots.getGilding()) {
+        for (var gilded : slots.getGildingIds()) {
             tooltip.add(Text.translatable("item.tooltip.gilded", Text.translatable(gilded.toTranslationKey("enchantment")))
                     .formatted(Formatting.GOLD));
         }
@@ -95,7 +95,7 @@ public abstract class ItemStackMixin {
         EnchantmentSlots.fromItemStack((ItemStack)(Object)this).ifPresent(slots -> {
             for (var e : list) {
                 NbtCompound c = (NbtCompound)e;
-                if (slots.getGilding().contains((EnchantmentHelper.getIdFromNbt(c)))) {
+                if (slots.getGildingIds().contains((EnchantmentHelper.getIdFromNbt(c)))) {
                     EnchantmentHelper.writeLevelToNbt(c, 1);
                 }
             }

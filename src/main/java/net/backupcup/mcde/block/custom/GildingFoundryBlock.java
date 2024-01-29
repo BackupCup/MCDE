@@ -1,5 +1,6 @@
 package net.backupcup.mcde.block.custom;
 
+import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.block.entity.GildingFoundryBlockEntity;
 import net.backupcup.mcde.block.entity.ModBlockEntities;
 import net.minecraft.block.*;
@@ -106,6 +107,7 @@ public class GildingFoundryBlock extends BlockWithEntity {
     public ActionResult onUse(BlockState state, World world, BlockPos pos,
                               PlayerEntity player, Hand hand, BlockHitResult hit) {
         if (!world.isClient) {
+            MCDEnchantments.LOGGER.info("onUse");
             NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
 
             if (screenHandlerFactory != null) {

@@ -14,6 +14,7 @@ import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -27,6 +28,7 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.ScreenHandlerListener;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
 public class GildingFoundryScreenHandler extends ScreenHandler implements ScreenHandlerListener {
@@ -49,18 +51,37 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
         return generatedEnchantment.isPresent();
     }
 
-    public GildingFoundryScreenHandler(int syncId, PlayerInventory inventory) {
-        this(syncId, inventory, new SimpleInventory(2), new ArrayPropertyDelegate(1), ScreenHandlerContext.EMPTY);
+    public GildingFoundryScreenHandler(int syncId, PlayerInventory inventory, PacketByteBuf buf) {
+        this(
+            syncId,
+            inventory,
+            new SimpleInventory(2),
+            new ArrayPropertyDelegate(1),
+            ScreenHandlerContext.EMPTY,
+            buf.readOptional(r -> r.readIdentifier())
+        );
+        MCDEnchantments.LOGGER.info("Client constructor {}", syncId);
+        MCDEnchantments.LOGGER.info("generatedEnchantment: {}", generatedEnchantment);
     }
 
-    public GildingFoundryScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, PropertyDelegate delegate, ScreenHandlerContext context) {
+    public GildingFoundryScreenHandler(
+        int syncId,
+        PlayerInventory playerInventory,
+        Inventory inventory,
+        PropertyDelegate delegate,
+        ScreenHandlerContext context,
+        Optional<Identifier> generatedEnchantment
+    ) {
         super(ModScreenHandlers.GILDING_FOUNDRY_SCREEN_HANDLER, syncId);
         this.context = context;
         this.playerEntity = playerInventory.player;
-        checkSize(inventory, 1);
+        checkSize(inventory, 2);
         this.inventory = inventory;
         inventory.onOpen(playerInventory.player);
         this.propertyDelegate = delegate;
+        this.generatedEnchantment = generatedEnchantment;
+        MCDEnchantments.LOGGER.info("Server constructor {}", syncId);
+        MCDEnchantments.LOGGER.info("generatedEnchantment: {}", generatedEnchantment);
 
         this.addSlot(new Slot(inventory, 0, 82, 17) {
 
@@ -79,7 +100,7 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
 
             @Override
             public boolean canInsert(ItemStack stack) {
-                return stack.isOf(Items.GOLD_INGOT);
+                return stack.isOf(Items.GOLD_INGOT) || stack .isOf(Items.EMERALD);
             }
 
             @Override
@@ -102,20 +123,28 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
         if (generatedEnchantment.isEmpty()) {
             return false;
         }
-        var weaponStack = inventory.getStack(0);
+        var weaponStack = player.isCreative() ? inventory.getStack(0) : inventory.getStack(0).copy();
         var enchantmentId = generatedEnchantment.get();
-        if (player.isCreative()) {
-            EnchantmentSlots.fromItemStack(weaponStack).ifPresent(slots -> {
-                slots.addGilding(enchantmentId);
-                slots.updateItemStack(weaponStack);
-            });
-            return false;
-        }
-        context.run((world, pos) -> {
-            ((GildingFoundryBlockEntity)world.getBlockEntity(pos))
-                .setGenerated(enchantmentId);
+        MCDEnchantments.LOGGER.info("generatedEnchantment: {}", enchantmentId);
+        EnchantmentSlots.fromItemStack(weaponStack).ifPresent(slots -> {
+            if (slots.hasGilding()) {
+                var map = EnchantmentHelper.get(weaponStack);
+                map.keySet().removeAll(slots.getGildingEnchantments());
+                EnchantmentHelper.set(map, weaponStack);
+                slots.removeAllGildings();
+            }
+            slots.addGilding(enchantmentId);
+            slots.updateItemStack(weaponStack);
         });
-        startProgress();
+        setNewEnchantment(player, weaponStack);
+
+        if (!player.isCreative()) {
+            context.run((world, pos) -> {
+                ((GildingFoundryBlockEntity)world.getBlockEntity(pos))
+                    .setGenerated(enchantmentId);
+            });
+            startProgress();
+        }
         return false;
     }
 
@@ -175,16 +204,28 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
         }
     }
 
-    public List<Identifier> getCandidatesForGidling() {
-        return EnchantmentUtils.getEnchantmentsForItem(inventory.getStack(0)).collect(Collectors.toList());
+    public static List<Identifier> getCandidatesForGidling(ItemStack itemStack) {
+        return EnchantmentUtils.getEnchantmentsForItem(itemStack).collect(Collectors.toList());
     }
 
-    public Optional<Identifier> generateEnchantment(PlayerEntity player) {
-        return EnchantmentUtils.generateEnchantment(
-            inventory.getStack(0),
-            context.get((world, pos) -> world.getServer().getPlayerManager().getPlayer(player.getUuid())),
-            getCandidatesForGidling()
-        );
+    public List<Identifier> getCandidatesForGidling() {
+        return getCandidatesForGidling(inventory.getStack(0));
+    }
+
+    public void setNewEnchantment(PlayerEntity player, ItemStack weaponStack) {
+        context.run((world, pos) -> {
+            ServerPlayerEntity serverPlayer = world.getServer().getPlayerManager().getPlayer(player.getUuid());
+            generatedEnchantment = EnchantmentUtils.generateEnchantment(
+                weaponStack,
+                Optional.of(serverPlayer),
+                getCandidatesForGidling()
+            );
+            var buffer = PacketByteBufs.create();
+            buffer.writeInt(syncId);
+            buffer.writeOptional(generatedEnchantment, (buf, e) -> buf.writeIdentifier(e));
+            ServerPlayNetworking.send(serverPlayer, GILDING_PACKET, buffer);
+            MCDEnchantments.LOGGER.info("Sending packet to Client");
+        });
     }
 
     public static void receiveNewEnchantment(MinecraftClient client, ClientPlayNetworkHandler handler, PacketByteBuf buf,
@@ -198,17 +239,18 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
         if (screenHandler == null) {
             return;
         }
+        int syncId = buf.readInt();
+        MCDEnchantments.LOGGER.info("Recieved packet with syncId: {}, syncId of handler: {}, handler: {}", syncId, screenHandler.syncId, screenHandler);
 
-        if (screenHandler.syncId != buf.readInt()) {
+        if (screenHandler.syncId != syncId) {
             return;
         }
 
         if (screenHandler instanceof GildingFoundryScreenHandler gfScreenHandler) {
             gfScreenHandler.generatedEnchantment = buf.readOptional(b -> b.readIdentifier());
+            MCDEnchantments.LOGGER.info("Recieved new enchantment: {}", gfScreenHandler.generatedEnchantment);
         }
     }
-
-
 
     @Override
     public void onPropertyUpdate(ScreenHandler handler, int property, int value) {
@@ -220,15 +262,7 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
             return;
         }
 
-        generatedEnchantment = generateEnchantment(playerEntity);
-        if (generatedEnchantment.isEmpty()) {
-            return;
-        }
-        context.run((world, pos) -> {
-            var buffer = PacketByteBufs.create();
-            buffer.writeInt(syncId);
-            buffer.writeOptional(generatedEnchantment, (buf, e) -> buf.writeIdentifier(e));
-            ServerPlayNetworking.send(world.getServer().getPlayerManager().getPlayer(playerEntity.getUuid()), GILDING_PACKET, buffer);
-        });
+        setNewEnchantment(playerEntity, stack);
     }
+
 }

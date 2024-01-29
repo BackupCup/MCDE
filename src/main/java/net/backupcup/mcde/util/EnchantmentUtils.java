@@ -162,7 +162,7 @@ public class EnchantmentUtils {
 
     public static boolean isGilding(Enchantment enchantment, ItemStack itemStack) {
         return EnchantmentSlots.fromItemStack(itemStack)
-                .map(slots -> slots.getGilding().contains(EnchantmentUtils.getEnchantmentId(enchantment)))
+                .map(slots -> slots.getGildingIds().contains(EnchantmentUtils.getEnchantmentId(enchantment)))
                 .orElse(false);
     }
 
