@@ -1,6 +1,4 @@
 {
-  "item.mcde.test_rune": "Testowa Runa",
-
   "block.mcde.runic_table": "Stół Runiczny",
   "block.mcde.roll_bench": "Stół Losowań",
   "block.mcde.gilding_foundry": "Odlewnia Pozłacania",
@@ -54,5 +52,7 @@
   "message.mcde.cant_generate": "Nie można wygenerować nowego zaklęcia",
   "message.mcde.error.config.general": "Wystąpił problem",
   "message.mcde.already_exists": "Przedmiot jest już zaklęty",
-  "message.mcde.cant_combine": "Nie można używać tego zaklęcia z %s"
+  "message.mcde.cant_combine": "Nie można używać tego zaklęcia z %s",
+  "ui.mcde.gilding_button": "Pozłacaj",
+  "ui.mcde.regilding_button": "Odpozłacaj"
 }

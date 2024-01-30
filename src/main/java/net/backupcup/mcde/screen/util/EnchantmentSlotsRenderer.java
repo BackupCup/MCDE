@@ -102,6 +102,9 @@ public class EnchantmentSlotsRenderer {
         var pos = slotPos.get(slot);
         ctx.drawTexture(defaultGuiTexture, pos.x(), pos.y(), texPos.x(), texPos.y(), 31, 31);
         drawIcon(ctx, pos.add(4, 4), slot, choice);
+        getLevelTexture(choice.getLevel()).ifPresent(texture -> {
+            ctx.drawTexture(texture, pos.x() - 1, pos.y() - 5, 0f, 0f, 33, 41, 64, 64);
+        });
     }
 
     public void drawIconHoverOutline(DrawContext ctx, SlotPosition slot, Choice choice) {
@@ -134,14 +137,17 @@ public class EnchantmentSlotsRenderer {
         var slots = slotsOptional.get();
         for (var slot : slots) {
             drawSlot(ctx, slot.getSlotPosition());
-            if (isInSlotBounds(slot.getSlotPosition(), mouseX, mouseY))
+            if (isInSlotBounds(slot.getSlotPosition(), mouseX, mouseY)) {
                 drawHoverOutline(ctx, slot.getSlotPosition());
+            }
 
             if (slot.getChosen().isPresent()) {
                 var chosen = slot.getChosen().get();
                 drawIconInSlot(ctx, slot.getSlotPosition(), chosen);
-                if (isInSlotBounds(slot.getSlotPosition(), mouseX, mouseY))
+                if (isInSlotBounds(slot.getSlotPosition(), mouseX, mouseY)) {
+                    drawHoverOutline(ctx, slot.getSlotPosition());
                     hovered = Optional.of(chosen);
+                }
                 continue;
             }
 
@@ -216,6 +222,16 @@ public class EnchantmentSlotsRenderer {
                 enchantmentID.getPath()
             )
         );
+    }
+
+    public static Optional<Identifier> getLevelTexture(int level) {
+        return Optional.of(level)
+            .filter(lvl -> lvl >= 2)
+            .map(lvl -> Math.min(lvl, 7))
+            .map(lvl -> Identifier.of(
+                MCDEnchantments.MOD_ID,
+                String.format("textures/gui/slot_levels/%d.png", lvl)
+            ));
     }
 
     public static class Builder {
