@@ -128,6 +128,8 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
         super.render(matrices, mouseX, mouseY, delta);
         RenderSystem.setShaderTexture(0, TEXTURE);
 
+        drawProgress(matrices, handler.getProgress());
+
         if (!inventory.getStack(1).isEmpty() || playerEntity.isCreative() && !inventory.getStack(0).isEmpty()) {
             var buttonOffset = getButtonTextureOffset();
             if (isGildingButtonClickable()) {
@@ -151,7 +153,6 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
             textRenderer.draw(matrices, text, buttonX + (76 - textRenderer.getWidth(text)) / 2, buttonY + 2, color);
         }
 
-        drawProgress(matrices, handler.getProgress());
         drawMouseoverTooltip(matrices, mouseX, mouseY);
     }
 
