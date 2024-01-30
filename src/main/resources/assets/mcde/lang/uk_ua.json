@@ -1,6 +1,4 @@
 {
-  "item.mcde.test_rune": "Тестова руна",
-
   "block.mcde.runic_table": "Рунічний стіл",
   "block.mcde.roll_bench": "Сувійна лава",
   "block.mcde.gilding_foundry": "Ливарня позолоти",
@@ -55,5 +53,7 @@
   "message.mcde.error.config.general": "Сталася помилка під час завантаження конфігурацій. Використовуючи типові. Перегляньте журнали для подробиць",
   "message.mcde.already_exists": "Зачарування вже застосовано",
   "message.mcde.cant_combine": "Неможливо поєднати з %s",
-  "message.mcde.reroll_button.desc": "Перезавантажує кількість доступних слотів і їхні зачарування."
+  "message.mcde.reroll_button.desc": "Перезавантажує кількість доступних слотів і їхні зачарування.",
+  "ui.mcde.gilding_button": "Золотити",
+  "ui.mcde.regilding_button": "Перезолотити"
 }
