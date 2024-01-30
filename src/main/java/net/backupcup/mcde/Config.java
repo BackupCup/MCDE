@@ -101,6 +101,10 @@ public class Config {
         ALLOW, DENY
     }
 
+    public static enum GildingMergeStrategy {
+        REMOVE, FIRST, SECOND, BOTH
+    }
+
     public static class RerollCost {
         private int startCost;
         private int endCost;
@@ -323,6 +327,10 @@ public class Config {
         return allowEnchantingWithBooks;
     }
 
+    public GildingMergeStrategy getGildingMergeStrategy() {
+        return gildingMergeStrategy;
+    }
+
     public int getGildingCost() {
         return gildingCost;
     }
@@ -454,6 +462,13 @@ public class Config {
     @Comment("Whether to allow players to use enchanting table.\n" +
              "Creative players can still use it.")
     private boolean allowUsingEnchantingTable = false;
+    
+    @Comment("Specify gilding merge strategy. Possible values are:\n" +
+             "REMOVE - remove gilding from the result\n" +
+             "FIRST - keep the gilding from first item\n" +
+             "SECOND - keep the gilding from second item\n" +
+             "BOTH - keep both gildings, essentially allowing several gilded enchantments on one item")
+    private GildingMergeStrategy gildingMergeStrategy = GildingMergeStrategy.FIRST;
 
     @Comment("Sets cost of gilding")
     private int gildingCost = 8;

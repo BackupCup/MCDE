@@ -1,8 +1,6 @@
 package net.backupcup.mcde.block.entity;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -10,24 +8,28 @@ import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.screen.handler.GildingFoundryScreenHandler;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.screen.NamedScreenHandlerFactory;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-public class GildingFoundryBlockEntity extends BlockEntity implements NamedScreenHandlerFactory, ImplementedInventory {
+public class GildingFoundryBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory, ImplementedInventory {
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(2, ItemStack.EMPTY);
     private int gilding_progress;
     private int gilding_tick_counter;
@@ -81,7 +83,23 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
     @Nullable
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
-        return new GildingFoundryScreenHandler(syncId, inv, this, this.propertyDelegate, ScreenHandlerContext.create(world, pos));
+        MCDEnchantments.LOGGER.info("Create menu {}", syncId);
+        var weaponStack  = inventory.get(0);
+        if (!weaponStack.isEmpty()) {
+            generated = EnchantmentUtils.generateEnchantment(
+                weaponStack,
+                Optional.of(world.getServer().getPlayerManager().getPlayer(inv.player.getUuid())),
+                GildingFoundryScreenHandler.getCandidatesForGidling(weaponStack)
+            );
+        }
+        return new GildingFoundryScreenHandler(
+            syncId,
+            inv,
+            this,
+            this.propertyDelegate,
+            ScreenHandlerContext.create(world, pos),
+            generated
+        );
     }
 
     @Override
@@ -128,10 +146,18 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
         if (generated.isEmpty()) {
             return;
         }
-        inventory.get(1).decrement(MCDEnchantments.getConfig().getGildingCost());
+        var ingridient = inventory.get(1);
+        var item = ingridient.getItem();
+        ingridient.decrement(MCDEnchantments.getConfig().getGildingCost());
         var id = generated.get();
         EnchantmentSlots.fromItemStack(weaponStack).ifPresent(slots -> {
-            slots.setGilding(id);
+            if (item.equals(Items.EMERALD)) {
+                var map = EnchantmentHelper.get(weaponStack);
+                map.keySet().removeAll(slots.getGildingEnchantments());
+                EnchantmentHelper.set(map, weaponStack);
+                slots.removeAllGildings();
+            }
+            slots.addGilding(id);
             slots.updateItemStack(weaponStack);
         });
     }
@@ -141,7 +167,9 @@ public class GildingFoundryBlockEntity extends BlockEntity implements NamedScree
         gilding_tick_counter = 0;
     }
 
-    public List<Identifier> getCandidatesForGidling() {
-        return EnchantmentUtils.getEnchantmentsForItem(inventory.get(0)).collect(Collectors.toList());
+    @Override
+    public void writeScreenOpeningData(ServerPlayerEntity player, PacketByteBuf buf) {
+        MCDEnchantments.LOGGER.info("Write {}", generated);
+        buf.writeOptional(generated, (w, id) -> w.writeIdentifier(id));
     }
 }

@@ -1,19 +1,19 @@
 package net.backupcup.mcde.mixin;
 
-import java.util.Optional;
-
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.Slice;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import com.llamalad7.mixinextras.sugar.Local;
 
 import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.util.EnchantmentSlots;
-import net.backupcup.mcde.util.EnchantmentUtils;
-import net.backupcup.mcde.util.SlotsGenerator;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -23,7 +23,6 @@ import net.minecraft.screen.ForgingScreenHandler;
 import net.minecraft.screen.Property;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.text.Text;
 
 @Mixin(AnvilScreenHandler.class)
 public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
@@ -36,162 +35,51 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
     @Final @Shadow private Property levelCost;
     @Shadow private String newItemName;
 
-    @Inject(method = "updateResult", at = @At("HEAD"), cancellable = true)
-    private void mcde$mixSlots(CallbackInfo ci) {
-        var input = getSlot(0).getStack();
-        var other = getSlot(1).getStack();
-        var slotsOptional = EnchantmentSlots.fromItemStack(input).or(() -> {
-            if (!input.getItem().isEnchantable(input)) {
-                return Optional.empty();
-            }
-            var optionalOwner = context.get((world, pos) -> world.getServer().getPlayerManager().getPlayer(player.getUuid()));
-            MCDEnchantments.LOGGER.info("Generating slots in anvil for {}", optionalOwner);
-            return Optional.of(SlotsGenerator.forItemStack(input)
-                .withOptionalOwner(optionalOwner)
-                .build()
-                .generateEnchantments());
-        });
-        ItemStack result = ItemStack.EMPTY;
-        if (slotsOptional.isEmpty()) {
-            if (EnchantmentSlots.fromItemStack(other).isPresent()) {
-                getSlot(2).setStack(ItemStack.EMPTY);
-                ci.cancel();
-            }
-            return;
-        }
-        var slots = slotsOptional.get();
-        if (MCDEnchantments.getConfig().isEnchantingWithBooksAllowed() && other.isOf(Items.ENCHANTED_BOOK)) {
-            levelCost.set(slots.merge(other));
-            var map = EnchantmentHelper.get(other);
-            var present = EnchantmentHelper.get(input);
-            if (MCDEnchantments.getConfig().isCompatibilityRequired() && !player.isCreative()) {
-                map.entrySet().removeIf(kvp -> present.keySet().stream()
-                        .anyMatch(e -> !kvp.getKey().canCombine(e) && !e.equals(kvp.getKey())));
-            }
-            var iter = map.entrySet().iterator();
-            while (iter.hasNext()) {
-                var entry = iter.next();
-                if (!entry.getKey().isAcceptableItem(input) ||
-                        (present.containsKey(entry.getKey()) && present.get(entry.getKey()) > entry.getValue()) ||
-                        slots.getGilding().filter(g -> EnchantmentUtils.getEnchantment(g).equals(entry.getKey())).isPresent()) {
-                    iter.remove();
-                    continue;
-                }
-                if (present.containsKey(entry.getKey())) {
-                    entry.setValue(entry.getValue() + 1);
-                }
-            }
-            if (!map.isEmpty() || (levelCost.get() > 0)) {
-                result = input.copy();
-                slots.updateItemStack(result);
-                getSlot(2).setStack(result);
-
-                levelCost.set(map.entrySet().stream()
-                        .mapToInt(kvp -> MCDEnchantments.getConfig().getEnchantCost(
-                            EnchantmentUtils.getEnchantmentId(kvp.getKey()),
-                            present.containsKey(kvp.getKey()) ?
-                            kvp.getValue() == present.get(kvp.getKey()) ?
-                                1 : kvp.getValue() - present.get(kvp.getKey()) :
-                            kvp.getValue()
-                        ))
-                        .sum() + levelCost.get());
-                present.entrySet().stream()
-                    .filter(kvp -> !map.containsKey(kvp.getKey())).forEach(kvp -> map.put(kvp.getKey(), kvp.getValue()));
-                EnchantmentHelper.set(map, result);
-                mcde$setCustomNameToResult();
-            }
-            ci.cancel();
-            return;
-        }
-        if (!other.getItem().isEnchantable(other) && !other.isOf(Items.ENCHANTED_BOOK)) {
-            return;
-        }
-        if (!MCDEnchantments.getConfig().isAnvilItemMixingAllowed()) {
-            if (other.isEmpty()) {
-                return;
-            }
-            if (EnchantmentSlots.fromItemStack(input).isPresent() || EnchantmentSlots.fromItemStack(other).isPresent()) {
-                getSlot(2).setStack(ItemStack.EMPTY);
-                ci.cancel();
-                return;
-            }
-        }
-
-        if (!input.isItemEqual(other) && !other.isOf(Items.ENCHANTED_BOOK)) {
-            return;
-        }
-
-        result = input.copy();
-        levelCost.set(slots.merge(other));
-        if (slots.getGilding().isPresent()) {
-            var gilding = EnchantmentUtils.getEnchantment(slots.getGilding().get());
-            var map = EnchantmentHelper.get(result);
-            map.remove(gilding);
-            EnchantmentHelper.set(map, result);
-        }
-        slots.removeGilding();
-        slots.updateItemStack(result);
-
-        if (input.isDamageable() && other.isDamageable()) {
-            int inputDamage = input.getMaxDamage() - input.getDamage();
-            int otherDamage = other.getMaxDamage() - other.getDamage();
-            int newDamage = input.getMaxDamage() - (inputDamage + otherDamage + input.getMaxDamage() * 12 / 100);
-            if (newDamage < 0) {
-                newDamage = 0;
-            }
-
-            if (newDamage < input.getDamage()) {
-                result.setDamage(newDamage);
-                levelCost.set(levelCost.get() + 2);
-            }
-        }
-
-        if (levelCost.get() == 0) {
-            result = ItemStack.EMPTY;
-        }
-
-        getSlot(2).setStack(result);
-        mcde$setCustomNameToResult();
-        sendContentUpdates();
-        ci.cancel();
+    @ModifyVariable(
+        method = "updateResult",
+        at = @At(value = "STORE"),
+        ordinal = 0,
+        slice = @Slice(
+            from = @At(value = "INVOKE", target = "net/minecraft/enchantment/Enchantment.getRarity()Lnet/minecraft/enchantment/Enchantment$Rarity;"),
+            to = @At(value = "INVOKE", target = "net/minecraft/item/ItemStack.getCount()I", ordinal = 1)
+        )
+    )
+    private int mcde$adjustPrice(int original, @Local Enchantment enchantment, @Local(index = 15) int level, @Local(index = 17) int rarity) {
+        int cost = MCDEnchantments.getConfig().getEnchantCost(EnchantmentHelper.getEnchantmentId(enchantment), level);
+        return original + cost - rarity * level;
     }
 
     @Inject(method = "updateResult", at = @At("RETURN"))
-    private void mcde$adjustPrice(CallbackInfo ci) {
-        var input = getSlot(0).getStack();
-        var other = getSlot(1).getStack();
-        var left = EnchantmentHelper.get(input);
-        var right = EnchantmentHelper.get(other);
-        if (right.isEmpty() || EnchantmentSlots.fromItemStack(input).isPresent()) {
+    private void mcde$adjustResult(CallbackInfo ci) {
+        var slotsOptional1 = EnchantmentSlots.fromItemStack(input.getStack(0));
+        var slotsOptional2 = EnchantmentSlots.fromItemStack(input.getStack(1));
+        var result = output.getStack(0);
+        if (ItemStack.areItemsEqual(input.getStack(0), input.getStack(1)) && !MCDEnchantments.getConfig().isAnvilItemMixingAllowed()) {
+            output.setStack(0, ItemStack.EMPTY);
             return;
         }
-        levelCost.set(left.entrySet().stream()
-                .filter(kvp -> right.containsKey(kvp.getKey()) && right.get(kvp.getKey()) >= kvp.getValue())
-                .mapToInt(kvp -> MCDEnchantments.getConfig().getEnchantCost(
-                    EnchantmentHelper.getEnchantmentId(kvp.getKey()),
-                    kvp.getValue() == right.get(kvp.getKey()) ?
-                        1 : right.get(kvp.getKey()) - kvp.getValue()
-                )).sum() +
-            right.entrySet().stream()
-                .filter(kvp -> !left.containsKey(kvp.getKey()))
-                .mapToInt(kvp -> MCDEnchantments.getConfig().getEnchantCost(
-                    EnchantmentHelper.getEnchantmentId(kvp.getKey()),
-                    kvp.getValue()
-                )).sum() +
-            (newItemName != null && newItemName.isBlank() ? 0 : 1));
-    }
-
-    @Unique
-    private void mcde$setCustomNameToResult() {
-        if (newItemName == null || newItemName.isBlank()) {
+        if (input.getStack(1).isOf(Items.ENCHANTED_BOOK) && !MCDEnchantments.getConfig().isEnchantingWithBooksAllowed()) {
+            output.setStack(0, ItemStack.EMPTY);
             return;
         }
-        var input = getSlot(0).getStack();
-        var result = getSlot(2).getStack();
-        if (result.isEmpty()) {
-            result = input.copy();
+        if (!slotsOptional1.isPresent() || !slotsOptional2.isPresent() || result.isEmpty()) {
+            EnchantmentSlots.fromItemStack(result).ifPresent(slots -> {
+                slots.updateItemStack(result);
+            });
+            return;
         }
-        levelCost.set(levelCost.get() + 1);
-        result.setCustomName(Text.literal(newItemName));
+        var slots1 = slotsOptional1.get();
+        var slots2 = slotsOptional2.get();
+        var resultMap = EnchantmentHelper.get(result);
+        resultMap.entrySet().removeIf(kvp -> 
+            switch (MCDEnchantments.getConfig().getGildingMergeStrategy()) {
+                case REMOVE -> slots1.hasGilding(kvp.getKey()) || slots2.hasGilding(kvp.getKey());
+                case FIRST -> slots2.hasGilding(kvp.getKey());
+                case SECOND -> slots1.hasGilding(kvp.getKey());
+                case BOTH -> false;
+            });
+        EnchantmentHelper.set(resultMap, result);
+        slots1.merge(slots2).updateItemStack(result);
+        output.setStack(0, result);
     }
 }
