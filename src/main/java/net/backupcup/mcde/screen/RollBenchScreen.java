@@ -99,14 +99,16 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         }, 215, 18, 18);
 
         silouetteTimer += delta;
-        if (inventory.getStack(1).isEmpty() && silouetteTimer > 20f) {
+
+        ItemStack ingridient = inventory.getStack(1);
+        if (ingridient.isEmpty() && silouetteTimer > 20f) {
             silouette = switch (silouette) {
                 case LAPIS -> RerollItemSilouette.ECHO_SHARD;
                 case ECHO_SHARD -> RerollItemSilouette.LAPIS;
             };
-        } else if (inventory.getStack(1).isOf(Items.LAPIS_LAZULI)) {
+        } else if (ingridient.isOf(Items.LAPIS_LAZULI)) {
             silouette = RerollItemSilouette.LAPIS;
-        } else if (inventory.getStack(1).isOf(Items.ECHO_SHARD)) {
+        } else if (ingridient.isOf(Items.ECHO_SHARD)) {
             silouette = RerollItemSilouette.ECHO_SHARD;
         }
 

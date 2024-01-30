@@ -102,7 +102,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
         var slots = slotsOptional.get();
         if (id == REROLL_BUTTON_ID) {
             var serverPlayerEntity = context.get((world, pos) -> world.getServer().getPlayerManager().getPlayer(player.getUuid()));
-            var gilding = slots.getGilding();
+            var gilding = slots.getGildingIds();
             EnchantmentSlots newSlots;
             if (MCDEnchantments.getConfig().canFullRerollRemoveSlots()) {
                 newSlots = SlotsGenerator.forItemStack(itemStack)
@@ -120,7 +120,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
                 } 
                 newSlots = generatorBuilder.build().generateEnchantments();
             }
-            gilding.ifPresent(enchantmentId -> newSlots.setGilding(enchantmentId));
+            newSlots.addAllGilding(gilding);
             slots.removeChosenEnchantments(itemStack);
             newSlots.updateItemStack(itemStack);
             if (!player.isCreative()) {

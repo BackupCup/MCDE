@@ -52,5 +52,7 @@
   "message.mcde.cant_generate": "Не удаётся сгенерировать новое зачарование",
   "message.mcde.error.config.general": "Во время загрузки конфига произошла ошибка. Используются стандартные настройки. Проверьте логи.",
   "message.mcde.already_exists": "Зачарование уже применено",
-  "message.mcde.cant_combine": "Несовместимо с %s"
+  "message.mcde.cant_combine": "Несовместимо с %s",
+  "ui.mcde.gilding_button": "Золотить",
+  "ui.mcde.regilding_button": "Перезолотить"
 }
