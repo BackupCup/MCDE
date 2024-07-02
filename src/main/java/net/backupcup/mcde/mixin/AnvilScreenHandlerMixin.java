@@ -44,7 +44,7 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
             to = @At(value = "INVOKE", target = "net/minecraft/item/ItemStack.getCount()I", ordinal = 1)
         )
     )
-    private int mcde$adjustPrice(int original, @Local Enchantment enchantment, @Local(index = 15) int level, @Local(index = 17) int rarity) {
+    private int mcde$adjustPrice(int original, @Local(index = 13) Enchantment enchantment, @Local(index = 15) int level, @Local(index = 17) int rarity) {
         int cost = MCDEnchantments.getConfig().getEnchantCost(EnchantmentHelper.getEnchantmentId(enchantment), level);
         return original + cost - rarity * level;
     }
