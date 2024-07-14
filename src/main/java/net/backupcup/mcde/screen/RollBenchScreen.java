@@ -44,6 +44,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
     private Optional<Pair<SlotPosition, SlotPosition>> selected = Optional.empty();
     private EnchantmentSlotsRenderer slotsRenderer;
 
+    private TexturePos background;
     private TexturePos rerollButton;
     private boolean drawRerollButton;
     private TexturePos touchButton;
@@ -56,17 +57,12 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
     @Override
     protected void init() {
         super.init();
-        titleX = 127;
-        titleY = 10;
-        playerInventoryTitleX = -200;
-        playerInventoryTitleY = -200;
 
-        int posX = ((width - backgroundWidth) / 2) - 2;
-        int posY = (height - backgroundHeight) / 2;
+        background = TexturePos.of(((width - backgroundWidth) / 2) - 2, (height - backgroundHeight) / 2);
         slotsRenderer = EnchantmentSlotsRenderer.builder()
             .withScreen(this)
             .withDefaultGuiTexture(TEXTURE)
-            .withDefaultSlotPositions(posX, posY)
+            .withDefaultSlotPositions(background)
             .withDimPredicate(
                 choice -> EnchantmentSlots.fromItemStack(inventory.getStack(0))
                 .map(
@@ -77,8 +73,8 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
             .withClient(client)
             .build();
         drawRerollButton = client.player.isCreative();
-        rerollButton = TexturePos.of(posX + 168, posY + 34);
-        touchButton = TexturePos.of(posX + 8, posY + 57);
+        rerollButton = background.add(168, 34);
+        touchButton = background.add(8, 57);
     }
 
     @Override
@@ -88,11 +84,9 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
 
         /* Reroll Station UI */
         RenderSystem.setShaderTexture(0, TEXTURE);
-        int posX = ((width - backgroundWidth) / 2) - 2;
-        int posY = (height - backgroundHeight) / 2;
-        ctx.drawTexture(TEXTURE, posX, posY, 0, 0, backgroundWidth + 10, backgroundHeight);
+        ctx.drawTexture(TEXTURE, background.x(), background.y(), 0, 0, backgroundWidth + 10, backgroundHeight);
 
-        ctx.drawTexture(TEXTURE, posX + 146, posY + 51, switch (silouette) {
+        ctx.drawTexture(TEXTURE, background.x() + 146, background.y() + 51, switch (silouette) {
             case LAPIS -> 0;
             case ECHO_SHARD -> 18;
         }, 215, 18, 18);
@@ -119,17 +113,6 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
 
     @Override
     protected void drawForeground(DrawContext ctx, int mouseX, int mouseY) {
-        int width = textRenderer.getWidth(title);
-        int height = textRenderer.fontHeight;
-        int outlineX = titleX - 4;
-        int outlineY = titleY - 4;
-        RenderSystem.setShaderTexture(0, TEXTURE);
-
-        ctx.drawTexture(TEXTURE,  outlineX, outlineY, 0, 172, 3, height + 6);
-        IntStream.range(-1, width + 1).forEach(i ->
-                ctx.drawTexture(TEXTURE, titleX + i, outlineY, 2, 172, 1, height + 6));
-        ctx.drawTexture(TEXTURE, titleX + width + 1, outlineY, 3, 172, 2, height + 6);
-        super.drawForeground(ctx, mouseX, mouseY);
     }
 
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
@@ -209,8 +192,6 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         super.render(ctx, mouseX, mouseY, delta);
         renderRerollButton(ctx, mouseX, mouseY);
 
-        int posX = ((width - backgroundWidth) / 2) - 2;
-        int posY = (height - backgroundHeight) / 2;
         if (isTouchscreen()) {
             ctx.drawTexture(TEXTURE, touchButton.x(), touchButton.y(), 36, 215, 13, 13);
         }
@@ -239,7 +220,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         if (isTouchscreen()) {
             selected.flatMap(pair -> slots.getEnchantmentSlot(pair.getLeft())
                     .map(slot -> new Choice(slot, pair.getRight()))).ifPresent(choice -> {
-                renderTooltip(ctx, choice, slots, posX, posY + 88);
+                renderTooltip(ctx, choice, slots, background.x(), background.y() + 88);
                 if (choice.isChosen()) {
                     slotsRenderer.drawHoverOutline(ctx, choice.getEnchantmentSlot().getSlotPosition());
                 } else {

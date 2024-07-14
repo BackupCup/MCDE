@@ -36,7 +36,7 @@ public class RunicTableScreenHandler extends ScreenHandler {
         this.context = context;
         inventory.onOpen(playerInventory.player);
 
-        this.addSlot(new Slot(inventory, 0, 145, 46) {
+        this.addSlot(new Slot(inventory, 0, 132, 43) {
 
             @Override
             public boolean canInsert(ItemStack stack) {
@@ -146,14 +146,14 @@ public class RunicTableScreenHandler extends ScreenHandler {
     private void addPlayerInventory(PlayerInventory playerInventory) {
         for (int i = 0; i < 3; ++i) {
             for (int l = 0; l < 9; ++l) {
-                this.addSlot(new Slot(playerInventory, l + i * 9 + 9, 10 + l * 18, 84 + i * 18));
+                this.addSlot(new Slot(playerInventory, l + i * 9 + 9, 3 + l * 18, 84 + i * 19));
             }
         }
     }
 
     private void addPlayerHotbar(PlayerInventory playerInventory) {
         for (int i = 0; i < 9; ++i) {
-            this.addSlot(new Slot(playerInventory, i, 10 + i * 18, 142));
+            this.addSlot(new Slot(playerInventory, i, 3 + i * 18, 148));
         }
     }
 

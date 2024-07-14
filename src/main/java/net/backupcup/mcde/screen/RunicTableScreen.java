@@ -41,6 +41,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
     private Optional<Pair<SlotPosition, SlotPosition>> selected = Optional.empty();
     private EnchantmentSlotsRenderer slotsRenderer;
 
+    private TexturePos background;
     private TexturePos touchButton;
 
     public RunicTableScreen(RunicTableScreenHandler handler, PlayerInventory inventory, Text title) {
@@ -54,12 +55,11 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
         titleX = 125;
         titleY = 10;
 
-        int posX = ((width - backgroundWidth) / 2) - 2;
-        int posY = (height - backgroundHeight) / 2;
+        background = TexturePos.of(((width - backgroundWidth) / 2) - 2, (height - backgroundHeight) / 2 + 25);
         slotsRenderer = EnchantmentSlotsRenderer.builder()
             .withScreen(this)
             .withDefaultGuiTexture(TEXTURE)
-            .withDefaultSlotPositions(posX, posY)
+            .withDefaultSlotPositions(background)
             .withDimPredicate(choice -> {
                 int level = 1;
                 boolean isMaxedOut = false;
@@ -73,7 +73,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
             })
             .withClient(client)
             .build();
-        touchButton = TexturePos.of(posX + 8, posY + 57);
+        touchButton = background.add(-2, 38);
     }
 
     @Override
@@ -82,9 +82,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
         /*Runic Table UI*/
-        int posX = ((width - backgroundWidth) / 2) - 2;
-        int posY = (height - backgroundHeight) / 2;
-        ctx.drawTexture(TEXTURE, posX, posY, 0, 0, backgroundWidth + 10, backgroundHeight);
+        ctx.drawTexture(TEXTURE, background.x(), background.y(), 0, 109, 168, 150);
     }
 
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
@@ -145,19 +143,9 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
+    // To not render Inventory and Title text
     @Override
     protected void drawForeground(DrawContext ctx, int mouseX, int mouseY) {
-        int width = textRenderer.getWidth(title);
-        int height = textRenderer.fontHeight;
-        int outlineX = titleX - 4;
-        int outlineY = titleY - 4;
-        RenderSystem.setShaderTexture(0, TEXTURE);
-
-        ctx.drawTexture(TEXTURE, outlineX, outlineY, 0, 172, 3, height + 6);
-        IntStream.range(-1, width + 1).forEach(i ->
-                ctx.drawTexture(TEXTURE, titleX + i, outlineY, 2, 172, 1, height + 6));
-        ctx.drawTexture(TEXTURE, titleX + width + 1, outlineY, 3, 172, 2, height + 6);
-        super.drawForeground(ctx, mouseX, mouseY);
     }
 
     @Override
@@ -167,11 +155,8 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
         RenderSystem.setShaderTexture(0, TEXTURE);
         ItemStack itemStack = inventory.getStack(0);
         var slotsOptional = EnchantmentSlots.fromItemStack(itemStack);
-        int posX = ((width - backgroundWidth) / 2) - 2;
-        int posY = (height - backgroundHeight) / 2;
-        touchButton = TexturePos.of(posX + -4, posY + 54);
         if (isTouchscreen()) {
-            ctx.drawTexture(TEXTURE, touchButton.x(), touchButton.y(), 0, 187, 13, 13);
+            ctx.drawTexture(TEXTURE, touchButton.x(), touchButton.y(), 216, 1, 13, 15);
         }
         if (itemStack.isEmpty() || slotsOptional.isEmpty()) {
             drawMouseoverTooltip(ctx, mouseX, mouseY);
@@ -195,18 +180,18 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
         if (isTouchscreen()) {
             selected.flatMap(pair -> slots.getEnchantmentSlot(pair.getLeft())
                     .map(slot -> new Choice(slot, pair.getRight()))).ifPresent(choice -> {
-                renderTooltip(ctx, choice, slots, posX, posY + 88);
+                renderTooltip(ctx, choice, slots, background.x(), background.y() + 88);
                 if (choice.isChosen()) {
                     slotsRenderer.drawHoverOutline(ctx, choice.getEnchantmentSlot().getSlotPosition());
                 } else {
                     slotsRenderer.drawIconHoverOutline(ctx, choice.getEnchantmentSlot().getSlotPosition(), choice);
                 }
                 if (!slotsRenderer.getDimPredicate().test(choice)) {
-                    int buttonX = 13;
+                    int buttonX = 229;
                     if (isInTouchButton(mouseX, mouseY)) {
-                        buttonX = 26;
+                        buttonX = 242;
                     }
-                    ctx.drawTexture(TEXTURE, touchButton.x(), touchButton.y(), buttonX, 187, 13, 13);
+                    ctx.drawTexture(TEXTURE, touchButton.x(), touchButton.y(), buttonX, 1, 13, 13);
                 }
             });
         } else {
@@ -295,6 +280,6 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
     }
 
     protected boolean isInTouchButton(int mouseX, int mouseY) {
-        return isInBounds(touchButton.x(), touchButton.y(), mouseX, mouseY, 0, 13, 0, 13);
+        return isInBounds(touchButton.x(), touchButton.y(), mouseX, mouseY, 0, 13, 0, 15);
     }
 }
