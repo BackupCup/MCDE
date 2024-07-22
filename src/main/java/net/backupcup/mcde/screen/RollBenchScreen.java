@@ -58,7 +58,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
     protected void init() {
         super.init();
 
-        background = TexturePos.of(((width - backgroundWidth) / 2) - 2, (height - backgroundHeight) / 2);
+        background = TexturePos.of(((width - backgroundWidth) / 2) - 2, (height - backgroundHeight) / 2 + 25);
         slotsRenderer = EnchantmentSlotsRenderer.builder()
             .withScreen(this)
             .withDefaultGuiTexture(TEXTURE)
@@ -73,7 +73,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
             .withClient(client)
             .build();
         drawRerollButton = client.player.isCreative();
-        rerollButton = background.add(168, 34);
+        rerollButton = background.add(157, 23);
         touchButton = background.add(8, 57);
     }
 
@@ -84,12 +84,12 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
 
         /* Reroll Station UI */
         RenderSystem.setShaderTexture(0, TEXTURE);
-        ctx.drawTexture(TEXTURE, background.x(), background.y(), 0, 0, backgroundWidth + 10, backgroundHeight);
+        ctx.drawTexture(TEXTURE, background.x(), background.y(), 0, 109, 168, 150);
 
-        ctx.drawTexture(TEXTURE, background.x() + 146, background.y() + 51, switch (silouette) {
-            case LAPIS -> 0;
-            case ECHO_SHARD -> 18;
-        }, 215, 18, 18);
+        ctx.drawTexture(TEXTURE, background.x() + 134, background.y() + 27, 195, switch (silouette) {
+            case LAPIS -> 175;
+            case ECHO_SHARD -> 197;
+        }, 18, 18);
 
         silouetteTimer += delta;
 

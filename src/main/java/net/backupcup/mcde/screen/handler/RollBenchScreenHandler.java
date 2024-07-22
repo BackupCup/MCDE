@@ -60,7 +60,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
         this.context = context;
         inventory.onOpen(playerInventory.player);
 
-        this.addSlot(new Slot(inventory, 0, 145, 33) {
+        this.addSlot(new Slot(inventory, 0, 132, 33) {
             @Override
             public boolean canInsert(ItemStack stack) {
                 return stack.getItem().isEnchantable(stack);
@@ -72,7 +72,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
             }
         });
 
-        this.addSlot(new Slot(inventory, 1, 145, 52) {
+        this.addSlot(new Slot(inventory, 1, 132, 52) {
             @Override
             public boolean canInsert(ItemStack stack) {
                 return stack.isOf(Items.LAPIS_LAZULI) || stack.isOf(Items.ECHO_SHARD);
@@ -218,14 +218,14 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
     private void addPlayerInventory(PlayerInventory playerInventory) {
         for (int i = 0; i < 3; ++i) {
             for (int l = 0; l < 9; ++l) {
-                this.addSlot(new Slot(playerInventory, l + i * 9 + 9, 10 + l * 18, 84 + i * 18));
+                this.addSlot(new Slot(playerInventory, l + i * 9 + 9, 3 + l * 18, 84 + i * 19));
             }
         }
     }
 
     private void addPlayerHotbar(PlayerInventory playerInventory) {
         for (int i = 0; i < 9; ++i) {
-            this.addSlot(new Slot(playerInventory, i, 10 + i * 18, 142));
+            this.addSlot(new Slot(playerInventory, i, 3 + i * 18, 148));
         }
     }
 
