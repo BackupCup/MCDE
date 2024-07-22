@@ -3,7 +3,6 @@ package net.backupcup.mcde.screen;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.IntStream;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
@@ -140,7 +139,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
             return super.mouseClicked(mouseX, mouseY, button);
         var slotsOptional = EnchantmentSlots.fromItemStack(stack);
         if (slotsOptional.isEmpty()) {
-            return mouseClicked(mouseX, mouseY, button);
+            return super.mouseClicked(mouseX, mouseY, button);
         }
         var slots = slotsOptional.get();
         if (isTouchscreen() && selected.isPresent() && isInTouchButton((int)mouseX, (int)mouseY)) {
