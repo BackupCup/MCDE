@@ -69,7 +69,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
                 }
                 return isMaxedOut || !RunicTableScreenHandler.canEnchant(client.player, choice.getEnchantmentId(), level) ||
                     (EnchantmentHelper.get(inventory.getStack(0)).keySet().stream().anyMatch(e -> !e.canCombine(choice.getEnchantment())) && 
-                         !choice.isChosen());
+                         !choice.isChosen() && MCDEnchantments.getConfig().isCompatibilityRequired());
             })
             .withClient(client)
             .build();
