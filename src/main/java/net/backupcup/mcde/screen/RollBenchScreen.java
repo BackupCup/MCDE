@@ -3,6 +3,7 @@ package net.backupcup.mcde.screen;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
@@ -36,6 +37,9 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
     private static enum RerollItemSilouette {
         LAPIS, ECHO_SHARD;
     }
+    private static enum RerollButtonState {
+        HIDDEN, EXTENDING, SHUTTING, SHOWED
+    }
     private static final Identifier TEXTURE = new Identifier(MCDEnchantments.MOD_ID, "textures/gui/roll_bench.png");
     private Inventory inventory;
     private RerollItemSilouette silouette = RerollItemSilouette.LAPIS;
@@ -45,8 +49,13 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
     private EnchantmentSlotsRenderer slotsRenderer;
 
     private TexturePos background;
+
     private TexturePos rerollButton;
     private boolean drawRerollButton;
+    private RerollButtonState rerollButtonState;
+    private float rerollButtonAnimationProgress;
+    private static final float rerollButtonAnimationDuration = 20.0f;
+
     private TexturePos touchButton;
 
     public RollBenchScreen(RollBenchScreenHandler handler, PlayerInventory inventory, Text title) {
@@ -73,7 +82,9 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
             .withClient(client)
             .build();
         drawRerollButton = client.player.isCreative();
-        rerollButton = background.add(157, 23);
+        rerollButton = background.add(155, 12);
+        rerollButtonState = RerollButtonState.HIDDEN;
+        rerollButtonAnimationProgress = 0f;
         touchButton = background.add(8, 57);
     }
 
@@ -190,7 +201,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
     public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
         renderBackground(ctx);
         super.render(ctx, mouseX, mouseY, delta);
-        renderRerollButton(ctx, mouseX, mouseY);
+        renderRerollButton(ctx, mouseX, mouseY, delta);
 
         if (isTouchscreen()) {
             ctx.drawTexture(TEXTURE, touchButton.x(), touchButton.y(), 36, 215, 13, 13);
@@ -251,19 +262,77 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         this.opened = opened;
     }
 
-    protected void renderRerollButton(DrawContext ctx, int mouseX, int mouseY) {
-        drawRerollButton = inventory.getStack(1).isOf(Items.ECHO_SHARD) || client.player.isCreative();
-        if (drawRerollButton) {
-            int textureButtonX;
-            if (inventory.getStack(0).isEmpty()) {
-                textureButtonX = 0;
-            } else if (isInRerollButton(mouseX, mouseY)) {
-                textureButtonX = 50;
-            } else {
-                textureButtonX = 25;
-            }
-            ctx.drawTexture(TEXTURE, rerollButton.x(), rerollButton.y(), textureButtonX, 187, 25, 28);
+    private static Function<Float, Integer> frameEasing(Function<Float, Float> f) {
+        // 20 is the number of frames
+        return x -> (int)(f.apply(x) * 20f);
+    }
+
+    private static float easeOut(float x) {
+        return (float)(1 - Math.pow(1 - x, 3));
+    }
+
+    private static float easeIn(float x) {
+        return x * x * x;
+    }
+
+    protected void renderRerollButton(DrawContext ctx, int mouseX, int mouseY, float delta) {
+        drawRerollButton = !inventory.getStack(0).isEmpty() && (inventory.getStack(1).isOf(Items.ECHO_SHARD) || client.player.isCreative());
+        if (drawRerollButton && (rerollButtonState == RerollButtonState.HIDDEN || rerollButtonState == RerollButtonState.SHUTTING)) {
+            rerollButtonState = RerollButtonState.EXTENDING;
+            rerollButtonAnimationProgress = 0f;
         }
+        else if (!drawRerollButton && (rerollButtonState == RerollButtonState.SHOWED || rerollButtonState == RerollButtonState.EXTENDING)) {
+            rerollButtonState = RerollButtonState.SHUTTING;
+            rerollButtonAnimationProgress = 0f;
+        }
+        else if (rerollButtonState == RerollButtonState.EXTENDING && rerollButtonAnimationProgress > 1.0f) {
+            rerollButtonState = RerollButtonState.SHOWED;
+            rerollButtonAnimationProgress = 0f;
+        }
+        else if (rerollButtonState == RerollButtonState.SHUTTING && rerollButtonAnimationProgress > 1.0f) {
+            rerollButtonState = RerollButtonState.HIDDEN;
+            rerollButtonAnimationProgress = 0f;
+        }
+
+        if (rerollButtonState == RerollButtonState.SHOWED) {
+            ctx.drawTexture(TEXTURE, rerollButton.x(), rerollButton.y(), 232, 0, 24, 34);
+        }
+        else if (rerollButtonState == RerollButtonState.EXTENDING || rerollButtonState == RerollButtonState.SHUTTING) {
+            Function<Float, Float> easing = switch (rerollButtonState) {
+                case EXTENDING -> RollBenchScreen::easeOut;
+                case SHUTTING -> RollBenchScreen::easeIn;
+                default -> null;
+            };
+            float progress = switch (rerollButtonState) {
+                case EXTENDING -> rerollButtonAnimationProgress;
+                case SHUTTING -> 1 - rerollButtonAnimationProgress;
+                default -> 0f;
+            };
+            drawAnimationRerollButtonFrame(ctx, frameEasing(easing).apply(progress), isInRerollButton(mouseX, mouseY));
+            MCDEnchantments.LOGGER.info(String.format("progress: %.2f", rerollButtonAnimationProgress));
+            rerollButtonAnimationProgress += delta / rerollButtonAnimationDuration;
+        }
+
+        if (rerollButtonState == RerollButtonState.SHOWED && isInRerollButton(mouseX, mouseY)) {
+            ctx.drawTexture(TEXTURE, rerollButton.x(), rerollButton.y(), 204, 0, 25, 35);
+        }
+    }
+    
+    private void drawAnimationRerollButtonFrame(DrawContext ctx, int progress, boolean hovered) {
+        if (progress > 20) {
+            progress = 20;
+        }
+        if (progress < 0) {
+            progress = 0;
+        }
+        int x = 232, width = 4, height = 34;
+        if (hovered && drawRerollButton) {
+            x = 204;
+            width = 5;
+            height = 35;
+        }
+        TexturePos part = TexturePos.of(x + 20 - progress, 0);
+        ctx.drawTexture(TEXTURE, rerollButton.x(), rerollButton.y(), part.x(), part.y(), width + progress, height);
     }
 
     protected void renderTooltip(DrawContext ctx, Choice hovered, EnchantmentSlots slots, int x, int y) {

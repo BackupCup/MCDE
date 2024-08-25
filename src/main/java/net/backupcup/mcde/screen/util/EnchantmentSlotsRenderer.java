@@ -170,7 +170,7 @@ public class EnchantmentSlotsRenderer {
     public boolean isInSlotBounds(SlotPosition slot, int mouseX, int mouseY) {
         var pos = slotPos.get(slot);
         return IntStream.rangeClosed(0, 13).anyMatch(i -> isInBounds(pos.x(), pos.y(), mouseX, mouseY, 14 - i, 19 + i, i, i)) ||
-            isInBounds(pos.x(), pos.y(), mouseX, mouseY, 0, 31, 15, 25) ||
+            isInBounds(pos.x(), pos.y(), mouseX, mouseY, 0, 31, 14, 25) ||
             IntStream.rangeClosed(0, 13).anyMatch(i -> isInBounds(pos.x(), pos.y(), mouseX, mouseY, i, 31 - i, i + 26, i + 26));
     }
 
