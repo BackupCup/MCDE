@@ -14,6 +14,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Items;
+import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
@@ -27,8 +28,8 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
     private float silouetteTimer = 0f;
     private static final Identifier TEXTURE =
             new Identifier(MCDEnchantments.MOD_ID, "textures/gui/gilding_foundry.png");
-    private static final TexturePos GOLD_BUTTON_OFFSET = TexturePos.of(0, 168);
-    private static final TexturePos EMERALD_BUTTON_OFFSET = TexturePos.of(0, 211);
+    private static final TexturePos GOLD_BUTTON_OFFSET = TexturePos.of(2, 223);
+    private static final TexturePos EMERALD_BUTTON_OFFSET = TexturePos.of(2, 239);
 
     private Inventory inventory;
     private PlayerEntity playerEntity;
@@ -57,10 +58,10 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
         playerInventoryTitleY = -200;
         backgroundX = ((width - backgroundWidth) / 2) - 2;
         backgroundY = (height - backgroundHeight) / 2;
-        buttonX = backgroundX + 54;
-        buttonY = backgroundY + 37;
-        progressX = backgroundX + 60;
-        progressY = backgroundY + 24;
+        buttonX = backgroundX + 46;
+        buttonY = backgroundY + 59;
+        progressX = backgroundX + 63;
+        progressY = backgroundY + 3;
     }
 
     @Override
@@ -69,11 +70,13 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
 
         int posX = ((width - backgroundWidth) / 2) - 2;
         int posY = (height - backgroundHeight) / 2;
-        ctx.drawTexture(TEXTURE, posX, posY, 0, 0, backgroundWidth + 10, backgroundHeight);
-        ctx.drawTexture(TEXTURE, posX + 84, posY + 53, switch (silouette) {
-            case GOLD -> 151;
-            case EMERALD -> 167;
-        }, 166, 16, 16);
+        Slot slot = this.handler.getSlot(1);
+
+        ctx.drawTexture(TEXTURE, posX, posY, 2, 20, 168, 167);
+        ctx.drawTexture(TEXTURE, posX + slot.x + 2, posY + slot.y, 239, switch (silouette) {
+            case GOLD -> 166;
+            case EMERALD -> 185;
+        }, 16, 16);
 
         silouetteTimer += delta;
         
@@ -96,17 +99,6 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
 
     @Override
     protected void drawForeground(DrawContext ctx, int mouseX, int mouseY) {
-        int width = textRenderer.getWidth(title);
-        int height = textRenderer.fontHeight;
-        int outlineX = titleX - 4;
-        int outlineY = titleY - 4;
-        var outlinePos = TexturePos.of(145, 168);
-
-        ctx.drawTexture(TEXTURE,  outlineX, outlineY, outlinePos.x(), outlinePos.y(), 3, height + 6);
-        IntStream.range(-1, width + 1).forEach(i ->
-                ctx.drawTexture(TEXTURE, titleX + i, outlineY, outlinePos.x() + 2, outlinePos.y(), 1, height + 6));
-        ctx.drawTexture(TEXTURE, titleX + width + 1, outlineY, outlinePos.x() + 3, outlinePos.y(), 2, height + 6);
-        super.drawForeground(ctx, mouseX, mouseY);
     }
 
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
@@ -121,11 +113,12 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
         renderBackground(ctx);
         super.render(ctx, mouseX, mouseY, delta);
 
-        if (isGildingButtonClickable()) {
-            ctx.drawTexture(TEXTURE, buttonX, buttonY, 0, 180, 76, 12);
-            if (isInBounds(buttonX, buttonY, mouseX, mouseY, 0, 76, 0, 12)) {
-                ctx.drawTexture(TEXTURE, buttonX, buttonY, 0, 192, 76, 12);
-            }
+        if (!handler.hasProgress()) {
+            ctx.drawTexture(TEXTURE, buttonX, buttonY, 2, 207, 76, 15);
+        }
+        else {
+            var buttonOffset = getButtonTextureOffset().add(156, 2);
+            ctx.drawTexture(TEXTURE, buttonX, buttonY, buttonOffset.x(), buttonOffset.y(), 76, 13);
         }
 
         drawProgress(ctx, handler.getProgress());
@@ -133,13 +126,10 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
         if (!inventory.getStack(1).isEmpty() || playerEntity.isCreative() && !inventory.getStack(0).isEmpty()) {
             var buttonOffset = getButtonTextureOffset();
             if (isGildingButtonClickable()) {
-                ctx.drawTexture(TEXTURE, buttonX, buttonY, buttonOffset.x(), buttonOffset.y() + 12, 76, 12);
-                if (isInBounds(buttonX, buttonY, mouseX, mouseY, 0, 76, 0, 12)) {
-                    ctx.drawTexture(TEXTURE, buttonX, buttonY, buttonOffset.x(), buttonOffset.y() + 24, 76, 12);
+                ctx.drawTexture(TEXTURE, buttonX, buttonY, buttonOffset.x(), buttonOffset.y(), 76, 15);
+                if (isInBounds(buttonX, buttonY, mouseX, mouseY, 0, 76, 0, 15)) {
+                    ctx.drawTexture(TEXTURE, buttonX, buttonY, buttonOffset.x() + 78, buttonOffset.y(), 76, 15);
                 }
-            }
-            else {
-                ctx.drawTexture(TEXTURE, buttonX, buttonY, buttonOffset.x(), buttonOffset.y(), 76, 12);
             }
 
             int color = hexToColor("#F6F6F6");
@@ -181,56 +171,32 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
     }
 
     private void drawProgress(DrawContext ctx, int progress) {
-        var progressOffset = getButtonTextureOffset().add(77, 0);
-        if (progress <= 1) {
+        progress = (int)((float)progress / MCDEnchantments.getConfig().getGildingDuration() * 25f);
+        var progressOffset = getButtonTextureOffset(TexturePos.of(247, 204), TexturePos.of(247, 230));
+        if (progress < 1) {
             return;
         }
-        if (progress >= 34) {
-            ctx.drawTexture(TEXTURE, progressX, progressY, progressOffset.x(), progressOffset.y(), 64, 38);
+        if (progress > 25) {
+            ctx.drawTexture(TEXTURE, progressX, progressY, progressOffset.x(), progressOffset.y(), 8, 25);
+            ctx.drawTexture(TEXTURE, progressX + 34, progressY, progressOffset.x(), progressOffset.y(), 8, 25);
             return;
         }
-        int fullLowerTextureX = progressOffset.x() + 7;
-        // lower bars
-        if (2 <= progress && progress <= 13) {
-            ctx.drawTexture(TEXTURE, progressX + 7 + (13 - progress), progressY + 36, fullLowerTextureX + (13 - progress), progressOffset.y() + 36, 28 + (progress - 2) * 2, 2);
-            return;
-        }
-        
-        if (progress > 13) {
-            int step = progress == 14 ? 1 : 0;
-            ctx.drawTexture(TEXTURE, progressX + step, progressY + 36, progressOffset.x() + step, progressOffset.y() + 36, 64 - step * 2, 2);
-        }
-
-        if (progress > 15) {
-            int step = progress == 16 ? 1 : 0;
-            ctx.drawTexture(TEXTURE, progressX, progressY + 29 + step, progressOffset.x(), progressOffset.y() + 29 + step, 64, 2 - step);
-        }
-
-        if (progress > 17) {
-            int step = progress == 18 ? 1 : 0;
-            ctx.drawTexture(TEXTURE, progressX, progressY + 7 + step, progressOffset.x(), progressOffset.y() + 7 + step, 64, 2 - step);
-        }
-
-        if (progress > 19) {
-            int step = progress == 20 ? 1 : 0;
-            ctx.drawTexture(TEXTURE, progressX, progressY + step, progressOffset.x(), progressOffset.y() + step, 2, 2 - step);
-            ctx.drawTexture(TEXTURE, progressX + 62, progressY + step, progressOffset.x() + 62, progressOffset.y() + step, 2, 2 - step);
-        }
-
-        if (21 < progress && progress < 34) {
-            ctx.drawTexture(TEXTURE, progressX + 7, progressY, progressOffset.x() + 7, progressOffset.y(), progress - 21, 2);
-            ctx.drawTexture(TEXTURE, progressX + 45 + (33 - progress), progressY, progressOffset.x() + 45 + (33 - progress), progressOffset.y(), progress - 21, 2);
-        }
+        ctx.drawTexture(TEXTURE, progressX, progressY + 25 - progress, progressOffset.x(), progressOffset.y() + 25 - progress, 8, progress);
+        ctx.drawTexture(TEXTURE, progressX + 34, progressY + 25 - progress, progressOffset.x(), progressOffset.y() + 25 - progress, 8, progress);
     }
 
-    private TexturePos getButtonTextureOffset() {
+    private TexturePos getButtonTextureOffset(TexturePos gold, TexturePos emerald) {
         if (playerEntity.isCreative()) {
             return EnchantmentSlots.fromItemStack(inventory.getStack(0))
                 .map(slots -> slots.hasGilding()).orElse(false) ?
-                EMERALD_BUTTON_OFFSET : GOLD_BUTTON_OFFSET;
+                emerald : gold;
         }
         return inventory.getStack(1).isOf(Items.EMERALD) ?
-            EMERALD_BUTTON_OFFSET : GOLD_BUTTON_OFFSET;
+            emerald : gold;
+    }
+
+    private TexturePos getButtonTextureOffset() {
+        return getButtonTextureOffset(GOLD_BUTTON_OFFSET, EMERALD_BUTTON_OFFSET);
     }
 
     private static int hexToColor(String hex) {

@@ -335,8 +335,8 @@ public class Config {
         return gildingCost;
     }
 
-    public int getTicksPerGildingProcessStep() {
-        return ticksPerGildingProcessStep;
+    public int getGildingDuration() {
+        return gildingDurationTicks;
     }
 
     public boolean isUsingEnchantingTableAllowed() {
@@ -473,9 +473,8 @@ public class Config {
     @Comment("Sets cost of gilding")
     private int gildingCost = 8;
 
-    @Comment("Each n-th tick (where n is this setting) would increment progress of gilding.\n" +
-             "The process consists of 33 steps (frames). So, overall process would take n * 33 ticks.")
-    private int ticksPerGildingProcessStep = 1;
+    @Comment("Duration of gilding in ticks")
+    private int gildingDurationTicks = 33;
 
     @Comment("Enchantments from this pool would be used in trades.\n" +
              "If this pool is empty, then trades will not be affected.\n" +

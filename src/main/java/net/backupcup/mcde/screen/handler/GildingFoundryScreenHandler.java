@@ -79,7 +79,7 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
         this.propertyDelegate = delegate;
         this.generatedEnchantment = generatedEnchantment;
 
-        this.addSlot(new Slot(inventory, 0, 82, 17) {
+        this.addSlot(new Slot(inventory, 0, 74, 9) {
 
             @Override
             public boolean canInsert(ItemStack stack) {
@@ -92,7 +92,7 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
             }
         });
 
-        this.addSlot(new Slot(inventory, 1, 82, 53) {
+        this.addSlot(new Slot(inventory, 1, 74, 37) {
 
             @Override
             public boolean canInsert(ItemStack stack) {
@@ -188,14 +188,14 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
     private void addPlayerInventory(PlayerInventory playerInventory) {
         for (int i = 0; i < 3; ++i) {
             for (int l = 0; l < 9; ++l) {
-                this.addSlot(new Slot(playerInventory, l + i * 9 + 9, 10 + l * 18, 84 + i * 18));
+                this.addSlot(new Slot(playerInventory, l + i * 9 + 9, 2 + l * 18, 80 + i * 19));
             }
         }
     }
 
     private void addPlayerHotbar(PlayerInventory playerInventory) {
         for (int i = 0; i < 9; ++i) {
-            this.addSlot(new Slot(playerInventory, i, 10 + i * 18, 142));
+            this.addSlot(new Slot(playerInventory, i, 2 + i * 18, 144));
         }
     }
 

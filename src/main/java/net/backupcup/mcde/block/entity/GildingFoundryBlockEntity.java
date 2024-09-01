@@ -32,7 +32,6 @@ import net.minecraft.world.World;
 public class GildingFoundryBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory, ImplementedInventory {
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(2, ItemStack.EMPTY);
     private int gilding_progress;
-    private int gilding_tick_counter;
     private Optional<Identifier> generated = Optional.empty();
 
     public void setGenerated(Identifier id) {
@@ -127,20 +126,16 @@ public class GildingFoundryBlockEntity extends BlockEntity implements ExtendedSc
             markDirty(world, blockPos, state);
             return;
         }
-        entity.gilding_tick_counter++;
-        entity.gilding_tick_counter %= MCDEnchantments.getConfig().getTicksPerGildingProcessStep();
-        if (entity.gilding_tick_counter == 0) {
-            entity.gilding_progress++;
-            if (entity.gilding_progress >= 34) {
-                entity.finishGilding();
-            }
+        entity.gilding_progress++;
+        if (entity.gilding_progress > MCDEnchantments.getConfig().getGildingDuration()) {
+            entity.finishGilding();
         }
+
         markDirty(world, blockPos, state);
     }
 
     private void finishGilding() {
         gilding_progress = 0;
-        gilding_tick_counter = 0;
         var weaponStack = inventory.get(0);
         
         if (generated.isEmpty()) {
@@ -164,7 +159,6 @@ public class GildingFoundryBlockEntity extends BlockEntity implements ExtendedSc
 
     private void resetProgress() {
         gilding_progress = 0;
-        gilding_tick_counter = 0;
     }
 
     @Override
