@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-
 import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.screen.handler.RollBenchScreenHandler;
 import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
@@ -21,7 +19,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.render.GameRenderer;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
@@ -85,17 +82,12 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         rerollButton = background.add(155, 12);
         rerollButtonState = RerollButtonState.HIDDEN;
         rerollButtonAnimationProgress = 0f;
-        touchButton = background.add(8, 57);
+        touchButton = background.add(-2, 38);
     }
 
     @Override
     protected void drawBackground(DrawContext ctx, float delta, int mouseX, int mouseY) {
-        RenderSystem.setShader(GameRenderer::getPositionTexProgram);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-
-        /* Reroll Station UI */
-        RenderSystem.setShaderTexture(0, TEXTURE);
-        ctx.drawTexture(TEXTURE, background.x(), background.y(), 0, 109, 168, 150);
+        ctx.drawTexture(TEXTURE, background.x(), background.y(), 1, 109, 168, 149);
 
         ctx.drawTexture(TEXTURE, background.x() + 134, background.y() + 27, 195, switch (silouette) {
             case LAPIS -> 175;
@@ -204,7 +196,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         renderRerollButton(ctx, mouseX, mouseY, delta);
 
         if (isTouchscreen()) {
-            ctx.drawTexture(TEXTURE, touchButton.x(), touchButton.y(), 36, 215, 13, 13);
+            ctx.drawTexture(TEXTURE, touchButton.x(), touchButton.y(), 164, 0, 13, 15);
         }
 
         ItemStack itemStack = inventory.getStack(0);
@@ -238,11 +230,11 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
                     slotsRenderer.drawIconHoverOutline(ctx, choice.getEnchantmentSlot().getSlotPosition(), choice);
                 }
                 if (!slotsRenderer.getDimPredicate().test(choice)) {
-                    int buttonX = 49;
+                    int buttonX = 177;
                     if (isInTouchButton(mouseX, mouseY)) {
-                        buttonX = 62;
+                        buttonX = 190;
                     }
-                    ctx.drawTexture(TEXTURE, touchButton.x(), touchButton.y(), buttonX, 215, 13, 13);
+                    ctx.drawTexture(TEXTURE, touchButton.x(), touchButton.y(), buttonX, 0, 13, 15);
                 }
             });
         } else {
@@ -376,7 +368,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
     }
 
     protected boolean isInTouchButton(int mouseX, int mouseY) {
-        return isInBounds(touchButton.x(), touchButton.y(), mouseX, mouseY, 0, 13, 0, 13);
+        return isInBounds(touchButton.x(), touchButton.y(), mouseX, mouseY, 0, 13, 0, 15);
     }
 
     private boolean isTouchscreen() {
