@@ -82,7 +82,6 @@ public class GildingFoundryBlockEntity extends BlockEntity implements ExtendedSc
     @Nullable
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
-        MCDEnchantments.LOGGER.info("Create menu {}", syncId);
         var weaponStack  = inventory.get(0);
         if (!weaponStack.isEmpty()) {
             generated = EnchantmentUtils.generateEnchantment(
@@ -163,7 +162,6 @@ public class GildingFoundryBlockEntity extends BlockEntity implements ExtendedSc
 
     @Override
     public void writeScreenOpeningData(ServerPlayerEntity player, PacketByteBuf buf) {
-        MCDEnchantments.LOGGER.info("Write {}", generated);
         buf.writeOptional(generated, (w, id) -> w.writeIdentifier(id));
     }
 }

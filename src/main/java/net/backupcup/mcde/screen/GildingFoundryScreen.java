@@ -1,14 +1,12 @@
 package net.backupcup.mcde.screen;
 
-import java.util.stream.IntStream;
-
 import net.backupcup.mcde.MCDEnchantments;
 import net.backupcup.mcde.screen.handler.GildingFoundryScreenHandler;
 import net.backupcup.mcde.screen.util.TexturePos;
 import net.backupcup.mcde.util.EnchantmentSlots;
-import net.minecraft.client.gui.DrawContext;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
