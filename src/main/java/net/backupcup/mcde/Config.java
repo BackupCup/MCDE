@@ -13,6 +13,7 @@ import java.util.function.Function;
 
 import blue.endless.jankson.Comment;
 import blue.endless.jankson.Jankson;
+import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.api.DeserializationException;
 import blue.endless.jankson.api.SyntaxError;
 import net.backupcup.mcde.util.AdvancementList;
@@ -57,6 +58,7 @@ public class Config {
             if (getConfigFile().exists()) {
                 lastError = null;
                 var json = JANKSON.load(getConfigFile());
+                migrateConfig(json);
                 return JANKSON.fromJsonCarefully(json, Config.class);
             }
             defaults.save();
@@ -82,6 +84,15 @@ public class Config {
             lastError = Text.translatable("message.mcde.error.config.general");
         }
         return defaults;
+    }
+
+    private static void migrateConfig(JsonObject json) {
+        if (json.containsKey("ticksPerGildingProcessStep")) {
+            MCDEnchantments.LOGGER.warn("ticksPerGildingProcessStep is deprecated, use gildingDuration instead");
+            var ticks = json.getInt("ticksPerGildingProcessStep", 1);
+            json.remove("ticksPerGildingProcessStep");
+            json.putDefault("gildingDuration", ticks * 33, "");
+        }
     }
 
     public static Config readFromServer(PacketByteBuf buf) {
@@ -336,7 +347,7 @@ public class Config {
     }
 
     public int getGildingDuration() {
-        return gildingDurationTicks;
+        return gildingDuration;
     }
 
     public boolean isUsingEnchantingTableAllowed() {
@@ -473,8 +484,8 @@ public class Config {
     @Comment("Sets cost of gilding")
     private int gildingCost = 8;
 
-    @Comment("Duration of gilding in ticks")
-    private int gildingDurationTicks = 33;
+    @Comment("Duration of gilding process in ticks")
+    private int gildingDuration = 33;
 
     @Comment("Enchantments from this pool would be used in trades.\n" +
              "If this pool is empty, then trades will not be affected.\n" +
