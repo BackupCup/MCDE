@@ -28,11 +28,18 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 public class Config {
-    private static File getConfigFile() {
+    private static File getOldConfigFile() {
         return Path.of(
             FabricLoader.getInstance().getConfigDir().toString(),
             MCDEnchantments.MOD_ID,
             "config.json"
+        ).toFile();
+    }
+
+    private static File getConfigFile() {
+        return Path.of(
+            FabricLoader.getInstance().getConfigDir().toString(),
+            "mcde.json5"
         ).toFile();
     }
 
@@ -57,6 +64,20 @@ public class Config {
         try {
             if (getConfigFile().exists()) {
                 lastError = null;
+                var json = JANKSON.load(getConfigFile());
+                migrateConfig(json);
+                return JANKSON.fromJsonCarefully(json, Config.class);
+            }
+            if (getOldConfigFile().exists()) {
+                MCDEnchantments.LOGGER.info("MCDE's config moved to config/mcde.json5 file," +
+                        " moving old configuration to the new location");
+                if (!getOldConfigFile().renameTo(getConfigFile())) {
+                    MCDEnchantments.LOGGER.warn("Something went wrong with moving a file, using old location");
+                    var json = JANKSON.load(getOldConfigFile());
+                    migrateConfig(json);
+                    return JANKSON.fromJsonCarefully(json, Config.class);
+                }
+                getOldConfigFile().getParentFile().delete();
                 var json = JANKSON.load(getConfigFile());
                 migrateConfig(json);
                 return JANKSON.fromJsonCarefully(json, Config.class);

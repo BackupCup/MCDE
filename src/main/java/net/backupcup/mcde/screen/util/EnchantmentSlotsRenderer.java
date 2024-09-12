@@ -101,7 +101,7 @@ public class EnchantmentSlotsRenderer {
             powerfulOutlinePos : outlinePos;
         var pos = slotPos.get(slot);
         ctx.drawTexture(defaultGuiTexture, pos.x(), pos.y(), texPos.x(), texPos.y(), 33, 39);
-        drawIcon(ctx, pos.add(5, 5), slot, choice);
+        drawIcon(ctx, pos.add(5, 6), slot, choice);
     }
 
     public void drawIconHoverOutline(DrawContext ctx, SlotPosition slot, Choice choice) {

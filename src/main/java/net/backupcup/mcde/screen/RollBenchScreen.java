@@ -23,6 +23,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -68,7 +69,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         slotsRenderer = EnchantmentSlotsRenderer.builder()
             .withScreen(this)
             .withDefaultGuiTexture(TEXTURE)
-            .withDefaultSlotPositions(background)
+            .withDefaultSlotPositions(background.add(-1, 0))
             .withDimPredicate(
                 choice -> EnchantmentSlots.fromItemStack(inventory.getStack(0))
                 .map(
@@ -88,8 +89,10 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
     @Override
     protected void drawBackground(DrawContext ctx, float delta, int mouseX, int mouseY) {
         ctx.drawTexture(TEXTURE, background.x(), background.y(), 1, 109, 168, 149);
-
-        ctx.drawTexture(TEXTURE, background.x() + 134, background.y() + 27, 195, switch (silouette) {
+        var slot = handler.getSlot(1);
+        var drawPos = TexturePos.of((width - backgroundWidth) / 2, (height - backgroundHeight) / 2)
+            .add(slot.x, slot.y);
+        ctx.drawTexture(TEXTURE, drawPos.x(), drawPos.y(), 195, switch (silouette) {
             case LAPIS -> 175;
             case ECHO_SHARD -> 197;
         }, 18, 18);
@@ -306,7 +309,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         }
 
         if (rerollButtonState == RerollButtonState.SHOWED && isInRerollButton(mouseX, mouseY)) {
-            ctx.drawTexture(TEXTURE, rerollButton.x(), rerollButton.y(), 204, 0, 25, 35);
+            ctx.drawTexture(TEXTURE, rerollButton.x(), rerollButton.y(), 204, 0, 25, 36);
         }
     }
     
@@ -321,7 +324,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
         if (hovered && drawRerollButton) {
             x = 204;
             width = 5;
-            height = 35;
+            height = 36;
         }
         TexturePos part = TexturePos.of(x + 20 - progress, 0);
         ctx.drawTexture(TEXTURE, rerollButton.x(), rerollButton.y(), part.x(), part.y(), width + progress, height);
