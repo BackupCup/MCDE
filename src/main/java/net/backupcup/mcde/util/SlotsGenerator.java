@@ -120,8 +120,12 @@ public class SlotsGenerator {
     }
 
     private static SlotChances calculateAdvancementModifiers(ServerPlayerEntity player) {
+        var tracker = player.getAdvancementTracker();
+        var loader = player.server.getAdvancementLoader();
         return MCDEnchantments.getConfig().getProgressChances().entrySet().stream()
-            .filter(kvp -> player.getAdvancementTracker().getProgress(player.server.getAdvancementLoader().get(kvp.getKey())).isDone())
+            .filter(kvp -> Optional.ofNullable(
+                loader.get(kvp.getKey())
+            ).map(a -> tracker.getProgress(a).isDone()).orElse(false))
             .map(Map.Entry::getValue)
             .reduce(new SlotChances(), SlotChances::add);
     }
