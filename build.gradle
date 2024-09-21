@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.2-SNAPSHOT'
+	id 'fabric-loom' version '1.7-SNAPSHOT'
 	id 'maven-publish'
 }
 
@@ -22,8 +22,6 @@ dependencies {
     include implementation("blue.endless:jankson:${project.jankson_version}")
 
     include implementation("com.hrakaroo:glob:${project.glob_version}")
-
-    include(implementation(annotationProcessor("com.github.llamalad7.mixinextras:mixinextras-fabric:${project.mixin_extras_version}")))
 }
 
 base {
