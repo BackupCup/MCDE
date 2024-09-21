@@ -12,9 +12,11 @@ import java.util.stream.IntStream;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.backupcup.mcde.Config.SlotChances;
-import net.backupcup.mcde.MCDEnchantments;
+import net.backupcup.mcde.MCDE;
+import net.minecraft.advancement.PlayerAdvancementTracker;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.ServerAdvancementLoader;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
@@ -40,7 +42,7 @@ public class SlotsGenerator {
             pool.removeIf(EnchantmentUtils.getLockedEnchantments(optionalOwner.get())::contains);
         };
 
-        if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
+        if (MCDE.getConfig().isCompatibilityRequired()) {
             pool.removeIf(id -> !EnchantmentUtils.isCompatible(
                 EnchantmentHelper.get(itemStack).keySet()
                     .stream().map(EnchantmentHelper::getEnchantmentId).toList(), id));
@@ -58,7 +60,7 @@ public class SlotsGenerator {
 
         isTwoChoiceGenerated = generateSlot(FIRST, pool, builder, isTwoChoiceGenerated);
 
-        if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
+        if (MCDE.getConfig().isCompatibilityRequired()) {
             removeIncompatible(pool, builder);
         }
 
@@ -73,7 +75,7 @@ public class SlotsGenerator {
             return builder.build();
         }
 
-        if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
+        if (MCDE.getConfig().isCompatibilityRequired()) {
             removeIncompatible(pool, builder);
         }
 
@@ -90,13 +92,13 @@ public class SlotsGenerator {
 
     private boolean generateSlot(SlotPosition pos, ObjectArrayList<Identifier> pool, EnchantmentSlots.Builder builder, boolean isTwoChoiceGenerated) {
         if (!isTwoChoiceGenerated && random.nextFloat() < threeChoiceChance && pool.size() >= 3 && getPoolSize() >= 6) {
-            if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
+            if (MCDE.getConfig().isCompatibilityRequired()) {
                 moveIncompatibleToTheEnd(pool, 3);
             }
             builder.withSlot(pos, pool.pop(), pool.pop(), pool.pop());
         }
         else if (pool.size() > 2) {
-            if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
+            if (MCDE.getConfig().isCompatibilityRequired()) {
                 moveIncompatibleToTheEnd(pool, 2);
             }
             builder.withSlot(pos, pool.pop(), pool.pop());
@@ -122,7 +124,7 @@ public class SlotsGenerator {
     private static SlotChances calculateAdvancementModifiers(ServerPlayerEntity player) {
         var tracker = player.getAdvancementTracker();
         var loader = player.server.getAdvancementLoader();
-        return MCDEnchantments.getConfig().getProgressChances().entrySet().stream()
+        return MCDE.getConfig().getProgressChances().entrySet().stream()
             .filter(kvp -> Optional.ofNullable(
                 loader.get(kvp.getKey())
             ).map(a -> tracker.getProgress(a).isDone()).orElse(false))
@@ -262,8 +264,8 @@ public class SlotsGenerator {
 
         public SlotsGenerator build() {
             var slotChances = new SlotChances(
-                    secondSlotChance.orElseGet(MCDEnchantments.getConfig()::getSecondSlotBaseChance),
-                    thirdSlotChance.orElseGet(MCDEnchantments.getConfig()::getThirdSlotBaseChance)
+                    secondSlotChance.orElseGet(MCDE.getConfig()::getSecondSlotBaseChance),
+                    thirdSlotChance.orElseGet(MCDE.getConfig()::getThirdSlotBaseChance)
                     );
             if (!(isSecondSlotChanceAbsolute && isThirdSlotChanceAbsolute) && optionalOwner.isPresent()) {
                 var modifiers = SlotChances.add(

@@ -3,20 +3,27 @@ package net.backupcup.mcde.screen.handler;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-
-import net.backupcup.mcde.MCDEnchantments;
+import java.util.stream.Stream;
+import net.backupcup.mcde.MCDE;
 import net.backupcup.mcde.block.ModBlocks;
+import net.backupcup.mcde.util.Choice;
+import net.backupcup.mcde.util.EnchantmentSlot;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.SlotPosition;
 import net.backupcup.mcde.util.SlotsGenerator;
+import net.backupcup.mcde.util.SlotsGenerator.Builder;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.Context;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -25,6 +32,10 @@ import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.ScreenHandlerListener;
@@ -39,7 +50,6 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
     private final ScreenHandlerContext context;
     private final PlayerEntity playerEntity;
     private Map<SlotPosition, Boolean> locked = new EnumMap<>(Map.of(SlotPosition.FIRST, false, SlotPosition.SECOND, false, SlotPosition.THIRD, false));
-    public static final Identifier LOCKED_SLOTS_PACKET = Identifier.of(MCDEnchantments.MOD_ID, "locked_slots");
     public static final int REROLL_BUTTON_ID = -1;
 
     public Inventory getInventory() {
@@ -104,7 +114,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
             var serverPlayerEntity = context.get((world, pos) -> world.getServer().getPlayerManager().getPlayer(player.getUuid()));
             var gilding = slots.getGildingIds();
             EnchantmentSlots newSlots;
-            if (MCDEnchantments.getConfig().canFullRerollRemoveSlots()) {
+            if (MCDE.getConfig().canFullRerollRemoveSlots()) {
                 newSlots = SlotsGenerator.forItemStack(itemStack)
                     .withOptionalOwner(serverPlayerEntity)
                     .build()
@@ -162,7 +172,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
         if (!player.isCreative()) {
             rerollMaterialStack.decrement(slots.getNextRerollCost(enchantmentId));
         }
-        MCDEnchantments.getConfig().getRerollCostParameters().updateCost(slots);
+        MCDE.getConfig().getRerollCostParameters().updateCost(slots);
         slots.updateItemStack(itemStack);
         player.playSound(SoundEvents.BLOCK_GRINDSTONE_USE, SoundCategory.BLOCKS, 0.5f, 1f);
         inventory.markDirty();
@@ -237,7 +247,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
         }
         var slots = slotsOptional.get();
         var candidates = EnchantmentUtils.getEnchantmentsNotInItem(itemStack);
-        if (!MCDEnchantments.getConfig().isCompatibilityRequired()) {
+        if (!MCDE.getConfig().isCompatibilityRequired()) {
             return candidates.collect(Collectors.toList());
         }
         var enchantmentsNotInClickedSlot =
@@ -265,22 +275,18 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
     }
 
     private void sendLockedSlots(EnchantmentSlots slots, PlayerEntity player) {
-        var buffer = PacketByteBufs.create();
         var locked = slots.stream().collect(Collectors.toMap(
             s -> s.getSlotPosition(),
             s -> generateEnchantment(player, s.getSlotPosition()).isEmpty(),
             (lhs, rhs) -> lhs,
             () -> new EnumMap<>(SlotPosition.class)
         ));
-        buffer.writeInt(syncId);
-        buffer.writeMap(locked, (buf, s) -> buf.writeEnumConstant(s), (buf, b) -> buf.writeBoolean(b));
-        ServerPlayNetworking.send((ServerPlayerEntity)player, LOCKED_SLOTS_PACKET, buffer);
+        ServerPlayNetworking.send((ServerPlayerEntity)player, new LockedSlotsPacket(syncId, locked));
     }
 
 
-    public static void receiveNewLocks(MinecraftClient client, ClientPlayNetworkHandler handler, PacketByteBuf buf,
-            PacketSender responseSender) {
-        var player = client.player;
+    public static void receiveNewLocks(LockedSlotsPacket packet, Context context) {
+        var player = context.player();
         if (player == null) {
             return;
         }
@@ -289,15 +295,13 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
             return;
         }
 
-        if (screenHandler.syncId != buf.readInt()) {
+        if (screenHandler.syncId != packet.syncId) {
             return;
         }
 
-        var map = buf.readMap(b -> b.readEnumConstant(SlotPosition.class), b -> b.readBoolean());
-
         if (screenHandler instanceof RollBenchScreenHandler rbScreenHandler) {
-            client.execute(() -> {
-                rbScreenHandler.locked = map;
+            context.client().execute(() -> {
+                rbScreenHandler.locked = packet.locked();
             });
         }
     }
@@ -315,4 +319,25 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
             slots -> sendLockedSlots(slots, playerEntity)
         );
     }
+
+
+    public static record LockedSlotsPacket(int syncId, Map<SlotPosition, Boolean> locked) implements CustomPayload {
+        public static final CustomPayload.Id<LockedSlotsPacket> PACKET_ID = new CustomPayload.Id<>(MCDE.id("locked_slots"));
+        public static final PacketCodec<RegistryByteBuf, LockedSlotsPacket> PACKET_CODEC = 
+            PacketCodec.tuple(
+                    PacketCodecs.VAR_INT, LockedSlotsPacket::syncId,
+                    PacketCodecs.map(
+                        n -> new EnumMap<>(SlotPosition.class),
+                        PacketCodecs.indexed(i -> SlotPosition.values()[i], SlotPosition::ordinal),
+                        PacketCodecs.BOOL
+                    ), LockedSlotsPacket::locked,
+                    LockedSlotsPacket::new
+                );
+
+        @Override
+        public Id<? extends CustomPayload> getId() {
+            return PACKET_ID;
+        }
+    }
+
 }

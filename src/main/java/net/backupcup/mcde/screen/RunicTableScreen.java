@@ -6,13 +6,14 @@ import java.util.Optional;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
-import net.backupcup.mcde.MCDEnchantments;
+import net.backupcup.mcde.MCDE;
 import net.backupcup.mcde.screen.handler.RunicTableScreenHandler;
 import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
 import net.backupcup.mcde.screen.util.ScreenWithSlots;
 import net.backupcup.mcde.screen.util.TextWrapUtils;
 import net.backupcup.mcde.screen.util.TexturePos;
 import net.backupcup.mcde.util.Choice;
+import net.backupcup.mcde.util.EnchantmentSlot;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.SlotPosition;
@@ -35,7 +36,7 @@ import net.minecraft.util.Pair;
 @Environment(EnvType.CLIENT)
 public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> implements ScreenWithSlots {
     private static final Identifier TEXTURE =
-        new Identifier(MCDEnchantments.MOD_ID, "textures/gui/runic_table.png");
+        new Identifier(MCDE.MOD_ID, "textures/gui/runic_table.png");
     private Inventory inventory;
     private Optional<SlotPosition> opened = Optional.empty();
     private Optional<Pair<SlotPosition, SlotPosition>> selected = Optional.empty();
@@ -69,7 +70,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
                 }
                 return isMaxedOut || !RunicTableScreenHandler.canEnchant(client.player, choice.getEnchantmentId(), level) ||
                     (EnchantmentHelper.get(inventory.getStack(0)).keySet().stream().anyMatch(e -> !e.canCombine(choice.getEnchantment())) && 
-                         !choice.isChosen() && MCDEnchantments.getConfig().isCompatibilityRequired());
+                         !choice.isChosen() && MCDE.getConfig().isCompatibilityRequired());
             })
             .withClient(client)
             .build();
@@ -233,7 +234,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
         if (!hovered.isMaxedOut() && !client.player.isCreative()) {
             tooltipLines.addAll(TextWrapUtils.wrapText(width, Text.translatable(
                             "message.mcde.levels_required",
-                            MCDEnchantments.getConfig().getEnchantCost(enchantmentId, level)),
+                            MCDE.getConfig().getEnchantCost(enchantmentId, level)),
                         Formatting.ITALIC, Formatting.DARK_GRAY));
         }
         if (!enoughLevels) {
@@ -243,7 +244,7 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
         if (!hovered.isChosen()) {
             if (EnchantmentHelper.getLevel(hovered.getEnchantment(), itemStack) > 0) {
                 tooltipLines.addAll(TextWrapUtils.wrapText(width, "message.mcde.already_exists", Formatting.DARK_RED, Formatting.ITALIC));
-            } else if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
+            } else if (MCDE.getConfig().isCompatibilityRequired()) {
                 var conflict = EnchantmentHelper.get(itemStack).keySet().stream()
                     .filter(e -> !e.canCombine(hovered.getEnchantment())).findFirst();
                 if (conflict.isPresent()) {

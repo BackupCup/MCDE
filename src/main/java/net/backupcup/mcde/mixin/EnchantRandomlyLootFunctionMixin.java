@@ -5,8 +5,8 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import net.backupcup.mcde.MCDEnchantments;
+import java.util.List;
+import net.backupcup.mcde.MCDE;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -22,7 +22,7 @@ public abstract class EnchantRandomlyLootFunctionMixin {
 
     @Inject(method = "process", at = @At("HEAD"), cancellable = true)
     private void mcde$processBook(ItemStack stack, LootContext context, CallbackInfoReturnable<ItemStack> cir) {
-        var list = MCDEnchantments.getConfig().getCustomTreasurePool();
+        var list = MCDE.getConfig().getCustomTreasurePool();
         if (!stack.isOf(Items.BOOK) || list.isEmpty()) {
             return;
         }

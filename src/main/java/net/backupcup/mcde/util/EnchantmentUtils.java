@@ -5,13 +5,15 @@ import static net.minecraft.registry.Registries.ENCHANTMENT;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import net.backupcup.mcde.MCDEnchantments;
+import net.backupcup.mcde.MCDE;
+import net.minecraft.advancement.PlayerAdvancementTracker;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.EnchantmentTarget;
@@ -21,6 +23,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.ScreenHandlerListener;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
@@ -46,10 +49,10 @@ public class EnchantmentUtils {
             e -> e.isAcceptableItem(itemStack);
 
         return ENCHANTMENT.stream()
-            .filter(MCDEnchantments.getConfig()::isEnchantmentAllowed)
-            .filter(e -> e.isAvailableForRandomSelection() || !MCDEnchantments.getConfig().isAvailabilityForRandomSelectionRespected())
-            .filter(e -> !e.isTreasure() || MCDEnchantments.getConfig().isTreasureAllowed())
-            .filter(e -> !e.isCursed() || MCDEnchantments.getConfig().areCursedAllowed())
+            .filter(MCDE.getConfig()::isEnchantmentAllowed)
+            .filter(e -> e.isAvailableForRandomSelection() || !MCDE.getConfig().isAvailabilityForRandomSelectionRespected())
+            .filter(e -> !e.isTreasure() || MCDE.getConfig().isTreasureAllowed())
+            .filter(e -> !e.isCursed() || MCDE.getConfig().areCursedAllowed())
             .filter(target)
             .map(ENCHANTMENT::getId);
     }
@@ -68,7 +71,7 @@ public class EnchantmentUtils {
     }
 
     public static Formatting formatEnchantment(Identifier id) {
-        return MCDEnchantments.getConfig().isEnchantmentPowerful(id) ? Formatting.RED : Formatting.LIGHT_PURPLE;
+        return MCDE.getConfig().isEnchantmentPowerful(id) ? Formatting.RED : Formatting.LIGHT_PURPLE;
     }
 
     public static boolean isCompatible(Collection<Identifier> present, Identifier enchantment) {
@@ -119,7 +122,7 @@ public class EnchantmentUtils {
         }
         var advancements = player.server.getAdvancementLoader().getAdvancements();
         var tracker = player.getAdvancementTracker();
-        var unlocks = MCDEnchantments.getConfig().getUnlocks().stream()
+        var unlocks = MCDE.getConfig().getUnlocks().stream()
             .collect(Collectors.partitioningBy(u -> advancements.stream()
                 .filter(u.getAdvancements()::contains)
                 .allMatch(a -> tracker.getProgress(a).isDone()),
@@ -169,7 +172,7 @@ public class EnchantmentUtils {
         var present = getAllEnchantmentsInItem(itemStack);
         var candidates = getAllEnchantmentsForItem(itemStack)
             .filter(id -> !present.contains(id));
-        if (MCDEnchantments.getConfig().isCompatibilityRequired()) {
+        if (MCDE.getConfig().isCompatibilityRequired()) {
             candidates = candidates.filter(id -> isCompatible(present, id));
         }
          return candidates.toList();

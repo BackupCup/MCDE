@@ -8,13 +8,14 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import net.backupcup.mcde.MCDEnchantments;
+import net.backupcup.mcde.MCDE;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.ItemStack;
@@ -41,8 +42,8 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
         this(
             slots,
             new HashSet<>(),
-            MCDEnchantments.getConfig().getRerollCostParameters().getNormal().getStartCost(),
-            MCDEnchantments.getConfig().getRerollCostParameters().getPowerful().getStartCost()
+            MCDE.getConfig().getRerollCostParameters().getNormal().getStartCost(),
+            MCDE.getConfig().getRerollCostParameters().getPowerful().getStartCost()
         );
     }
 
@@ -99,7 +100,7 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
     }
 
     public int getNextRerollCost(Identifier id) {
-        return MCDEnchantments.getConfig().isEnchantmentPowerful(id) ? nextRerollCostPowerful : nextRerollCost;
+        return MCDE.getConfig().isEnchantmentPowerful(id) ? nextRerollCostPowerful : nextRerollCost;
     }
 
     public static class Builder {
@@ -236,7 +237,7 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
         for (var kvp : other.slots.entrySet()) {
             mergedSlotMap.putIfAbsent(kvp.getKey(), kvp.getValue());
         }
-        Set<Identifier> newGilding = switch (MCDEnchantments.getConfig().getGildingMergeStrategy()) {
+        Set<Identifier> newGilding = switch (MCDE.getConfig().getGildingMergeStrategy()) {
             case REMOVE -> new HashSet<>();
             case FIRST -> new HashSet<>(gilding);
             case SECOND -> new HashSet<>(other.gilding);

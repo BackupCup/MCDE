@@ -10,8 +10,8 @@ import org.spongepowered.asm.mixin.injection.Slice;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.llamalad7.mixinextras.sugar.Local;
-
-import net.backupcup.mcde.MCDEnchantments;
+import java.util.Optional;
+import net.backupcup.mcde.MCDE;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -45,7 +45,7 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
         )
     )
     private int mcde$adjustPrice(int original, @Local(index = 13) Enchantment enchantment, @Local(index = 15) int level, @Local(index = 17) int rarity) {
-        int cost = MCDEnchantments.getConfig().getEnchantCost(EnchantmentHelper.getEnchantmentId(enchantment), level);
+        int cost = MCDE.getConfig().getEnchantCost(EnchantmentHelper.getEnchantmentId(enchantment), level);
         return original + cost - rarity * level;
     }
 
@@ -54,11 +54,11 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
         var slotsOptional1 = EnchantmentSlots.fromItemStack(input.getStack(0));
         var slotsOptional2 = EnchantmentSlots.fromItemStack(input.getStack(1));
         var result = output.getStack(0);
-        if (ItemStack.areItemsEqual(input.getStack(0), input.getStack(1)) && !MCDEnchantments.getConfig().isAnvilItemMixingAllowed()) {
+        if (ItemStack.areItemsEqual(input.getStack(0), input.getStack(1)) && !MCDE.getConfig().isAnvilItemMixingAllowed()) {
             output.setStack(0, ItemStack.EMPTY);
             return;
         }
-        if (input.getStack(1).isOf(Items.ENCHANTED_BOOK) && !MCDEnchantments.getConfig().isEnchantingWithBooksAllowed()) {
+        if (input.getStack(1).isOf(Items.ENCHANTED_BOOK) && !MCDE.getConfig().isEnchantingWithBooksAllowed()) {
             output.setStack(0, ItemStack.EMPTY);
             return;
         }
@@ -69,7 +69,7 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
         var slots2 = slotsOptional2.get();
         var resultMap = EnchantmentHelper.get(result);
         resultMap.entrySet().removeIf(kvp -> 
-            switch (MCDEnchantments.getConfig().getGildingMergeStrategy()) {
+            switch (MCDE.getConfig().getGildingMergeStrategy()) {
                 case REMOVE -> slots1.hasGilding(kvp.getKey()) || slots2.hasGilding(kvp.getKey());
                 case FIRST -> slots2.hasGilding(kvp.getKey());
                 case SECOND -> slots1.hasGilding(kvp.getKey());

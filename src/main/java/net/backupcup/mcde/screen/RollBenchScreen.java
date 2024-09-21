@@ -5,13 +5,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-import net.backupcup.mcde.MCDEnchantments;
+import net.backupcup.mcde.MCDE;
 import net.backupcup.mcde.screen.handler.RollBenchScreenHandler;
 import net.backupcup.mcde.screen.util.EnchantmentSlotsRenderer;
 import net.backupcup.mcde.screen.util.ScreenWithSlots;
 import net.backupcup.mcde.screen.util.TextWrapUtils;
 import net.backupcup.mcde.screen.util.TexturePos;
 import net.backupcup.mcde.util.Choice;
+import net.backupcup.mcde.util.EnchantmentSlot;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.SlotPosition;
@@ -38,7 +39,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
     private static enum RerollButtonState {
         HIDDEN, EXTENDING, SHUTTING, SHOWED
     }
-    private static final Identifier TEXTURE = new Identifier(MCDEnchantments.MOD_ID, "textures/gui/roll_bench.png");
+    private static final Identifier TEXTURE = new Identifier(MCDE.MOD_ID, "textures/gui/roll_bench.png");
     private Inventory inventory;
     private RerollItemSilouette silouette = RerollItemSilouette.LAPIS;
     private float silouetteTimer = 0f;
@@ -304,7 +305,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
                 default -> 0f;
             };
             drawAnimationRerollButtonFrame(ctx, frameEasing(easing).apply(progress), isInRerollButton(mouseX, mouseY));
-            MCDEnchantments.LOGGER.info(String.format("progress: %.2f", rerollButtonAnimationProgress));
+            MCDE.LOGGER.info(String.format("progress: %.2f", rerollButtonAnimationProgress));
             rerollButtonAnimationProgress += delta / rerollButtonAnimationDuration;
         }
 

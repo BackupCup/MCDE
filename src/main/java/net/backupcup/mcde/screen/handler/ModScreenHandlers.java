@@ -1,6 +1,6 @@
 package net.backupcup.mcde.screen.handler;
 
-import net.backupcup.mcde.MCDEnchantments;
+import net.backupcup.mcde.MCDE;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -20,6 +20,6 @@ public class ModScreenHandlers {
     }
 
     private static void registerScreenHandler(String id, ScreenHandlerType<?> type) {
-        Registry.register(Registries.SCREEN_HANDLER, Identifier.of(MCDEnchantments.MOD_ID, id), type);
+        Registry.register(Registries.SCREEN_HANDLER, Identifier.of(MCDE.MOD_ID, id), type);
     }
 }

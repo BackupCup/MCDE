@@ -10,7 +10,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-
 import blue.endless.jankson.Comment;
 import blue.endless.jankson.Jankson;
 import blue.endless.jankson.JsonObject;
@@ -23,15 +22,26 @@ import net.backupcup.mcde.util.ModTags;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
-public class Config {
+public class Config implements CustomPayload {
+    public static final CustomPayload.Id<Config> PACKET_ID = new CustomPayload.Id<>(MCDE.id("sync_config"));
+    public static final PacketCodec<PacketByteBuf, Config> PACKET_CODEC = PacketCodec.of(Config::writeToClient, Config::readFromServer);
+
+    @Override
+    public Id<? extends CustomPayload> getId() {
+        return PACKET_ID;
+    }
+
+
     private static File getOldConfigFile() {
         return Path.of(
             FabricLoader.getInstance().getConfigDir().toString(),
-            MCDEnchantments.MOD_ID,
+            MCDE.MOD_ID,
             "config.json"
         ).toFile();
     }
@@ -55,7 +65,7 @@ public class Config {
         try (var outStream = new FileOutputStream(getConfigFile())) {
             outStream.write(JANKSON.toJson(this).toJson(true, true).getBytes());
         } catch (IOException e) {
-            MCDEnchantments.LOGGER.error("IO exception while saving config: {}", e.getMessage());
+            MCDE.LOGGER.error("IO exception while saving config: {}", e.getMessage());
         }
     }
 
@@ -69,10 +79,10 @@ public class Config {
                 return JANKSON.fromJsonCarefully(json, Config.class);
             }
             if (getOldConfigFile().exists()) {
-                MCDEnchantments.LOGGER.info("MCDE's config moved to config/mcde.json5 file," +
+                MCDE.LOGGER.info("MCDE's config moved to config/mcde.json5 file," +
                         " moving old configuration to the new location");
                 if (!getOldConfigFile().renameTo(getConfigFile())) {
-                    MCDEnchantments.LOGGER.warn("Something went wrong with moving a file, using old location");
+                    MCDE.LOGGER.warn("Something went wrong with moving a file, using old location");
                     var json = JANKSON.load(getOldConfigFile());
                     migrateConfig(json);
                     return JANKSON.fromJsonCarefully(json, Config.class);
@@ -86,22 +96,22 @@ public class Config {
             lastError = null;
             return defaults;
         } catch (SyntaxError e) {
-            MCDEnchantments.LOGGER.error("Config syntax error. {}.", e.getLineMessage());
-            MCDEnchantments.LOGGER.error(e.getMessage());
-            MCDEnchantments.LOGGER.warn("Using default configuration.");
+            MCDE.LOGGER.error("Config syntax error. {}.", e.getLineMessage());
+            MCDE.LOGGER.error(e.getMessage());
+            MCDE.LOGGER.warn("Using default configuration.");
             lastError = Text.translatable("message.mcde.error.config.general");
         } catch (DeserializationException e) {
-            MCDEnchantments.LOGGER.error("MCDE's config deserialization error.");
-            MCDEnchantments.LOGGER.error("{}", e.getMessage());
+            MCDE.LOGGER.error("MCDE's config deserialization error.");
+            MCDE.LOGGER.error("{}", e.getMessage());
             if (e.getCause() != null) {
-                MCDEnchantments.LOGGER.error("Cause: {}", e.getCause().getMessage());
+                MCDE.LOGGER.error("Cause: {}", e.getCause().getMessage());
             }
-            MCDEnchantments.LOGGER.warn("Using default configuration.");
+            MCDE.LOGGER.warn("Using default configuration.");
             lastError = Text.translatable("message.mcde.error.config.general");
         } catch (IOException e) {
-            MCDEnchantments.LOGGER.error("IO exception occured while reading config. Using defaults.");
-            MCDEnchantments.LOGGER.error(e.getMessage());
-            MCDEnchantments.LOGGER.warn("Using default configuration.");
+            MCDE.LOGGER.error("IO exception occured while reading config. Using defaults.");
+            MCDE.LOGGER.error(e.getMessage());
+            MCDE.LOGGER.warn("Using default configuration.");
             lastError = Text.translatable("message.mcde.error.config.general");
         }
         return defaults;
@@ -109,7 +119,7 @@ public class Config {
 
     private static void migrateConfig(JsonObject json) {
         if (json.containsKey("ticksPerGildingProcessStep")) {
-            MCDEnchantments.LOGGER.warn("ticksPerGildingProcessStep is deprecated, use gildingDuration instead");
+            MCDE.LOGGER.warn("ticksPerGildingProcessStep is deprecated, use gildingDuration instead");
             var ticks = json.getInt("ticksPerGildingProcessStep", 1);
             json.remove("ticksPerGildingProcessStep");
             json.putDefault("gildingDuration", ticks * 33, "");
@@ -120,7 +130,7 @@ public class Config {
         try {
             return JANKSON.fromJsonCarefully(buf.readString(), Config.class);
         } catch (SyntaxError | DeserializationException e) {
-            MCDEnchantments.LOGGER.error("Error while retrieving config from server: {}", e);
+            MCDE.LOGGER.error("Error while retrieving config from server: {}", e);
         }
         return null;
     }
@@ -242,7 +252,7 @@ public class Config {
         }
 
         public int getEnchantCost(Identifier id, int level) {
-            return MCDEnchantments.getConfig().isEnchantmentPowerful(id) ? 
+            return MCDE.getConfig().isEnchantmentPowerful(id) ? 
                 powerful.getEnchantCost(id, level) :
                 normal.getEnchantCost(id, level);
         }

@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import org.jetbrains.annotations.Nullable;
 
-import net.backupcup.mcde.MCDEnchantments;
+import net.backupcup.mcde.MCDE;
 import net.backupcup.mcde.screen.handler.GildingFoundryScreenHandler;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
@@ -15,6 +15,7 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
@@ -120,13 +121,13 @@ public class GildingFoundryBlockEntity extends BlockEntity implements ExtendedSc
         if (entity.gilding_progress == 0) {
             return;
         }
-        if (entity.inventory.get(0).isEmpty() || entity.inventory.get(1).getCount() < MCDEnchantments.getConfig().getGildingCost()) {
+        if (entity.inventory.get(0).isEmpty() || entity.inventory.get(1).getCount() < MCDE.getConfig().getGildingCost()) {
             entity.resetProgress();
             markDirty(world, blockPos, state);
             return;
         }
         entity.gilding_progress++;
-        if (entity.gilding_progress > MCDEnchantments.getConfig().getGildingDuration()) {
+        if (entity.gilding_progress > MCDE.getConfig().getGildingDuration()) {
             entity.finishGilding();
         }
 
@@ -142,7 +143,7 @@ public class GildingFoundryBlockEntity extends BlockEntity implements ExtendedSc
         }
         var ingridient = inventory.get(1);
         var item = ingridient.getItem();
-        ingridient.decrement(MCDEnchantments.getConfig().getGildingCost());
+        ingridient.decrement(MCDE.getConfig().getGildingCost());
         var id = generated.get();
         EnchantmentSlots.fromItemStack(weaponStack).ifPresent(slots -> {
             if (item.equals(Items.EMERALD)) {

@@ -1,6 +1,7 @@
 package net.backupcup.mcde.screen;
 
-import net.backupcup.mcde.MCDEnchantments;
+import java.util.Optional;
+import net.backupcup.mcde.MCDE;
 import net.backupcup.mcde.screen.handler.GildingFoundryScreenHandler;
 import net.backupcup.mcde.screen.util.TexturePos;
 import net.backupcup.mcde.util.EnchantmentSlots;
@@ -11,8 +12,10 @@ import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
@@ -25,7 +28,7 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
     private GildingItemSilouette silouette = GildingItemSilouette.GOLD;
     private float silouetteTimer = 0f;
     private static final Identifier TEXTURE =
-            new Identifier(MCDEnchantments.MOD_ID, "textures/gui/gilding_foundry.png");
+            new Identifier(MCDE.MOD_ID, "textures/gui/gilding_foundry.png");
     private static final TexturePos GOLD_BUTTON_OFFSET = TexturePos.of(2, 223);
     private static final TexturePos EMERALD_BUTTON_OFFSET = TexturePos.of(2, 239);
 
@@ -162,14 +165,14 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
         }
         return !weapon.isEmpty() &&
             !ingridient.isEmpty() &&
-            ingridient.getCount() >= MCDEnchantments.getConfig().getGildingCost() &&
+            ingridient.getCount() >= MCDE.getConfig().getGildingCost() &&
             !handler.hasProgress() &&
             slotsOptional.filter(slots -> ingridient.isOf(Items.GOLD_INGOT) ^ slots.hasGilding()).isPresent() &&
             handler.hasEnchantmentForGilding();
     }
 
     private void drawProgress(DrawContext ctx, int progress) {
-        progress = (int)((float)progress / MCDEnchantments.getConfig().getGildingDuration() * 25f);
+        progress = (int)((float)progress / MCDE.getConfig().getGildingDuration() * 25f);
         var progressOffset = getButtonTextureOffset(TexturePos.of(247, 204), TexturePos.of(247, 230));
         if (progress < 1) {
             return;

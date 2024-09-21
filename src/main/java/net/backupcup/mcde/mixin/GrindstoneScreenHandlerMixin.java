@@ -14,7 +14,8 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.sugar.Local;
 
-import net.backupcup.mcde.MCDEnchantments;
+import net.backupcup.mcde.MCDE;
+import net.backupcup.mcde.util.EnchantmentSlot;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.minecraft.enchantment.Enchantment;
@@ -45,12 +46,12 @@ public abstract class GrindstoneScreenHandlerMixin extends ScreenHandler {
 
         @Inject(method = "onTakeItem", at = @At("HEAD"))
         private void mcde$onTake(PlayerEntity playerEntity, ItemStack itemStack, CallbackInfo ci) {
-            MCDEnchantments.LOGGER.info("On Take");
+            MCDE.LOGGER.info("On Take");
         }
 
         @ModifyExpressionValue(method = "getExperience(Lnet/minecraft/item/ItemStack;)I", at = @At(target = "Lnet/minecraft/enchantment/Enchantment;isCursed()Z", value = "INVOKE"))
         private boolean mcde$isCursedOrGilding(boolean original, ItemStack itemStack, @Local Enchantment enchantment) {
-            MCDEnchantments.LOGGER.info("{}'s slots: {}", itemStack.getName().getString(), EnchantmentSlots.fromItemStack(itemStack));
+            MCDE.LOGGER.info("{}'s slots: {}", itemStack.getName().getString(), EnchantmentSlots.fromItemStack(itemStack));
             return original || EnchantmentUtils.isGilding(enchantment, itemStack);
         }
     }
@@ -61,9 +62,9 @@ public abstract class GrindstoneScreenHandlerMixin extends ScreenHandler {
             for (var slot : slots) {
                 slot.clearChoice();
             }
-            MCDEnchantments.LOGGER.info("{}'s NBT before update: {}", itemStack.getName().getString(), itemStack.getNbt());
+            MCDE.LOGGER.info("{}'s NBT before update: {}", itemStack.getName().getString(), itemStack.getNbt());
             slots.updateItemStack(itemStack);
-            MCDEnchantments.LOGGER.info("{}'s NBT after update: {}", itemStack.getName().getString(), itemStack.getNbt());
+            MCDE.LOGGER.info("{}'s NBT after update: {}", itemStack.getName().getString(), itemStack.getNbt());
             return itemStack;
         }).orElse(itemStack);
     }

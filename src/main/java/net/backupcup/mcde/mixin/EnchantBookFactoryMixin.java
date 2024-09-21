@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-import net.backupcup.mcde.MCDEnchantments;
+import net.backupcup.mcde.MCDE;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.village.TradeOffers;
 
@@ -15,7 +15,7 @@ import net.minecraft.village.TradeOffers;
 public class EnchantBookFactoryMixin {
     @ModifyVariable(method = "create", at = @At("STORE"))
     private List<Enchantment> mcde$changeTrade(List<Enchantment> list) {
-        var pool = MCDEnchantments.getConfig().getVillagerBookPool();
+        var pool = MCDE.getConfig().getVillagerBookPool();
         if (pool.isEmpty()) {
             return list;
         }

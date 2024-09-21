@@ -1,6 +1,6 @@
 package net.backupcup.mcde.block;
 
-import net.backupcup.mcde.MCDEnchantments;
+import net.backupcup.mcde.MCDE;
 import net.backupcup.mcde.block.custom.GildingFoundryBlock;
 import net.backupcup.mcde.block.custom.RollBenchBlock;
 import net.backupcup.mcde.block.custom.RunicTableBlock;
@@ -30,11 +30,11 @@ public class ModBlocks {
 
     public static Block registerBlock(String name, Block block, RegistryKey<ItemGroup> tab) {
         registerBlockItem(name, block, tab);
-        return Registry.register(Registries.BLOCK, new Identifier(MCDEnchantments.MOD_ID, name), block);
+        return Registry.register(Registries.BLOCK, new Identifier(MCDE.MOD_ID, name), block);
     }
 
     private static Item registerBlockItem(String name, Block block, RegistryKey<ItemGroup> tab) {
-        var item = Registry.register(Registries.ITEM, new Identifier(MCDEnchantments.MOD_ID, name),
+        var item = Registry.register(Registries.ITEM, new Identifier(MCDE.MOD_ID, name),
                 new BlockItem(block, new FabricItemSettings()));
         ItemGroupEvents.modifyEntriesEvent(tab).register(entries -> entries.add(item));
 

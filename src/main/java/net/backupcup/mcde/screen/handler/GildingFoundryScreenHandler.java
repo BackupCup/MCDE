@@ -4,16 +4,18 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import net.backupcup.mcde.MCDEnchantments;
+import net.backupcup.mcde.MCDE;
 import net.backupcup.mcde.block.ModBlocks;
 import net.backupcup.mcde.block.entity.GildingFoundryBlockEntity;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.Context;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -22,6 +24,10 @@ import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.screen.ArrayPropertyDelegate;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
@@ -32,7 +38,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
 public class GildingFoundryScreenHandler extends ScreenHandler implements ScreenHandlerListener {
-    public static final Identifier GILDING_PACKET = Identifier.of(MCDEnchantments.MOD_ID, "gilding");
+    public static final Identifier GILDING_PACKET = MCDE.id("gilding");
     private final Inventory inventory;
     private final PlayerEntity playerEntity;
     private final ScreenHandlerContext context;
@@ -215,16 +221,12 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
                 Optional.of(serverPlayer),
                 getCandidatesForGidling()
             );
-            var buffer = PacketByteBufs.create();
-            buffer.writeInt(syncId);
-            buffer.writeOptional(generatedEnchantment, (buf, e) -> buf.writeIdentifier(e));
-            ServerPlayNetworking.send(serverPlayer, GILDING_PACKET, buffer);
+            ServerPlayNetworking.send(serverPlayer, new GildingPacket(syncId, generatedEnchantment));
         });
     }
 
-    public static void receiveNewEnchantment(MinecraftClient client, ClientPlayNetworkHandler handler, PacketByteBuf buf,
-            PacketSender responseSender) {
-        var player = client.player;
+    public static void receiveNewEnchantment(GildingPacket packet, Context context) {
+        var player = context.player();
         if (player == null) {
             return;
         }
@@ -233,14 +235,13 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
         if (screenHandler == null) {
             return;
         }
-        int syncId = buf.readInt();
 
-        if (screenHandler.syncId != syncId) {
+        if (screenHandler.syncId != packet.syncId) {
             return;
         }
 
         if (screenHandler instanceof GildingFoundryScreenHandler gfScreenHandler) {
-            gfScreenHandler.generatedEnchantment = buf.readOptional(b -> b.readIdentifier());
+            gfScreenHandler.generatedEnchantment = packet.enchantment;
         }
     }
 
@@ -255,6 +256,21 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
         }
 
         setNewEnchantment(playerEntity, stack);
+    }
+
+    public static record GildingPacket(int syncId, Optional<Identifier> enchantment) implements CustomPayload {
+        public static final CustomPayload.Id<GildingPacket> PACKET_ID = new CustomPayload.Id<>(MCDE.id("gilding"));
+        public static final PacketCodec<RegistryByteBuf, GildingPacket> PACKET_CODEC =
+            PacketCodec.tuple(
+                PacketCodecs.VAR_INT, GildingPacket::syncId,
+                PacketCodecs.optional(Identifier.PACKET_CODEC), GildingPacket::enchantment,
+                GildingPacket::new
+            );
+
+        @Override
+        public Id<? extends CustomPayload> getId() {
+            return PACKET_ID;
+        }
     }
 
 }

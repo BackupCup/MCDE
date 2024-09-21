@@ -10,8 +10,9 @@ import java.util.stream.IntStream;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
-import net.backupcup.mcde.MCDEnchantments;
+import net.backupcup.mcde.MCDE;
 import net.backupcup.mcde.util.Choice;
+import net.backupcup.mcde.util.EnchantmentSlot;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.SlotPosition;
 import net.fabricmc.api.EnvType;
@@ -24,7 +25,7 @@ import net.minecraft.util.Identifier;
 
 @Environment(EnvType.CLIENT)
 public class EnchantmentSlotsRenderer {
-    private static final Identifier missingEnchantTexture = new Identifier(MCDEnchantments.MOD_ID, "textures/gui/icons/missing_no.png");
+    private static final Identifier missingEnchantTexture = new Identifier(MCDE.MOD_ID, "textures/gui/icons/missing_no.png");
 
     private TexturePos slotTexturePos;
     private TexturePos outlinePos;
@@ -97,7 +98,7 @@ public class EnchantmentSlotsRenderer {
     }
 
     public void drawIconInSlot(DrawContext ctx, SlotPosition slot, Choice choice) {
-        var texPos = MCDEnchantments.getConfig().isEnchantmentPowerful(choice.getEnchantmentId()) ?
+        var texPos = MCDE.getConfig().isEnchantmentPowerful(choice.getEnchantmentId()) ?
             powerfulOutlinePos : outlinePos;
         var pos = slotPos.get(slot);
         ctx.drawTexture(defaultGuiTexture, pos.x(), pos.y(), texPos.x(), texPos.y(), 33, 39);
@@ -111,7 +112,7 @@ public class EnchantmentSlotsRenderer {
 
     public void drawIconOutline(DrawContext ctx, SlotPosition slot, Choice choice) {
         var drawPos = slotPos.get(slot).add(choicePosOffset).add(choiceOffsets.get(choice.getChoicePosition()));
-        var texPos = MCDEnchantments.getConfig().isEnchantmentPowerful(choice.getEnchantmentId()) ?
+        var texPos = MCDE.getConfig().isEnchantmentPowerful(choice.getEnchantmentId()) ?
             iconPowerfulOutlinePos : iconOutlinePos;
         ctx.drawTexture(defaultGuiTexture, drawPos.x(), drawPos.y(), texPos.x(), texPos.y(), 29, 31);
     }
@@ -215,7 +216,7 @@ public class EnchantmentSlotsRenderer {
 
     public static Identifier getTextureId(Identifier enchantmentID) {
         return Identifier.of(
-            MCDEnchantments.MOD_ID,
+            MCDE.MOD_ID,
             String.format(
                 "textures/gui/icons/%s/%s.png",
                 enchantmentID.getNamespace(),
@@ -229,7 +230,7 @@ public class EnchantmentSlotsRenderer {
             .filter(lvl -> lvl >= 2)
             .map(lvl -> Math.min(lvl, 7))
             .map(lvl -> Identifier.of(
-                MCDEnchantments.MOD_ID,
+                MCDE.MOD_ID,
                 String.format("textures/gui/slot_levels/%d.png", lvl)
             ));
     }

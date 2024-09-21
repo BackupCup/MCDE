@@ -1,10 +1,15 @@
 package net.backupcup.mcde.screen.handler;
 
-import net.backupcup.mcde.MCDEnchantments;
+import I;
+import java.util.Optional;
+import net.backupcup.mcde.MCDE;
 import net.backupcup.mcde.block.ModBlocks;
+import net.backupcup.mcde.util.EnchantmentSlot;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.SlotPosition;
+import net.minecraft.advancement.AdvancementEntry;
+import net.minecraft.advancement.PlayerAdvancementTracker;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -13,6 +18,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.stat.Stats;
@@ -93,7 +99,7 @@ public class RunicTableScreenHandler extends ScreenHandler {
         }
         player.playSound(SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, SoundCategory.BLOCKS, 0.5f, 1f);
         if (!player.isCreative()) {
-            player.addExperienceLevels(-MCDEnchantments.getConfig().getEnchantCost(enchantmentId, level));
+            player.addExperienceLevels(-MCDE.getConfig().getEnchantCost(enchantmentId, level));
         }
         inventory.markDirty();
         context.run((world, pos) -> {
@@ -161,6 +167,6 @@ public class RunicTableScreenHandler extends ScreenHandler {
         if (player.isCreative()) {
             return true;
         }
-        return player.experienceLevel >= MCDEnchantments.getConfig().getEnchantCost(enchantmentId, level);
+        return player.experienceLevel >= MCDE.getConfig().getEnchantCost(enchantmentId, level);
     }
 }
