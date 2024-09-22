@@ -38,12 +38,13 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
 public class GildingFoundryScreenHandler extends ScreenHandler implements ScreenHandlerListener {
-    public static final Identifier GILDING_PACKET = MCDE.id("gilding");
     private final Inventory inventory;
     private final PlayerEntity playerEntity;
     private final ScreenHandlerContext context;
     private final PropertyDelegate propertyDelegate;
     private Optional<Identifier> generatedEnchantment = Optional.empty();
+    public static final PacketCodec<RegistryByteBuf, Optional<Identifier>> GENERATED_ENCHANTMENT_CODEC =
+        PacketCodecs.optional(Identifier.PACKET_CODEC).cast();
 
     public Optional<Identifier> getGeneratedEnchantment() {
         return generatedEnchantment;
@@ -57,14 +58,14 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
         return generatedEnchantment.isPresent();
     }
 
-    public GildingFoundryScreenHandler(int syncId, PlayerInventory inventory, PacketByteBuf buf) {
+    public GildingFoundryScreenHandler(int syncId, PlayerInventory inventory, Optional<Identifier> generatedEnchantment) {
         this(
             syncId,
             inventory,
             new SimpleInventory(2),
             new ArrayPropertyDelegate(1),
             ScreenHandlerContext.EMPTY,
-            buf.readOptional(r -> r.readIdentifier())
+            generatedEnchantment
         );
     }
 

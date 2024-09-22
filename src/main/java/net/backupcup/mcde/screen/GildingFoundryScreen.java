@@ -27,8 +27,7 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
     }
     private GildingItemSilouette silouette = GildingItemSilouette.GOLD;
     private float silouetteTimer = 0f;
-    private static final Identifier TEXTURE =
-            new Identifier(MCDE.MOD_ID, "textures/gui/gilding_foundry.png");
+    private static final Identifier TEXTURE = MCDE.id("textures/gui/gilding_foundry.png");
     private static final TexturePos GOLD_BUTTON_OFFSET = TexturePos.of(2, 223);
     private static final TexturePos EMERALD_BUTTON_OFFSET = TexturePos.of(2, 239);
 
