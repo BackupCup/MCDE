@@ -328,7 +328,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
                     PacketCodecs.VAR_INT, LockedSlotsPacket::syncId,
                     PacketCodecs.map(
                         n -> new EnumMap<>(SlotPosition.class),
-                        PacketCodecs.indexed(i -> SlotPosition.values()[i], SlotPosition::ordinal),
+                        SlotPosition.PACKET_CODEC,
                         PacketCodecs.BOOL
                     ), LockedSlotsPacket::locked,
                     LockedSlotsPacket::new

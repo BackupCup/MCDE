@@ -7,12 +7,15 @@ import net.backupcup.mcde.block.entity.ModBlockEntities;
 import net.backupcup.mcde.screen.handler.ModScreenHandlers;
 import net.backupcup.mcde.screen.handler.GildingFoundryScreenHandler.GildingPacket;
 import net.backupcup.mcde.screen.handler.RollBenchScreenHandler.LockedSlotsPacket;
+import net.backupcup.mcde.util.EnchantmentSlots;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.text.Text;
@@ -44,6 +47,8 @@ public class MCDE implements ModInitializer {
         PayloadTypeRegistry.playS2C().register(Config.PACKET_ID, Config.PACKET_CODEC);
         PayloadTypeRegistry.playS2C().register(GildingPacket.PACKET_ID, GildingPacket.PACKET_CODEC);
         PayloadTypeRegistry.playS2C().register(LockedSlotsPacket.PACKET_ID, LockedSlotsPacket.PACKET_CODEC);
+
+        Registry.register(Registries.DATA_COMPONENT_TYPE, MCDE.id("component"), EnchantmentSlots.COMPONENT_TYPE);
 
         ResourceManagerHelper.get(ResourceType.SERVER_DATA)
             .registerReloadListener(new SimpleSynchronousResourceReloadListener() {

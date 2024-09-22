@@ -3,18 +3,45 @@ package net.backupcup.mcde.util;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.EnumMap;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 
 public class EnchantmentSlot {
+    public static final Codec<EnchantmentSlot> CODEC =
+        RecordCodecBuilder.create(instance -> instance.group(
+            SlotPosition.CODEC.fieldOf("slot").forGetter(EnchantmentSlot::getSlotPosition),
+            SlotPosition.mapCodec(Identifier.CODEC).fieldOf("enchantments").forGetter(slot -> slot.enchantments),
+            Codec.INT.fieldOf("level").forGetter(EnchantmentSlot::getLevel)
+        ).apply(instance, EnchantmentSlot::new));
+
+    public static final PacketCodec<RegistryByteBuf, EnchantmentSlot> PACKET_CODEC =
+        PacketCodec.tuple(
+            SlotPosition.PACKET_CODEC, EnchantmentSlot::getSlotPosition,
+            PacketCodecs.map(
+                n -> new EnumMap<>(SlotPosition.class),
+                SlotPosition.PACKET_CODEC,
+                Identifier.PACKET_CODEC
+            ), slot -> slot.enchantments,
+            PacketCodecs.VAR_INT, EnchantmentSlot::getLevel,
+            EnchantmentSlot::new
+        );
+
+
     private SlotPosition slot;
     private Map<SlotPosition, Identifier> enchantments;
     private int level = 0;
@@ -22,8 +49,13 @@ public class EnchantmentSlot {
     private Optional<SlotPosition> chosen = Optional.empty();
 
     public EnchantmentSlot(SlotPosition slot, Map<SlotPosition, Identifier> enchantments) {
+        this(slot, enchantments, 0);
+    }
+
+    public EnchantmentSlot(SlotPosition slot, Map<SlotPosition, Identifier> enchantments, int level) {
         this.slot = slot;
         this.enchantments = enchantments;
+        this.level = level;
     }
 
     public Optional<SlotPosition> getChosenPosition() {

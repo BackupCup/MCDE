@@ -15,22 +15,64 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+
 import net.backupcup.mcde.MCDE;
+import net.minecraft.component.ComponentType;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.StringIdentifiable;
+import net.minecraft.util.dynamic.Codecs;
 
 public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
-    public static final String ENCHANTMENT_SLOTS_KEY = "MCDEnchantments";
+    public static final Codec<EnchantmentSlots> CODEC = 
+        RecordCodecBuilder.create(instance -> instance.group(
+            SlotPosition.mapCodec(EnchantmentSlot.CODEC).fieldOf("slots").forGetter(slots -> slots.slots),
+            Codec.list(Identifier.CODEC).xmap(
+                list -> list.stream().collect(Collectors.toSet()),
+                set -> set.stream().toList()
+            ).fieldOf("gilding").forGetter(EnchantmentSlots::getGildingIds),
+            Codec.INT.fieldOf("nextRerollCost").forGetter(EnchantmentSlots::getNextRerollCost),
+            Codec.INT.fieldOf("nextRerollCostPowerful").forGetter(EnchantmentSlots::getNextRerollCostPowerful)
+        ).apply(instance, EnchantmentSlots::new));
+
+    public static final PacketCodec<RegistryByteBuf, EnchantmentSlots> PACKET_CODEC =
+        PacketCodec.tuple(
+            PacketCodecs.map(
+                n -> new EnumMap<>(SlotPosition.class),
+                SlotPosition.PACKET_CODEC,
+                EnchantmentSlot.PACKET_CODEC
+            ), slots -> slots.slots,
+            PacketCodecs.collection(
+                HashSet::new,
+                Identifier.PACKET_CODEC
+            ), EnchantmentSlots::getGildingIds,
+            PacketCodecs.VAR_INT, EnchantmentSlots::getNextRerollCost,
+            PacketCodecs.VAR_INT, EnchantmentSlots::getNextRerollCostPowerful,
+            EnchantmentSlots::new
+        );
+
+    public static final ComponentType<EnchantmentSlots> COMPONENT_TYPE = ComponentType.<EnchantmentSlots>builder()
+        .codec(CODEC)
+        .packetCodec(PACKET_CODEC)
+        .build();
+
     private Map<SlotPosition, EnchantmentSlot> slots;
     private Set<Identifier> gilding;
     private int nextRerollCost;
     private int nextRerollCostPowerful;
 
+    public static final String ENCHANTMENT_SLOTS_KEY = "MCDEnchantments";
     public EnchantmentSlots(Map<SlotPosition, EnchantmentSlot> slots, Set<Identifier> gilding, int nextRerollCost, int nextRerollCostPowerful) {
         this.slots = slots;
         this.gilding = gilding;
@@ -207,18 +249,11 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
     }
 
     public static Optional<EnchantmentSlots> fromItemStack(ItemStack itemStack) {
-        var nbt = itemStack.getNbt();
-        if (nbt == null) {
-            return Optional.empty();
-        }
-        return Optional.ofNullable(fromNbt(
-            nbt.getCompound(ENCHANTMENT_SLOTS_KEY),
-            EnchantmentHelper.fromNbt(nbt.getList(ItemStack.ENCHANTMENTS_KEY, NbtList.COMPOUND_TYPE))
-        ));
+        return Optional.ofNullable(itemStack.get(COMPONENT_TYPE));
     }
 
     public void updateItemStack(ItemStack itemStack) {
-        itemStack.setSubNbt(ENCHANTMENT_SLOTS_KEY, toNbt());
+        itemStack.set(COMPONENT_TYPE, this);
         putChosenEnchantments(itemStack);
     }
 

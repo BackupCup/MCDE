@@ -9,12 +9,15 @@ import net.backupcup.mcde.screen.handler.ModScreenHandlers;
 import net.backupcup.mcde.screen.handler.RollBenchScreenHandler;
 import net.backupcup.mcde.screen.handler.GildingFoundryScreenHandler.GildingPacket;
 import net.backupcup.mcde.screen.handler.RollBenchScreenHandler.LockedSlotsPacket;
+import net.backupcup.mcde.util.EnchantmentSlots;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 
 public class MCDEClient implements ClientModInitializer {
     @Override
@@ -30,6 +33,8 @@ public class MCDEClient implements ClientModInitializer {
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.RUNIC_TABLE, RenderLayer.getCutout());
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.ROLL_BENCH, RenderLayer.getCutout());
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.GILDING_FOUNDRY, RenderLayer.getCutout());
+
+        Registry.register(Registries.DATA_COMPONENT_TYPE, MCDE.id("component"), EnchantmentSlots.COMPONENT_TYPE);
 
         ClientPlayNetworking.registerGlobalReceiver(Config.PACKET_ID, (config, context) -> {
             MCDE.setConfig(config);
