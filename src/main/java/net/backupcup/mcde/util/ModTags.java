@@ -11,11 +11,11 @@ import net.minecraft.util.Identifier;
 
 public class ModTags {
     public static class Items {
-        public static final TagKey<Item> WEAPONS = TagKey.of(RegistryKeys.ITEM, new Identifier("c", "weapon_enchantments_allowed"));
+        public static final TagKey<Item> WEAPONS = TagKey.of(RegistryKeys.ITEM, Identifier.of("c", "weapon_enchantments_allowed"));
     }
 
     public static class Enchantments {
-        public static final TagKey<Enchantment> POWERFUL = TagKey.of(RegistryKeys.ENCHANTMENT, new Identifier("c", "powerful"));
+        public static final TagKey<Enchantment> POWERFUL = TagKey.of(RegistryKeys.ENCHANTMENT, Identifier.of("c", "powerful"));
     }
 
     public static boolean isIn(Enchantment enchantment, TagKey<Enchantment> tag) {

@@ -23,6 +23,6 @@ public class ModScreenHandlers {
     }
 
     private static void registerScreenHandler(String id, ScreenHandlerType<?> type) {
-        Registry.register(Registries.SCREEN_HANDLER, Identifier.of(MCDE.MOD_ID, id), type);
+        Registry.register(Registries.SCREEN_HANDLER, MCDE.id(id), type);
     }
 }

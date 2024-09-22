@@ -35,8 +35,7 @@ import net.minecraft.util.Pair;
 
 @Environment(EnvType.CLIENT)
 public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> implements ScreenWithSlots {
-    private static final Identifier TEXTURE =
-        new Identifier(MCDE.MOD_ID, "textures/gui/runic_table.png");
+    private static final Identifier TEXTURE = MCDE.id("textures/gui/runic_table.png");
     private Inventory inventory;
     private Optional<SlotPosition> opened = Optional.empty();
     private Optional<Pair<SlotPosition, SlotPosition>> selected = Optional.empty();
