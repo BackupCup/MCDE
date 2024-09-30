@@ -25,6 +25,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.entry.RegistryEntry.Reference;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -330,8 +331,8 @@ public class Config implements CustomPayload {
         }
     }
 
-    public boolean isEnchantmentAllowed(Enchantment enchantment) {
-        return isEnchantmentAllowed(Registries.ENCHANTMENT.getId(enchantment));
+    public boolean isEnchantmentAllowed(Reference<Enchantment> enchantment) {
+        return isEnchantmentAllowed(enchantment.registryKey().getValue());
     }
 
     public boolean isEnchantmentAllowed(Identifier id) {

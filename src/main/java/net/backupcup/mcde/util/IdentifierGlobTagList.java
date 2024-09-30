@@ -12,12 +12,11 @@ import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import blue.endless.jankson.api.SyntaxError;
 import net.minecraft.util.Identifier;
-import net.minecraft.registry.Registry;
+import net.minecraft.world.World;
+import net.minecraft.registry.entry.RegistryEntry.Reference;
 
-public abstract class IdentifierGlobTagList<T> extends IdentifierGlobList<T> {
+public abstract class IdentifierGlobTagList<T> extends IdentifierGlobList<Reference<T>> {
     private final Map<String, List<Glob>> tags;
-
-    public abstract Registry<T> getRegistry();
 
     protected IdentifierGlobTagList(Map<String, List<Glob>> globs, Map<String, List<Glob>> tags) {
         super(globs);
@@ -33,11 +32,11 @@ public abstract class IdentifierGlobTagList<T> extends IdentifierGlobList<T> {
         this(Arrays.stream(globs).collect(toGlobsWithTags()));
     }
 
-    public boolean contains(Identifier id) {
+    public boolean contains(World world, Reference<T> id) {
         return super.contains(id) ||
-            getRegistry().streamTags()
+            world.getRegistryManager().get(id.registryKey().getRegistryRef()).streamTags()
             .filter(tag -> tags.getOrDefault(tag.id().getNamespace(), List.of()).stream().anyMatch(glob -> glob.engine().matches(tag.id().getPath())))
-            .anyMatch(tag -> ModTags.isIn(id, tag, getRegistry()));
+            .anyMatch(tag -> id.isIn(tag));
     }
 
     @Override
@@ -85,7 +84,7 @@ public abstract class IdentifierGlobTagList<T> extends IdentifierGlobList<T> {
         }
 
     @Override
-    protected Identifier getId(T obj) {
-        return getRegistry().getId(obj);
+    protected Identifier getId(Reference<T> obj) {
+        return obj.registryKey().getValue();
     }
 }

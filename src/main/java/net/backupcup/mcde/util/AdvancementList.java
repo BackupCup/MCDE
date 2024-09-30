@@ -8,10 +8,10 @@ import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.annotation.Deserializer;
 import blue.endless.jankson.annotation.Serializer;
 import blue.endless.jankson.api.SyntaxError;
-import net.minecraft.advancement.Advancement;
+import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.util.Identifier;
 
-public class AdvancementList extends IdentifierGlobList<Advancement> {
+public class AdvancementList extends IdentifierGlobList<AdvancementEntry> {
     public AdvancementList(String... globs) {
         super(globs);
     }
@@ -21,8 +21,8 @@ public class AdvancementList extends IdentifierGlobList<Advancement> {
     }
 
     @Override
-    public Identifier getId(Advancement obj) {
-        return obj.getId();
+    public Identifier getId(AdvancementEntry obj) {
+        return obj.id();
     }
 
     @Override

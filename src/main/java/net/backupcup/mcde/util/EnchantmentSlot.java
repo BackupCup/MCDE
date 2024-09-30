@@ -1,5 +1,6 @@
 package net.backupcup.mcde.util;
 
+import java.util.function.Function;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,9 @@ import java.util.stream.Stream;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import net.minecraft.component.ComponentChanges;
+import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.ItemStack;
@@ -19,13 +23,19 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.entry.RegistryFixedCodec;
+import net.minecraft.registry.entry.RegistryEntry.Reference;
 import net.minecraft.util.Identifier;
 
 public class EnchantmentSlot {
     public static final Codec<EnchantmentSlot> CODEC =
         RecordCodecBuilder.create(instance -> instance.group(
             SlotPosition.CODEC.fieldOf("slot").forGetter(EnchantmentSlot::getSlotPosition),
-            SlotPosition.mapCodec(Identifier.CODEC).fieldOf("enchantments").forGetter(slot -> slot.enchantments),
+            SlotPosition.mapCodec(EnchantmentUtils.refCodec(RegistryKeys.ENCHANTMENT)).fieldOf("enchantments").forGetter(slot -> slot.enchantments),
             Codec.INT.fieldOf("level").forGetter(EnchantmentSlot::getLevel)
         ).apply(instance, EnchantmentSlot::new));
 
@@ -35,7 +45,7 @@ public class EnchantmentSlot {
             PacketCodecs.map(
                 n -> new EnumMap<>(SlotPosition.class),
                 SlotPosition.PACKET_CODEC,
-                Identifier.PACKET_CODEC
+                EnchantmentUtils.packetRefCodec(RegistryKeys.ENCHANTMENT)
             ), slot -> slot.enchantments,
             PacketCodecs.VAR_INT, EnchantmentSlot::getLevel,
             EnchantmentSlot::new
@@ -43,16 +53,16 @@ public class EnchantmentSlot {
 
 
     private SlotPosition slot;
-    private Map<SlotPosition, Identifier> enchantments;
+    private Map<SlotPosition, Reference<Enchantment>> enchantments;
     private int level = 0;
 
     private Optional<SlotPosition> chosen = Optional.empty();
 
-    public EnchantmentSlot(SlotPosition slot, Map<SlotPosition, Identifier> enchantments) {
+    public EnchantmentSlot(SlotPosition slot, Map<SlotPosition, Reference<Enchantment>> enchantments) {
         this(slot, enchantments, 0);
     }
 
-    public EnchantmentSlot(SlotPosition slot, Map<SlotPosition, Identifier> enchantments, int level) {
+    public EnchantmentSlot(SlotPosition slot, Map<SlotPosition, Reference<Enchantment>> enchantments, int level) {
         this.slot = slot;
         this.enchantments = enchantments;
         this.level = level;
@@ -88,7 +98,7 @@ public class EnchantmentSlot {
         return slot.ordinal();
     }
 
-    public Optional<Identifier> getChoice(SlotPosition pos) {
+    public Optional<Reference<Enchantment>> getChoice(SlotPosition pos) {
         return Optional.ofNullable(enchantments.get(pos));
     }
 
@@ -111,12 +121,15 @@ public class EnchantmentSlot {
     }
 
     public boolean isMaxedOut() {
-        return chosen.map(pos -> level >= Registries.ENCHANTMENT.get(enchantments.get(pos)).getMaxLevel()).orElse(false);
+        return chosen.map(pos -> level >= enchantments.get(pos).value().getMaxLevel()).orElse(false);
     }
 
     public void removeChosenEnchantment(ItemStack itemStack) {
         getChosen().ifPresent(c -> {
-            var enchantments = EnchantmentHelper.get(itemStack);
+            var enchantments = EnchantmentHelper.getEnchantments(itemStack);
+            var c = new ItemEnchantmentsComponent(Object2IntOpenHashMap)
+            
+            enchantments.getEnchantments();
             enchantments.remove(c.getEnchantment());
             EnchantmentHelper.set(enchantments, itemStack);
         });

@@ -39,7 +39,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
     private static enum RerollButtonState {
         HIDDEN, EXTENDING, SHUTTING, SHOWED
     }
-    private static final Identifier TEXTURE = new Identifier(MCDE.MOD_ID, "textures/gui/roll_bench.png");
+    private static final Identifier TEXTURE = MCDE.id("textures/gui/roll_bench.png");
     private Inventory inventory;
     private RerollItemSilouette silouette = RerollItemSilouette.LAPIS;
     private float silouetteTimer = 0f;

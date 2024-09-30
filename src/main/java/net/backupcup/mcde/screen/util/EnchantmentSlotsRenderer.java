@@ -25,7 +25,7 @@ import net.minecraft.util.Identifier;
 
 @Environment(EnvType.CLIENT)
 public class EnchantmentSlotsRenderer {
-    private static final Identifier missingEnchantTexture = new Identifier(MCDE.MOD_ID, "textures/gui/icons/missing_no.png");
+    private static final Identifier missingEnchantTexture = MCDE.id("textures/gui/icons/missing_no.png");
 
     private TexturePos slotTexturePos;
     private TexturePos outlinePos;
