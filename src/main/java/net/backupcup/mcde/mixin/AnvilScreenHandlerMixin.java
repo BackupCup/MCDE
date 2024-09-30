@@ -62,10 +62,7 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
             output.setStack(0, ItemStack.EMPTY);
             return;
         }
-        if (slotsOptional1.isPresent() ^ slotsOptional2.isPresent()) {
-            EnchantmentSlots.fromItemStack(result).ifPresent(slots -> {
-                slots.updateItemStack(result);
-            });
+        if (slotsOptional1.isEmpty() || slotsOptional2.isEmpty()) {
             return;
         }
         var slots1 = slotsOptional1.get();
