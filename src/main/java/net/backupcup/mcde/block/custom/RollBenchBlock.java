@@ -4,8 +4,6 @@ import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Nullable;
 
-import com.mojang.serialization.MapCodec;
-
 import net.backupcup.mcde.screen.handler.RollBenchScreenHandler;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
