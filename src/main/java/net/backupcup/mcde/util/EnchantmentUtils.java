@@ -1,58 +1,35 @@
 package net.backupcup.mcde.util;
 
-import static net.minecraft.registry.Registries.ENCHANTMENT;
-
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.google.common.collect.Sets;
-import com.mojang.serialization.Codec;
-
 import net.backupcup.mcde.MCDE;
-import net.fabricmc.fabric.api.item.v1.EnchantingContext;
-import net.minecraft.advancement.PlayerAdvancementTracker;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.enchantment.EnchantmentTarget;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.ReloadableRegistries;
 import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.entry.RegistryFixedCodec;
 import net.minecraft.registry.entry.RegistryEntry.Reference;
 import net.minecraft.registry.tag.EnchantmentTags;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.ScreenHandlerListener;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.random.LocalRandom;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
 
 public class EnchantmentUtils {
     public static Stream<Reference<Enchantment>> getEnchantmentStream(World world) {
-        RegistryEntry<Enchantment> e;
         return world.getRegistryManager().get(RegistryKeys.ENCHANTMENT).streamEntries();
     }
 
@@ -102,7 +79,7 @@ public class EnchantmentUtils {
                 context.run((world, pos) -> {
                     var server = world.getServer();
                     var serverPlayerEntity = Optional.ofNullable(server.getPlayerManager().getPlayer(player.getUuid()));
-                    SlotsGenerator.forItemStack(stack)
+                    SlotsGenerator.forItemStack(world, stack)
                         .withOptionalOwner(serverPlayerEntity)
                         .build()
                         .generateEnchantments()
@@ -113,11 +90,11 @@ public class EnchantmentUtils {
         };
     }
 
-    public static Optional<Identifier> generateEnchantment(ItemStack itemStack, Optional<ServerPlayerEntity> optionalOwner) {
-        return generateEnchantment(itemStack, optionalOwner, new LocalRandom(System.nanoTime()), getPossibleCandidates(itemStack));
+    public static Optional<Reference<Enchantment>> generateEnchantment(World world, ItemStack itemStack, Optional<ServerPlayerEntity> optionalOwner) {
+        return generateEnchantment(itemStack, optionalOwner, new LocalRandom(System.nanoTime()), getPossibleCandidates(world, itemStack));
     }
 
-    public static Optional<Identifier> generateEnchantment(ItemStack itemStack, Optional<ServerPlayerEntity> optionalOwner, List<Identifier> candidates) {
+    public static Optional<RegistryEntry<Enchantment>> generateEnchantment(ItemStack itemStack, Optional<ServerPlayerEntity> optionalOwner, List<RegistryEntry<Enchantment>> candidates) {
         return generateEnchantment(itemStack, optionalOwner, new LocalRandom(System.nanoTime()), candidates);
     }
 
@@ -138,7 +115,7 @@ public class EnchantmentUtils {
         return unlocks.get(false);
     }
 
-    public static Optional<Identifier> generateEnchantment(ItemStack itemStack, Optional<ServerPlayerEntity> optionalOwner, Random random, List<Identifier> candidates) {
+    public static <T extends RegistryEntry<Enchantment>> Optional<T> generateEnchantment(ItemStack itemStack, Optional<ServerPlayerEntity> optionalOwner, Random random, List<T> candidates) {
         if (candidates.isEmpty()) {
             return Optional.empty();
         }
@@ -147,45 +124,38 @@ public class EnchantmentUtils {
     }
 
     public static Set<RegistryEntry<Enchantment>> getAllEnchantmentsInItem(ItemStack itemStack) {
-        var present = EnchantmentHelper.getEnchantments(itemStack).getEnchantments(); var slotsOptional = EnchantmentSlots.fromItemStack(itemStack);
+        var present = new HashSet<>(EnchantmentHelper.getEnchantments(itemStack).getEnchantments());
+        var slotsOptional = EnchantmentSlots.fromItemStack(itemStack);
         if (slotsOptional.isEmpty()) {
             return present;
         }
         var slots = slotsOptional.get();
         slots.stream()
             .flatMap(s -> s.choices().stream())
-            .map(c -> c.getEnchantmentId()).forEach(present::add);
+            .map(c -> c.getEnchantment()).forEach(present::add);
         return present;
     }
 
-    public static Stream<Identifier> getEnchantmentsNotInItem(ItemStack itemStack) {
+    public static Stream<Reference<Enchantment>> getEnchantmentsNotInItem(World world, ItemStack itemStack) {
         var present = getAllEnchantmentsInItem(itemStack);
-        var candidates = getAllEnchantmentsForItem(itemStack)
+        var candidates = getAllEnchantmentsForItem(world, itemStack)
             .filter(id -> !present.contains(id));
         return candidates;
     }
 
-    public static boolean isGilding(Enchantment enchantment, ItemStack itemStack) {
+    public static boolean isGilding(RegistryEntry<Enchantment> enchantment, ItemStack itemStack) {
         return EnchantmentSlots.fromItemStack(itemStack)
-                .map(slots -> slots.getGildingIds().contains(EnchantmentUtils.getEnchantmentId(enchantment)))
+                .map(slots -> slots.getGilding().contains(enchantment))
                 .orElse(false);
     }
 
-    private static List<Identifier> getPossibleCandidates(ItemStack itemStack) {
+    private static List<Reference<Enchantment>> getPossibleCandidates(World world, ItemStack itemStack) {
         var present = getAllEnchantmentsInItem(itemStack);
-        var candidates = getAllEnchantmentsForItem(itemStack)
+        var candidates = getAllEnchantmentsForItem(world, itemStack)
             .filter(id -> !present.contains(id));
         if (MCDE.getConfig().isCompatibilityRequired()) {
             candidates = candidates.filter(id -> isCompatible(present, id));
         }
          return candidates.toList();
     }
-
-    public static <T> Codec<Reference<T>> refCodec(RegistryKey<Registry<T>> key) {
-        return RegistryFixedCodec.of(key).xmap(((Reference<T>)null).getClass()::cast, Function.identity());
-    }
-    public static <T> PacketCodec<RegistryByteBuf, Reference<T>> packetRefCodec(RegistryKey<Registry<T>> key) {
-        return PacketCodecs.registryEntry(key).xmap(((Reference<T>)null).getClass()::cast, Function.identity());
-    }
-
 }

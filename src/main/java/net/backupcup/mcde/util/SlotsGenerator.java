@@ -13,45 +13,44 @@ import java.util.stream.IntStream;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.backupcup.mcde.Config.SlotChances;
 import net.backupcup.mcde.MCDE;
-import net.minecraft.advancement.PlayerAdvancementTracker;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.ServerAdvancementLoader;
+import net.minecraft.registry.entry.RegistryEntry.Reference;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.random.LocalRandom;
 import net.minecraft.util.math.random.Random;
+import net.minecraft.world.World;
 
 public class SlotsGenerator {
-    private ObjectArrayList<Identifier> pool;
+    private ObjectArrayList<Reference<Enchantment>> pool;
     private Random random;
 
     private float threeChoiceChance;
     private SlotChances slotChances;
 
-    public SlotsGenerator(ItemStack itemStack, Optional<ServerPlayerEntity> optionalOwner, Random random, float threeChoiceChance, SlotChances slotChances) {
+    public SlotsGenerator(World world, ItemStack itemStack, Optional<ServerPlayerEntity> optionalOwner, Random random, float threeChoiceChance, SlotChances slotChances) {
         this.random = random;
 
         this.threeChoiceChance = threeChoiceChance;
         this.slotChances = slotChances;
 
-        pool = EnchantmentUtils.getEnchantmentsForItem(itemStack).collect(ObjectArrayList.toList());
+        pool = EnchantmentUtils.getEnchantmentsForItem(world, itemStack).collect(ObjectArrayList.toList());
 
         if (optionalOwner.isPresent()) {
             pool.removeIf(EnchantmentUtils.getLockedEnchantments(optionalOwner.get())::contains);
         };
 
         if (MCDE.getConfig().isCompatibilityRequired()) {
-            pool.removeIf(id -> !EnchantmentUtils.isCompatible(
-                EnchantmentHelper.get(itemStack).keySet()
-                    .stream().map(EnchantmentHelper::getEnchantmentId).toList(), id));
+            var present = EnchantmentHelper.getEnchantments(itemStack).getEnchantments();
+            pool.removeIf(id -> !EnchantmentUtils.isCompatible(present, id));
         }
     }
 
     public EnchantmentSlots generateEnchantments() {
         var builder = EnchantmentSlots.builder();
-        var pool = (ObjectArrayList<Identifier>)Util.copyShuffled(this.pool, random);
+        var pool = (ObjectArrayList<Reference<Enchantment>>)Util.copyShuffled(this.pool, random);
         boolean isTwoChoiceGenerated = false;
 
         if (pool.isEmpty()) {
@@ -90,7 +89,7 @@ public class SlotsGenerator {
         return builder.build();
     }
 
-    private boolean generateSlot(SlotPosition pos, ObjectArrayList<Identifier> pool, EnchantmentSlots.Builder builder, boolean isTwoChoiceGenerated) {
+    private boolean generateSlot(SlotPosition pos, ObjectArrayList<Reference<Enchantment>> pool, EnchantmentSlots.Builder builder, boolean isTwoChoiceGenerated) {
         if (!isTwoChoiceGenerated && random.nextFloat() < threeChoiceChance && pool.size() >= 3 && getPoolSize() >= 6) {
             if (MCDE.getConfig().isCompatibilityRequired()) {
                 moveIncompatibleToTheEnd(pool, 3);
@@ -113,8 +112,8 @@ public class SlotsGenerator {
         return isTwoChoiceGenerated;
     }
 
-    public static Builder forItemStack(ItemStack itemStack) {
-        return new Builder(itemStack);
+    public static Builder forItemStack(World world, ItemStack itemStack) {
+        return new Builder(world, itemStack);
     }
 
     private int getPoolSize() {
@@ -144,7 +143,7 @@ public class SlotsGenerator {
         return SlotChances.apply(baseChances, c -> calculateEnchantabilityModifier(c, enchantability));
     }
 
-    private void moveIncompatibleToTheEnd(ObjectArrayList<Identifier> pool, int availableSlots) {
+    private void moveIncompatibleToTheEnd(ObjectArrayList<Reference<Enchantment>> pool, int availableSlots) {
         int left = 0, right = pool.size() - 2, found = 0;
         while (left <= right) {
             var id = pool.get(left);
@@ -181,8 +180,8 @@ public class SlotsGenerator {
         }
     }
 
-    private static List<Identifier> removeIncompatible(List<Identifier> pool, EnchantmentSlots.Builder builder) {
-        var present = builder.getAdded().stream().map(c -> c.getEnchantmentId()).toList();
+    private static List<Reference<Enchantment>> removeIncompatible(List<Reference<Enchantment>> pool, EnchantmentSlots.Builder builder) {
+        var present = builder.getAdded().stream().map(c -> c.getEnchantment()).toList();
         var incompatible = pool.stream().filter(id -> !EnchantmentUtils.isCompatible(present, id)).toList();
         pool.removeIf(incompatible::contains);
         return incompatible;
@@ -193,6 +192,7 @@ public class SlotsGenerator {
     }
 
     public static class Builder {
+        private World world;
         private ItemStack itemStack;
         private Optional<ServerPlayerEntity> optionalOwner = Optional.empty();
         private Optional<Random> random = Optional.empty();
@@ -202,7 +202,8 @@ public class SlotsGenerator {
         private boolean isSecondSlotChanceAbsolute = false;
         private boolean isThirdSlotChanceAbsolute = false;
 
-        private Builder(ItemStack itemStack) {
+        private Builder(World world, ItemStack itemStack) {
+            this.world = world;
             this.itemStack = itemStack;
         }
 
@@ -281,6 +282,7 @@ public class SlotsGenerator {
                 slotChances = SlotChances.add(slotChances, modifiers);
             }
             return new SlotsGenerator(
+                    world,
                     itemStack,
                     optionalOwner,
                     random.orElseGet(() -> new LocalRandom(System.nanoTime())),

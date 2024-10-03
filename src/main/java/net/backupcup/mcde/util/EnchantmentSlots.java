@@ -8,10 +8,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -20,28 +18,26 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.backupcup.mcde.MCDE;
 import net.minecraft.component.ComponentType;
-import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.entry.RegistryFixedCodec;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.StringIdentifiable;
-import net.minecraft.util.dynamic.Codecs;
 
 public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
     public static final Codec<EnchantmentSlots> CODEC = 
         RecordCodecBuilder.create(instance -> instance.group(
             SlotPosition.mapCodec(EnchantmentSlot.CODEC).fieldOf("slots").forGetter(slots -> slots.slots),
-            Codec.list(Identifier.CODEC).xmap(
+            Codec.list(RegistryFixedCodec.of(RegistryKeys.ENCHANTMENT)).xmap(
                 list -> list.stream().collect(Collectors.toSet()),
                 set -> set.stream().toList()
-            ).fieldOf("gilding").forGetter(EnchantmentSlots::getGildingIds),
+            ).fieldOf("gilding").forGetter(EnchantmentSlots::getGilding),
             Codec.INT.fieldOf("nextRerollCost").forGetter(EnchantmentSlots::getNextRerollCost),
             Codec.INT.fieldOf("nextRerollCostPowerful").forGetter(EnchantmentSlots::getNextRerollCostPowerful)
         ).apply(instance, EnchantmentSlots::new));
@@ -55,8 +51,8 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
             ), slots -> slots.slots,
             PacketCodecs.collection(
                 HashSet::new,
-                Identifier.PACKET_CODEC
-            ), EnchantmentSlots::getGildingIds,
+                PacketCodecs.registryEntry(RegistryKeys.ENCHANTMENT)
+            ), EnchantmentSlots::getGilding,
             PacketCodecs.VAR_INT, EnchantmentSlots::getNextRerollCost,
             PacketCodecs.VAR_INT, EnchantmentSlots::getNextRerollCostPowerful,
             EnchantmentSlots::new
@@ -68,12 +64,11 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
         .build();
 
     private Map<SlotPosition, EnchantmentSlot> slots;
-    private Set<Identifier> gilding;
+    private Set<RegistryEntry<Enchantment>> gilding;
     private int nextRerollCost;
     private int nextRerollCostPowerful;
 
-    public static final String ENCHANTMENT_SLOTS_KEY = "MCDEnchantments";
-    public EnchantmentSlots(Map<SlotPosition, EnchantmentSlot> slots, Set<Identifier> gilding, int nextRerollCost, int nextRerollCostPowerful) {
+    public EnchantmentSlots(Map<SlotPosition, EnchantmentSlot> slots, Set<RegistryEntry<Enchantment>> gilding, int nextRerollCost, int nextRerollCostPowerful) {
         this.slots = slots;
         this.gilding = gilding;
         this.nextRerollCost = nextRerollCost;
@@ -93,52 +88,50 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
         return !gilding.isEmpty();
     }
 
-    public boolean hasGilding(Identifier id) {
-        return gilding.contains(id);
+    public boolean hasGilding(RegistryEntry<Enchantment> enchantment) {
+        return gilding.contains(enchantment);
     }
 
-    public boolean hasGilding(Enchantment id) {
-        return gilding.contains(EnchantmentUtils.getEnchantmentId(id));
-    }
-
-    public Set<Enchantment> getGildingEnchantments() {
-        return gilding.stream().collect(Collectors.mapping(EnchantmentUtils::getEnchantment, Collectors.toSet()));
-    }
-
-    public Set<Identifier> getGildingIds() {
+    public Set<RegistryEntry<Enchantment>> getGilding() {
         return gilding;
     }
 
-    public void addGilding(Identifier gilding) {
-        this.gilding.add(gilding);
+    public EnchantmentSlots withGilding(RegistryEntry<Enchantment> gilding) {
+        var newGilding = new HashSet<>(getGilding());
+        newGilding.add(gilding);
+        return new EnchantmentSlots(slots, newGilding, nextRerollCost, nextRerollCostPowerful);
     }
 
-    public void addAllGilding(Collection<Identifier> gilidngs) {
-        this.gilding.addAll(gilidngs);
+    public EnchantmentSlots withGildings(Collection<Identifier> gilidngs) {
+        var newGilding = new HashSet<>(getGilding());
+        newGilding.addAll(gilding);
+        return new EnchantmentSlots(slots, newGilding, nextRerollCost, nextRerollCostPowerful);
     }
 
-    public void removeGilding(Identifier gilding) {
-        this.gilding.remove(gilding);
+    public EnchantmentSlots withoutGilding(RegistryEntry<Enchantment> gilding) {
+        var newGilding = new HashSet<>(getGilding());
+        newGilding.remove(gilding);
+        return new EnchantmentSlots(slots, newGilding, nextRerollCost, nextRerollCostPowerful);
     }
 
-    public void removeAllGildings() {
-        this.gilding.clear();
+    public EnchantmentSlots withoutGildings() {
+        return new EnchantmentSlots(slots, Set.of(), nextRerollCost, nextRerollCostPowerful);
     }
 
     public int getNextRerollCost() {
         return nextRerollCost;
     }
 
-    public void setNextRerollCost(int nextRerollCost) {
-        this.nextRerollCost = nextRerollCost;
+    public EnchantmentSlots withNextRerollCost(int nextRerollCost) {
+        return new EnchantmentSlots(slots, gilding, nextRerollCost, nextRerollCostPowerful);
     }
 
     public int getNextRerollCostPowerful() {
         return nextRerollCostPowerful;
     }
 
-    public void setNextRerollCostPowerful(int nextRerollCostPowerful) {
-        this.nextRerollCostPowerful = nextRerollCostPowerful;
+    public EnchantmentSlots withNextRerollCostPowerful(int nextRerollCostPowerful) {
+        return new EnchantmentSlots(slots, gilding, nextRerollCost, nextRerollCostPowerful);
     }
 
     public int getNextRerollCost(Identifier id) {
@@ -148,17 +141,17 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
     public static class Builder {
         private Map<SlotPosition, EnchantmentSlot> slots = new EnumMap<>(SlotPosition.class);
 
-        public Builder withSlot(SlotPosition slot, Identifier first) {
+        public Builder withSlot(SlotPosition slot, RegistryEntry<Enchantment> first) {
             slots.put(slot, EnchantmentSlot.of(slot, first));
             return this;
         }
 
-        public Builder withSlot(SlotPosition slot, Identifier first, Identifier second) {
+        public Builder withSlot(SlotPosition slot, RegistryEntry<Enchantment> first, RegistryEntry<Enchantment> second) {
             slots.put(slot, EnchantmentSlot.of(slot, first, second));
             return this;
         }
 
-        public Builder withSlot(SlotPosition slot, Identifier first, Identifier second, Identifier third) {
+        public Builder withSlot(SlotPosition slot, RegistryEntry<Enchantment> first, RegistryEntry<Enchantment> second, RegistryEntry<Enchantment> third) {
             slots.put(slot, EnchantmentSlot.of(slot, first, second, third));
             return this;
         }
@@ -195,57 +188,23 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
         return String.format("%s gilded with %s", slots.toString(), gilding.toString());
     }
 
-    public NbtCompound toNbt() {
-        NbtCompound root = new NbtCompound();
-        NbtCompound slotsCompound = new NbtCompound();
-        slots.entrySet().stream()
-            .forEach(kvp -> slotsCompound.put(kvp.getKey().name(), kvp.getValue().toNbt()));
-        root.put("Slots", slotsCompound);
-        root.put("Gilding", gilding.stream()
-            .collect(Collectors.mapping(id -> NbtString.of(id.toString()),
-                    Collectors.toCollection(() -> new NbtList()))));
-        NbtCompound rerollCost = new NbtCompound();
-        rerollCost.putInt("Normal", nextRerollCost);
-        rerollCost.putInt("Powerful", nextRerollCostPowerful);
-        root.put("NextRerollCost", rerollCost);
-        return root;
-    }
-
     public void putChosenEnchantments(ItemStack itemStack) {
-        var enchantments = EnchantmentHelper.get(itemStack);
-        enchantments.putAll(slots.values().stream()
-                .flatMap(slot -> slot.getChosen().stream())
-                .collect(Collectors.toMap(Choice::getEnchantment, Choice::getLevel)));
-        for (var id : gilding) {
-            enchantments.put(EnchantmentUtils.getEnchantment(id), 1);
+        var builder = new ItemEnchantmentsComponent.Builder(EnchantmentHelper.getEnchantments(itemStack));
+        for (var slot : this) {
+            slot.getChosen().ifPresent(c -> builder.add(c.getEnchantment(), c.getLevel()));
         }
-        EnchantmentHelper.set(enchantments, itemStack);
+        for (var gild : gilding) {
+            builder.add(gild, 1);
+        }
+        EnchantmentHelper.set(itemStack, builder.build());
     }
 
     public void removeChosenEnchantments(ItemStack itemStack) {
-        var enchantments = EnchantmentHelper.get(itemStack);
-        var chosen = slots.values().stream()
-            .flatMap(slot -> slot.getChosen().map(c -> c.getEnchantment()).stream())
-            .toList();
-        enchantments.entrySet().removeIf(kvp -> chosen.contains(kvp.getKey()));
-        EnchantmentHelper.set(enchantments, itemStack);
-    }
-
-    public static EnchantmentSlots fromNbt(NbtCompound nbt, Map<Enchantment, Integer> enchantments) {
-        if (nbt.isEmpty()) {
-            return null;
+        var builder = new ItemEnchantmentsComponent.Builder(EnchantmentHelper.getEnchantments(itemStack));
+        for (var slot : this) {
+            slot.getChosen().ifPresent(c -> builder.set(c.getEnchantment(), 0));
         }
-        var slots = nbt.getCompound("Slots");
-        return new EnchantmentSlots(slots.getKeys().stream()
-                    .map(key -> EnchantmentSlot.fromNbt(slots.getCompound(key), SlotPosition.valueOf(key), enchantments))
-                    .filter(slot -> slot.getChosen().filter(c -> c.getLevel() == 0).isEmpty())
-                    .collect(Collectors.toMap(EnchantmentSlot::getSlotPosition, Function.identity())),
-                nbt.getList("Gilding", NbtList.STRING_TYPE).stream()
-                .collect(Collectors.mapping(e -> Identifier.tryParse(e.asString()),
-                        Collectors.filtering(id -> enchantments.containsKey(EnchantmentUtils.getEnchantment(id)),
-                            Collectors.toSet()))),
-                nbt.getCompound("NextRerollCost").getInt("Normal"),
-                nbt.getCompound("NextRerollCost").getInt("Powerful"));
+        EnchantmentHelper.set(itemStack, builder.build());
     }
 
     public static Optional<EnchantmentSlots> fromItemStack(ItemStack itemStack) {
@@ -266,28 +225,28 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
         return slots.values().stream();
     }
 
-    public EnchantmentSlots merge(EnchantmentSlots other) {
+    public static EnchantmentSlots merge(EnchantmentSlots first, EnchantmentSlots second) {
         var mergedSlotMap = new EnumMap<SlotPosition, EnchantmentSlot>(SlotPosition.class);
-        mergedSlotMap.putAll(slots);
-        for (var kvp : other.slots.entrySet()) {
+        mergedSlotMap.putAll(first.slots);
+        for (var kvp : second.slots.entrySet()) {
             mergedSlotMap.putIfAbsent(kvp.getKey(), kvp.getValue());
         }
-        Set<Identifier> newGilding = switch (MCDE.getConfig().getGildingMergeStrategy()) {
+        Set<RegistryEntry<Enchantment>> newGilding = switch (MCDE.getConfig().getGildingMergeStrategy()) {
             case REMOVE -> new HashSet<>();
-            case FIRST -> new HashSet<>(gilding);
-            case SECOND -> new HashSet<>(other.gilding);
-            case BOTH -> Stream.concat(gilding.stream(), other.gilding.stream()).collect(Collectors.toSet());
+            case FIRST -> new HashSet<>(first.gilding);
+            case SECOND -> new HashSet<>(second.gilding);
+            case BOTH -> Stream.concat(first.gilding.stream(), second.gilding.stream()).collect(Collectors.toSet());
         };
         for (var kvp : mergedSlotMap.entrySet()) {
-            if (kvp.getValue().getChosen().map(c -> newGilding.contains(c.getEnchantmentId())).orElse(false)) {
-                kvp.getValue().clearChoice();
+            if (kvp.getValue().getChosen().map(c -> newGilding.contains(c.getEnchantment())).orElse(false)) {
+                kvp.setValue(kvp.getValue().withoutChoice());
             }
         }
         return new EnchantmentSlots(
             mergedSlotMap,
             newGilding,
-            (nextRerollCost + other.nextRerollCost) / 2,
-            (nextRerollCostPowerful + other.nextRerollCostPowerful) / 2
+            (first.nextRerollCost + second.nextRerollCost) / 2,
+            (first.nextRerollCostPowerful + second.nextRerollCostPowerful) / 2
         );
     }
 }

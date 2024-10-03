@@ -18,14 +18,6 @@ public class ModTags {
         public static final TagKey<Enchantment> POWERFUL = TagKey.of(RegistryKeys.ENCHANTMENT, Identifier.of("c", "powerful"));
     }
 
-    public static boolean isIn(Enchantment enchantment, TagKey<Enchantment> tag) {
-        return isIn(enchantment, tag, Registries.ENCHANTMENT);
-    }
-
-    public static boolean isIn(Identifier enchantmentId, TagKey<Enchantment> tag) {
-        return isIn(enchantmentId, tag, Registries.ENCHANTMENT);
-    }
-
     public static <T> boolean isIn(T obj, TagKey<T> tag, Registry<T> registry) {
         var key = registry.getKey(obj);
         if (key.isEmpty()) {

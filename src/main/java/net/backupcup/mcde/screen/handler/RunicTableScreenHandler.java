@@ -1,6 +1,5 @@
 package net.backupcup.mcde.screen.handler;
 
-import I;
 import java.util.Optional;
 import net.backupcup.mcde.MCDE;
 import net.backupcup.mcde.block.ModBlocks;

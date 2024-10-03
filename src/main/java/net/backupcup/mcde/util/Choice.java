@@ -1,9 +1,7 @@
 package net.backupcup.mcde.util;
 
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.util.Identifier;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.entry.RegistryEntry.Reference;
+import net.minecraft.registry.entry.RegistryEntry;
 
 public class Choice {
     private final SlotPosition choicePos;
@@ -39,11 +37,7 @@ public class Choice {
         return choicePos.ordinal();
     }
 
-    public Identifier getEnchantmentId() {
+    public RegistryEntry<Enchantment> getEnchantment() {
         return enchantmentSlot.getChoice(choicePos).get();
-    }
-
-    public Reference<Enchantment> getEnchantment() {
-        return Registries.ENCHANTMENT.get(enchantmentSlot.getChoice(choicePos).get());
     }
 }
