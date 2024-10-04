@@ -90,11 +90,19 @@ public class EnchantmentUtils {
         };
     }
 
-    public static Optional<Reference<Enchantment>> generateEnchantment(World world, ItemStack itemStack, Optional<ServerPlayerEntity> optionalOwner) {
+    public static Optional<Reference<Enchantment>> generateEnchantment(
+        World world,
+        ItemStack itemStack,
+        Optional<ServerPlayerEntity> optionalOwner
+    ) {
         return generateEnchantment(itemStack, optionalOwner, new LocalRandom(System.nanoTime()), getPossibleCandidates(world, itemStack));
     }
 
-    public static Optional<RegistryEntry<Enchantment>> generateEnchantment(ItemStack itemStack, Optional<ServerPlayerEntity> optionalOwner, List<RegistryEntry<Enchantment>> candidates) {
+    public static <T extends RegistryEntry<Enchantment>> Optional<T> generateEnchantment(
+        ItemStack itemStack,
+        Optional<ServerPlayerEntity> optionalOwner,
+        List<T> candidates
+    ) {
         return generateEnchantment(itemStack, optionalOwner, new LocalRandom(System.nanoTime()), candidates);
     }
 
@@ -115,7 +123,12 @@ public class EnchantmentUtils {
         return unlocks.get(false);
     }
 
-    public static <T extends RegistryEntry<Enchantment>> Optional<T> generateEnchantment(ItemStack itemStack, Optional<ServerPlayerEntity> optionalOwner, Random random, List<T> candidates) {
+    public static <T extends RegistryEntry<Enchantment>> Optional<T> generateEnchantment(
+        ItemStack itemStack,
+        Optional<ServerPlayerEntity> optionalOwner,
+        Random random,
+        List<T> candidates
+    ) {
         if (candidates.isEmpty()) {
             return Optional.empty();
         }

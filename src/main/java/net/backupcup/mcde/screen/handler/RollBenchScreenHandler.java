@@ -131,7 +131,7 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
                 newSlots = generatorBuilder.build().generateEnchantments();
             }
             newSlots.addAllGilding(gilding);
-            slots.removeChosenEnchantments(itemStack);
+            slots.removeChosenFromComponent(itemStack);
             newSlots.updateItemStack(itemStack);
             if (!player.isCreative()) {
                 rerollMaterialStack.decrement(1);

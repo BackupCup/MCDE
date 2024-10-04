@@ -10,12 +10,11 @@ import net.backupcup.mcde.block.entity.GildingFoundryBlockEntity;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.Context;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.component.ComponentChanges;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ItemEnchantmentsComponent;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -23,11 +22,13 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.entry.RegistryEntry.Reference;
 import net.minecraft.screen.ArrayPropertyDelegate;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
@@ -35,18 +36,18 @@ import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.ScreenHandlerListener;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
+import net.minecraft.world.World;
 
 public class GildingFoundryScreenHandler extends ScreenHandler implements ScreenHandlerListener {
     private final Inventory inventory;
     private final PlayerEntity playerEntity;
     private final ScreenHandlerContext context;
     private final PropertyDelegate propertyDelegate;
-    private Optional<Identifier> generatedEnchantment = Optional.empty();
-    public static final PacketCodec<RegistryByteBuf, Optional<Identifier>> GENERATED_ENCHANTMENT_CODEC =
-        PacketCodecs.optional(Identifier.PACKET_CODEC).cast();
+    private Optional<RegistryEntry<Enchantment>> generatedEnchantment = Optional.empty();
+    public static final PacketCodec<RegistryByteBuf, Optional<RegistryEntry<Enchantment>>> GENERATED_ENCHANTMENT_CODEC =
+        PacketCodecs.optional(PacketCodecs.registryEntry(RegistryKeys.ENCHANTMENT)).cast();
 
-    public Optional<Identifier> getGeneratedEnchantment() {
+    public Optional<RegistryEntry<Enchantment>> getGeneratedEnchantment() {
         return generatedEnchantment;
     }
 
@@ -58,7 +59,7 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
         return generatedEnchantment.isPresent();
     }
 
-    public GildingFoundryScreenHandler(int syncId, PlayerInventory inventory, Optional<Identifier> generatedEnchantment) {
+    public GildingFoundryScreenHandler(int syncId, PlayerInventory inventory, Optional<RegistryEntry<Enchantment>> generatedEnchantment) {
         this(
             syncId,
             inventory,
@@ -75,7 +76,7 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
         Inventory inventory,
         PropertyDelegate delegate,
         ScreenHandlerContext context,
-        Optional<Identifier> generatedEnchantment
+        Optional<RegistryEntry<Enchantment>> generatedEnchantment
     ) {
         super(ModScreenHandlers.GILDING_FOUNDRY_SCREEN_HANDLER, syncId);
         this.context = context;
@@ -127,23 +128,27 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
             return false;
         }
         var weaponStack = player.isCreative() ? inventory.getStack(0) : inventory.getStack(0).copy();
-        var enchantmentId = generatedEnchantment.get();
+        var enchantment = generatedEnchantment.get();
         EnchantmentSlots.fromItemStack(weaponStack).ifPresent(slots -> {
+            var slotsBuilder = EnchantmentSlots.builder(slots);
+            var enchantmentsBuilder = new ItemEnchantmentsComponent.Builder(EnchantmentHelper.getEnchantments(weaponStack));
             if (slots.hasGilding()) {
-                var map = EnchantmentHelper.get(weaponStack);
-                map.keySet().removeAll(slots.getGildingEnchantments());
-                EnchantmentHelper.set(map, weaponStack);
-                slots.removeAllGildings();
+                slots.removeGildingFromComponent(enchantmentsBuilder);
+                slotsBuilder.clearGildings();
             }
-            slots.addGilding(enchantmentId);
-            slots.updateItemStack(weaponStack);
+            slotsBuilder.addGilding(enchantment);
+            enchantmentsBuilder.add(enchantment, 1);
+            weaponStack.applyChanges(ComponentChanges.builder()
+                    .add(DataComponentTypes.ENCHANTMENTS, enchantmentsBuilder.build())
+                    .add(EnchantmentSlots.COMPONENT_TYPE, slotsBuilder.build())
+                    .build());
         });
         setNewEnchantment(player, weaponStack);
 
         if (!player.isCreative()) {
             context.run((world, pos) -> {
                 ((GildingFoundryBlockEntity)world.getBlockEntity(pos))
-                    .setGenerated(enchantmentId);
+                    .setGenerated(enchantment);
             });
             startProgress();
         }
@@ -206,12 +211,12 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
         }
     }
 
-    public static List<Identifier> getCandidatesForGidling(ItemStack itemStack) {
-        return EnchantmentUtils.getEnchantmentsForItem(itemStack).collect(Collectors.toList());
+    public static List<Reference<Enchantment>> getCandidatesForGidling(World world, ItemStack itemStack) {
+        return EnchantmentUtils.getEnchantmentsForItem(world, itemStack).collect(Collectors.toList());
     }
 
-    public List<Identifier> getCandidatesForGidling() {
-        return getCandidatesForGidling(inventory.getStack(0));
+    public List<Reference<Enchantment>> getCandidatesForGidling(World world) {
+        return getCandidatesForGidling(world, inventory.getStack(0));
     }
 
     public void setNewEnchantment(PlayerEntity player, ItemStack weaponStack) {
@@ -220,8 +225,8 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
             generatedEnchantment = EnchantmentUtils.generateEnchantment(
                 weaponStack,
                 Optional.of(serverPlayer),
-                getCandidatesForGidling()
-            );
+                getCandidatesForGidling(world)
+            ).map(RegistryEntry.class::cast);
             ServerPlayNetworking.send(serverPlayer, new GildingPacket(syncId, generatedEnchantment));
         });
     }
@@ -259,12 +264,12 @@ public class GildingFoundryScreenHandler extends ScreenHandler implements Screen
         setNewEnchantment(playerEntity, stack);
     }
 
-    public static record GildingPacket(int syncId, Optional<Identifier> enchantment) implements CustomPayload {
+    public static record GildingPacket(int syncId, Optional<RegistryEntry<Enchantment>> enchantment) implements CustomPayload {
         public static final CustomPayload.Id<GildingPacket> PACKET_ID = new CustomPayload.Id<>(MCDE.id("gilding"));
         public static final PacketCodec<RegistryByteBuf, GildingPacket> PACKET_CODEC =
             PacketCodec.tuple(
                 PacketCodecs.VAR_INT, GildingPacket::syncId,
-                PacketCodecs.optional(Identifier.PACKET_CODEC), GildingPacket::enchantment,
+                PacketCodecs.optional(PacketCodecs.registryEntry(RegistryKeys.ENCHANTMENT)), GildingPacket::enchantment,
                 GildingPacket::new
             );
 

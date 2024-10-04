@@ -17,7 +17,9 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.backupcup.mcde.MCDE;
+import net.minecraft.component.ComponentChanges;
 import net.minecraft.component.ComponentType;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -140,6 +142,18 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
 
     public static class Builder {
         private Map<SlotPosition, EnchantmentSlot> slots = new EnumMap<>(SlotPosition.class);
+        private Set<RegistryEntry<Enchantment>> gilding = new HashSet<>();
+        private int nextRerollCost = MCDE.getConfig().getRerollCostParameters().getNormal().getStartCost();
+        private int nextRerollCostPowerful = MCDE.getConfig().getRerollCostParameters().getPowerful().getEndCost();
+
+        public Builder() {}
+
+        public Builder(EnchantmentSlots slots) {
+            this.slots = new EnumMap<>(slots.slots);
+            this.gilding = new HashSet<>(slots.gilding);
+            this.nextRerollCost = slots.nextRerollCost;
+            this.nextRerollCostPowerful = slots.nextRerollCostPowerful;
+        }
 
         public Builder withSlot(SlotPosition slot, RegistryEntry<Enchantment> first) {
             slots.put(slot, EnchantmentSlot.of(slot, first));
@@ -168,8 +182,38 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
             return Optional.ofNullable(slots.get(pos));
         }
 
+        public Builder addGilding(RegistryEntry<Enchantment> enchantment) {
+            gilding.add(enchantment);
+            return this;
+        }
+
+        public Builder removeGilding(RegistryEntry<Enchantment> enchantment) {
+            gilding.remove(enchantment);
+            return this;
+        }
+
+        public Builder clearGildings() {
+            gilding.clear();
+            return this;
+        }
+
+        public Builder setNextRerollCost(int nextRerollCost) {
+            this.nextRerollCost = nextRerollCost;
+            return this;
+        }
+
+        public Builder setNextRerollCostPowerful(int nextRerollCost) {
+            this.nextRerollCostPowerful = nextRerollCost;
+            return this;
+        }
+
         public EnchantmentSlots build() {
-            return new EnchantmentSlots(Collections.unmodifiableMap(slots));
+            return new EnchantmentSlots(
+                Collections.unmodifiableMap(slots),
+                gilding,
+                nextRerollCost,
+                nextRerollCostPowerful
+            );
         }
     }
 
@@ -177,6 +221,10 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    public static Builder builder(EnchantmentSlots slots) {
+        return new Builder(slots);
     }
 
     public Optional<EnchantmentSlot> getEnchantmentSlot(SlotPosition pos) {
@@ -188,32 +236,29 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
         return String.format("%s gilded with %s", slots.toString(), gilding.toString());
     }
 
-    public void putChosenEnchantments(ItemStack itemStack) {
-        var builder = new ItemEnchantmentsComponent.Builder(EnchantmentHelper.getEnchantments(itemStack));
+    public void putEnchantmentsIntoComponent(ItemStack itemStack, ItemEnchantmentsComponent.Builder componentBuilder) {
         for (var slot : this) {
-            slot.getChosen().ifPresent(c -> builder.add(c.getEnchantment(), c.getLevel()));
+            slot.getChosen().ifPresent(c -> componentBuilder.add(c.getEnchantment(), c.getLevel()));
         }
         for (var gild : gilding) {
-            builder.add(gild, 1);
+            componentBuilder.add(gild, 1);
         }
-        EnchantmentHelper.set(itemStack, builder.build());
     }
 
-    public void removeChosenEnchantments(ItemStack itemStack) {
-        var builder = new ItemEnchantmentsComponent.Builder(EnchantmentHelper.getEnchantments(itemStack));
+    public void removeChosenFromComponent(ItemEnchantmentsComponent.Builder componentBuilder) {
         for (var slot : this) {
-            slot.getChosen().ifPresent(c -> builder.set(c.getEnchantment(), 0));
+            slot.getChosen().ifPresent(c -> componentBuilder.set(c.getEnchantment(), 0));
         }
-        EnchantmentHelper.set(itemStack, builder.build());
+    }
+
+    public void removeGildingFromComponent(ItemEnchantmentsComponent.Builder componentBuilder) {
+        for (var gild : gilding) {
+            componentBuilder.set(gild, 0);
+        }
     }
 
     public static Optional<EnchantmentSlots> fromItemStack(ItemStack itemStack) {
         return Optional.ofNullable(itemStack.get(COMPONENT_TYPE));
-    }
-
-    public void updateItemStack(ItemStack itemStack) {
-        itemStack.set(COMPONENT_TYPE, this);
-        putChosenEnchantments(itemStack);
     }
 
     @Override
