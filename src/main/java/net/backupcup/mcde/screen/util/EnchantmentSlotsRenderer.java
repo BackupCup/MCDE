@@ -12,7 +12,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.backupcup.mcde.MCDE;
 import net.backupcup.mcde.util.Choice;
-import net.backupcup.mcde.util.EnchantmentSlot;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.SlotPosition;
 import net.fabricmc.api.EnvType;
@@ -98,7 +97,7 @@ public class EnchantmentSlotsRenderer {
     }
 
     public void drawIconInSlot(DrawContext ctx, SlotPosition slot, Choice choice) {
-        var texPos = MCDE.getConfig().isEnchantmentPowerful(choice.getEnchantmentId()) ?
+        var texPos = MCDE.getConfig().isEnchantmentPowerful(choice.getEnchantment()) ?
             powerfulOutlinePos : outlinePos;
         var pos = slotPos.get(slot);
         ctx.drawTexture(defaultGuiTexture, pos.x(), pos.y(), texPos.x(), texPos.y(), 33, 39);
@@ -112,7 +111,7 @@ public class EnchantmentSlotsRenderer {
 
     public void drawIconOutline(DrawContext ctx, SlotPosition slot, Choice choice) {
         var drawPos = slotPos.get(slot).add(choicePosOffset).add(choiceOffsets.get(choice.getChoicePosition()));
-        var texPos = MCDE.getConfig().isEnchantmentPowerful(choice.getEnchantmentId()) ?
+        var texPos = MCDE.getConfig().isEnchantmentPowerful(choice.getEnchantment()) ?
             iconPowerfulOutlinePos : iconOutlinePos;
         ctx.drawTexture(defaultGuiTexture, drawPos.x(), drawPos.y(), texPos.x(), texPos.y(), 29, 31);
     }
@@ -197,16 +196,15 @@ public class EnchantmentSlotsRenderer {
     }
 
     private void drawIcon(DrawContext ctx, TexturePos drawPos, SlotPosition slot, Choice choice) {
-        Identifier enchantmentID = choice.getEnchantmentId();
-        Identifier textureID = getTextureId(enchantmentID);
+        Identifier textureID = choice.getEnchantment().getKey()
+            .map(key -> getTextureId(key.getValue()))
+            .filter(id -> resourceManager.getResource(id).isPresent())
+            .orElse(missingEnchantTexture);
 
-        RenderSystem.setShaderTexture(0, resourceManager.getResource(textureID).isPresent() ?
-                textureID : missingEnchantTexture);
         if (dimPredicate.test(choice)) {
             RenderSystem.setShaderColor(dimColorMultiplier, dimColorMultiplier, dimColorMultiplier, 1.0f);
         }
-        ctx.drawTexture(MinecraftClient.getInstance().getResourceManager().getResource(textureID).isPresent() ?
-                textureID : missingEnchantTexture, drawPos.x(), drawPos.y(), 0f, 0f, 23, 23, 32, 32);
+        ctx.drawTexture(textureID, drawPos.x(), drawPos.y(), 0f, 0f, 23, 23, 32, 32);
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 

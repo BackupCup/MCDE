@@ -13,7 +13,6 @@ import net.backupcup.mcde.screen.util.ScreenWithSlots;
 import net.backupcup.mcde.screen.util.TextWrapUtils;
 import net.backupcup.mcde.screen.util.TexturePos;
 import net.backupcup.mcde.util.Choice;
-import net.backupcup.mcde.util.EnchantmentSlot;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.SlotPosition;
@@ -27,6 +26,7 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -67,8 +67,8 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
                     level = choice.getLevel() + 1;
                     isMaxedOut = choice.isMaxedOut();
                 }
-                return isMaxedOut || !RunicTableScreenHandler.canEnchant(client.player, choice.getEnchantmentId(), level) ||
-                    (EnchantmentHelper.get(inventory.getStack(0)).keySet().stream().anyMatch(e -> !e.canCombine(choice.getEnchantment())) && 
+                return isMaxedOut || !RunicTableScreenHandler.canEnchant(client.player, choice.getEnchantment(), level) ||
+                    (EnchantmentHelper.getEnchantments(inventory.getStack(0)).getEnchantments().stream().anyMatch(e -> !Enchantment.canBeCombined(e, choice.getEnchantment())) && 
                          !choice.isChosen() && MCDE.getConfig().isCompatibilityRequired());
             })
             .withClient(client)
@@ -150,7 +150,6 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
 
     @Override
     public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
-        renderBackground(ctx);
         super.render(ctx, mouseX, mouseY, delta);
         RenderSystem.setShaderTexture(0, TEXTURE);
         ItemStack itemStack = inventory.getStack(0);
@@ -203,13 +202,14 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
 
     protected void renderTooltip(DrawContext ctx, Choice hovered, EnchantmentSlots slots, int x, int y) {
         var itemStack = inventory.getStack(0);
-        Enchantment enchantment = hovered.getEnchantment();
-        Identifier enchantmentId = hovered.getEnchantmentId();
+        RegistryEntry<Enchantment> enchantmentEntry = hovered.getEnchantment();
+        Enchantment enchantment = enchantmentEntry.value();
         List<Text> tooltipLines = new ArrayList<>();
+        Optional<String> translationKey = enchantmentEntry.getKey().map(key -> key.getValue().toTranslationKey("enchantment"));
+        MutableText enchantmentName = enchantment.description().copy()
+                .formatted(EnchantmentUtils.formatEnchantment(enchantmentEntry));
         int level = 1;
-        boolean enoughLevels = RunicTableScreenHandler.canEnchant(client.player, enchantmentId, level);
-        MutableText enchantmentName = Text.translatable(enchantment.getTranslationKey())
-            .formatted(EnchantmentUtils.formatEnchantment(enchantmentId));
+        boolean enoughLevels = RunicTableScreenHandler.canEnchant(client.player, enchantmentEntry, level);
         if (hovered.isChosen()) {
             enchantmentName.append(" ")
                 .append(Text.translatable("enchantment.level." + hovered.getLevel()))
@@ -223,17 +223,19 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
                     .append("→ ")
                     .append(Text.translatable("enchantment.level." + (hovered.getLevel() + 1)));
                 level = hovered.getLevel() + 1;
-                enoughLevels = RunicTableScreenHandler.canEnchant(client.player, enchantmentId, level);
+                enoughLevels = RunicTableScreenHandler.canEnchant(client.player, enchantmentEntry, level);
 
             }
         }
         tooltipLines.add(enchantmentName);
 
-        tooltipLines.addAll(TextWrapUtils.wrapText(width, enchantment.getTranslationKey() + ".desc", Formatting.GRAY));
+        translationKey.ifPresent(key ->
+                tooltipLines.addAll(TextWrapUtils.wrapText(width, key + ".desc", Formatting.GRAY)));
+
         if (!hovered.isMaxedOut() && !client.player.isCreative()) {
             tooltipLines.addAll(TextWrapUtils.wrapText(width, Text.translatable(
                             "message.mcde.levels_required",
-                            MCDE.getConfig().getEnchantCost(enchantmentId, level)),
+                            MCDE.getConfig().getEnchantCost(enchantmentEntry, level)),
                         Formatting.ITALIC, Formatting.DARK_GRAY));
         }
         if (!enoughLevels) {
@@ -244,13 +246,14 @@ public class RunicTableScreen extends HandledScreen<RunicTableScreenHandler> imp
             if (EnchantmentHelper.getLevel(hovered.getEnchantment(), itemStack) > 0) {
                 tooltipLines.addAll(TextWrapUtils.wrapText(width, "message.mcde.already_exists", Formatting.DARK_RED, Formatting.ITALIC));
             } else if (MCDE.getConfig().isCompatibilityRequired()) {
-                var conflict = EnchantmentHelper.get(itemStack).keySet().stream()
-                    .filter(e -> !e.canCombine(hovered.getEnchantment())).findFirst();
+                var conflict = EnchantmentHelper.getEnchantments(itemStack).getEnchantments().stream()
+                    .filter(e -> !Enchantment.canBeCombined(e, hovered.getEnchantment())).findFirst();
+
                 if (conflict.isPresent()) {
                     var conflicting = conflict.get();
                     tooltipLines.addAll(TextWrapUtils.wrapText(width, Text.translatable(
                                     "message.mcde.cant_combine",
-                                    Text.translatable(conflicting.getTranslationKey())),
+                                    conflicting.value().description()),
                                 Formatting.DARK_RED, Formatting.ITALIC));
                 }
             }

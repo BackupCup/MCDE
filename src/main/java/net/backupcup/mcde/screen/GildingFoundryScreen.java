@@ -1,6 +1,5 @@
 package net.backupcup.mcde.screen;
 
-import java.util.Optional;
 import net.backupcup.mcde.MCDE;
 import net.backupcup.mcde.screen.handler.GildingFoundryScreenHandler;
 import net.backupcup.mcde.screen.util.TexturePos;
@@ -12,10 +11,8 @@ import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.screen.slot.Slot;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
@@ -110,7 +107,6 @@ public class GildingFoundryScreen extends HandledScreen<GildingFoundryScreenHand
 
     @Override
     public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
-        renderBackground(ctx);
         super.render(ctx, mouseX, mouseY, delta);
 
         if (!handler.hasProgress()) {

@@ -12,7 +12,6 @@ import net.backupcup.mcde.screen.util.ScreenWithSlots;
 import net.backupcup.mcde.screen.util.TextWrapUtils;
 import net.backupcup.mcde.screen.util.TexturePos;
 import net.backupcup.mcde.util.Choice;
-import net.backupcup.mcde.util.EnchantmentSlot;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.SlotPosition;
@@ -20,11 +19,12 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.screen.slot.Slot;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -74,7 +74,7 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
             .withDimPredicate(
                 choice -> EnchantmentSlots.fromItemStack(inventory.getStack(0))
                 .map(
-                    slots -> !handler.canReroll(client.player, choice.getEnchantmentId(), slots) ||
+                    slots -> !handler.canReroll(client.player, choice.getEnchantment(), slots) ||
                         handler.isSlotLocked(choice.getEnchantmentSlot().getSlotPosition()).orElse(true)
                 ).orElse(true)
             )
@@ -195,7 +195,6 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
 
     @Override
     public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
-        renderBackground(ctx);
         super.render(ctx, mouseX, mouseY, delta);
         renderRerollButton(ctx, mouseX, mouseY, delta);
 
@@ -332,31 +331,36 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
     }
 
     protected void renderTooltip(DrawContext ctx, Choice hovered, EnchantmentSlots slots, int x, int y) {
-        Identifier enchantment = hovered.getEnchantmentId();
-        String translationKey = enchantment.toTranslationKey("enchantment");
+        RegistryEntry<Enchantment> enchantmentEntry = hovered.getEnchantment();
+        Enchantment enchantment = enchantmentEntry.value();
         List<Text> tooltipLines = new ArrayList<>();
-        boolean canReroll = handler.canReroll(client.player, enchantment, slots);
-        MutableText enchantmentName = Text.translatable(translationKey)
-                .formatted(EnchantmentUtils.formatEnchantment(enchantment));
-        if (hovered.isChosen() && hovered.getEnchantment().getMaxLevel() > 1) {
+        boolean canReroll = handler.canReroll(client.player, enchantmentEntry, slots);
+        Optional<String> translationKey = enchantmentEntry.getKey().map(key -> key.getValue().toTranslationKey("enchantment"));
+        MutableText enchantmentName = enchantment.description().copy()
+                .formatted(EnchantmentUtils.formatEnchantment(enchantmentEntry));
+        if (hovered.isChosen() && enchantment.getMaxLevel() > 1) {
             enchantmentName.append(" ")
                 .append(Text.translatable("enchantment.level." + hovered.getLevel()));
         }
         tooltipLines.add(enchantmentName);
+        translationKey.ifPresent(key -> 
+                tooltipLines.addAll(TextWrapUtils.wrapText(width, key + ".desc", Formatting.GRAY)));
 
-        tooltipLines.addAll(TextWrapUtils.wrapText(width, translationKey + ".desc", Formatting.GRAY));
         if (!client.player.isCreative()) {
             tooltipLines.addAll(TextWrapUtils.wrapText(width, Text.translatable(
                         "message.mcde.lapis_required",
-                        slots.getNextRerollCost(enchantment)), Formatting.ITALIC, Formatting.DARK_GRAY));
+                        slots.getNextRerollCost(enchantmentEntry)), Formatting.ITALIC, Formatting.DARK_GRAY));
         }
+
         if (!canReroll) {
             tooltipLines.addAll(TextWrapUtils.wrapText(width, Text.translatable("message.mcde.not_enough_lapis"),
                     Formatting.DARK_RED, Formatting.ITALIC));
         }
+
         if (handler.isSlotLocked(hovered.getEnchantmentSlot().getSlotPosition()).orElse(true)) {
             tooltipLines.addAll(TextWrapUtils.wrapText(width, Text.translatable("message.mcde.cant_generate"), Formatting.DARK_RED, Formatting.ITALIC));
         }
+
         ctx.drawTooltip(textRenderer, tooltipLines, x, y);
     }
 

@@ -52,7 +52,7 @@ public class EnchantmentUtils {
             .filter(target);
     }
 
-    public static Formatting formatEnchantment(Reference<Enchantment> enchantment) {
+    public static Formatting formatEnchantment(RegistryEntry<Enchantment> enchantment) {
         return MCDE.getConfig().isEnchantmentPowerful(enchantment) ? Formatting.RED : Formatting.LIGHT_PURPLE;
     }
 
