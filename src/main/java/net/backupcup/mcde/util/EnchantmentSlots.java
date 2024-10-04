@@ -17,12 +17,9 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.backupcup.mcde.MCDE;
-import net.minecraft.component.ComponentChanges;
 import net.minecraft.component.ComponentType;
-import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -136,8 +133,14 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
         return new EnchantmentSlots(slots, gilding, nextRerollCost, nextRerollCostPowerful);
     }
 
-    public int getNextRerollCost(Identifier id) {
-        return MCDE.getConfig().isEnchantmentPowerful(id) ? nextRerollCostPowerful : nextRerollCost;
+    public int getNextRerollCost(RegistryEntry<Enchantment> enchantment) {
+        return MCDE.getConfig().isEnchantmentPowerful(enchantment) ? nextRerollCostPowerful : nextRerollCost;
+    }
+
+    public EnchantmentSlots withNewSlot(SlotPosition pos, EnchantmentSlot slot) {
+        var newMap = new EnumMap<>(slots);
+        newMap.put(pos, slot);
+        return new EnchantmentSlots(newMap, gilding, nextRerollCost, nextRerollCostPowerful);
     }
 
     public static class Builder {
@@ -153,6 +156,11 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
             this.gilding = new HashSet<>(slots.gilding);
             this.nextRerollCost = slots.nextRerollCost;
             this.nextRerollCostPowerful = slots.nextRerollCostPowerful;
+        }
+
+        public Builder withSlot(EnchantmentSlot slot) {
+            slots.put(slot.getSlotPosition(), slot);
+            return this;
         }
 
         public Builder withSlot(SlotPosition slot, RegistryEntry<Enchantment> first) {
@@ -184,6 +192,11 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
 
         public Builder addGilding(RegistryEntry<Enchantment> enchantment) {
             gilding.add(enchantment);
+            return this;
+        }
+
+        public Builder addAllGildings(Collection<RegistryEntry<Enchantment>> list) {
+            gilding.addAll(list);
             return this;
         }
 
@@ -236,7 +249,7 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
         return String.format("%s gilded with %s", slots.toString(), gilding.toString());
     }
 
-    public void putEnchantmentsIntoComponent(ItemStack itemStack, ItemEnchantmentsComponent.Builder componentBuilder) {
+    public void putEnchantmentsIntoComponent(ItemEnchantmentsComponent.Builder componentBuilder) {
         for (var slot : this) {
             slot.getChosen().ifPresent(c -> componentBuilder.add(c.getEnchantment(), c.getLevel()));
         }

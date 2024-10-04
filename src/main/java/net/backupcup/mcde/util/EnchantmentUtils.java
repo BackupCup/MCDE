@@ -53,7 +53,7 @@ public class EnchantmentUtils {
     }
 
     public static Formatting formatEnchantment(Reference<Enchantment> enchantment) {
-        return MCDE.getConfig().isEnchantmentPowerful(enchantment.registryKey().getValue()) ? Formatting.RED : Formatting.LIGHT_PURPLE;
+        return MCDE.getConfig().isEnchantmentPowerful(enchantment) ? Formatting.RED : Formatting.LIGHT_PURPLE;
     }
 
     public static boolean isCompatible(Collection<RegistryEntry<Enchantment>> present, RegistryEntry<Enchantment> enchantment) {
@@ -79,11 +79,12 @@ public class EnchantmentUtils {
                 context.run((world, pos) -> {
                     var server = world.getServer();
                     var serverPlayerEntity = Optional.ofNullable(server.getPlayerManager().getPlayer(player.getUuid()));
-                    SlotsGenerator.forItemStack(world, stack)
+                    var slots = SlotsGenerator.forItemStack(world, stack)
                         .withOptionalOwner(serverPlayerEntity)
                         .build()
                         .generateEnchantments()
-                        .updateItemStack(stack);
+                        .build();
+                    stack.set(EnchantmentSlots.COMPONENT_TYPE, slots);
                     handler.setStackInSlot(0, 0, stack);
                 });
             }

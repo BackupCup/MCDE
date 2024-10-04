@@ -48,13 +48,13 @@ public class SlotsGenerator {
         }
     }
 
-    public EnchantmentSlots generateEnchantments() {
+    public EnchantmentSlots.Builder generateEnchantments() {
         var builder = EnchantmentSlots.builder();
         var pool = (ObjectArrayList<Reference<Enchantment>>)Util.copyShuffled(this.pool, random);
         boolean isTwoChoiceGenerated = false;
 
         if (pool.isEmpty()) {
-            return EnchantmentSlots.EMPTY;
+            return builder;
         }
 
         isTwoChoiceGenerated = generateSlot(FIRST, pool, builder, isTwoChoiceGenerated);
@@ -64,14 +64,14 @@ public class SlotsGenerator {
         }
 
         if (pool.isEmpty()) {
-            return builder.build();
+            return builder;
         }
 
         if (random.nextFloat() < slotChances.getSecondChance()) {
             isTwoChoiceGenerated = generateSlot(SECOND, pool, builder, isTwoChoiceGenerated);
         }
         else {
-            return builder.build();
+            return builder;
         }
 
         if (MCDE.getConfig().isCompatibilityRequired()) {
@@ -79,14 +79,14 @@ public class SlotsGenerator {
         }
 
         if (pool.isEmpty()) {
-            return builder.build();
+            return builder;
         }
 
         if (random.nextFloat() < slotChances.getThirdChance()) {
             isTwoChoiceGenerated = generateSlot(THIRD, pool, builder, isTwoChoiceGenerated);
         }
 
-        return builder.build();
+        return builder;
     }
 
     private boolean generateSlot(SlotPosition pos, ObjectArrayList<Reference<Enchantment>> pool, EnchantmentSlots.Builder builder, boolean isTwoChoiceGenerated) {

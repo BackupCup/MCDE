@@ -3,27 +3,22 @@ package net.backupcup.mcde.screen.handler;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import net.backupcup.mcde.MCDE;
 import net.backupcup.mcde.block.ModBlocks;
-import net.backupcup.mcde.util.Choice;
-import net.backupcup.mcde.util.EnchantmentSlot;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.SlotPosition;
 import net.backupcup.mcde.util.SlotsGenerator;
-import net.backupcup.mcde.util.SlotsGenerator.Builder;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.Context;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.component.ComponentChanges;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ItemEnchantmentsComponent;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -31,11 +26,11 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.ScreenHandlerListener;
@@ -43,7 +38,6 @@ import net.minecraft.screen.slot.Slot;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.Identifier;
 
 public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandlerListener {
     private final Inventory inventory = new SimpleInventory(2);
@@ -111,39 +105,43 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
         }
         var slots = slotsOptional.get();
         if (id == REROLL_BUTTON_ID) {
-            var serverPlayerEntity = context.get((world, pos) -> world.getServer().getPlayerManager().getPlayer(player.getUuid()));
-            var gilding = slots.getGildingIds();
-            EnchantmentSlots newSlots;
-            if (MCDE.getConfig().canFullRerollRemoveSlots()) {
-                newSlots = SlotsGenerator.forItemStack(itemStack)
-                    .withOptionalOwner(serverPlayerEntity)
-                    .build()
-                    .generateEnchantments();
-            } else {
-                var generatorBuilder = SlotsGenerator.forItemStack(itemStack)
-                    .withOptionalOwner(serverPlayerEntity);
+            var newSlotsGeneratorBuilder = context.get((world, pos) -> {
+                var serverPlayerEntity = world.getServer().getPlayerManager().getPlayer(player.getUuid());
+                return SlotsGenerator.forItemStack(world, itemStack)
+                    .withOwner(serverPlayerEntity);
+            }).orElse(null);
+            if (newSlotsGeneratorBuilder == null) {
+                return super.onButtonClick(player, id);
+            }
+            if (!MCDE.getConfig().canFullRerollRemoveSlots()) {
                 if (slots.getEnchantmentSlot(SlotPosition.SECOND).isPresent()) {
-                    generatorBuilder.withSecondSlotAbsoluteChance(1f);
+                    newSlotsGeneratorBuilder.withSecondSlotAbsoluteChance(1f);
                 }
                 if (slots.getEnchantmentSlot(SlotPosition.THIRD).isPresent()) {
-                    generatorBuilder.withThirdSlotAbsoluteChance(1f);
+                    newSlotsGeneratorBuilder.withThirdSlotAbsoluteChance(1f);
                 } 
-                newSlots = generatorBuilder.build().generateEnchantments();
             }
-            newSlots.addAllGilding(gilding);
-            slots.removeChosenFromComponent(itemStack);
-            newSlots.updateItemStack(itemStack);
+            var generator = newSlotsGeneratorBuilder.build();
+            var newSlots = generator.generateEnchantments().addAllGildings(slots.getGilding()).build();
+            var componentBuilder = new ItemEnchantmentsComponent.Builder(EnchantmentHelper.getEnchantments(itemStack));
+            slots.removeChosenFromComponent(componentBuilder);
+            newSlots.putEnchantmentsIntoComponent(componentBuilder);
+            itemStack.applyChanges(ComponentChanges.builder()
+                    .add(DataComponentTypes.ENCHANTMENTS, componentBuilder.build())
+                    .add(EnchantmentSlots.COMPONENT_TYPE, newSlots)
+                    .build());
             if (!player.isCreative()) {
                 rerollMaterialStack.decrement(1);
             }
-            player.playSound(SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, SoundCategory.BLOCKS, 0.5f, 1f);
+            player.playSoundToPlayer(SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, SoundCategory.BLOCKS, 0.5f, 1f);
             inventory.markDirty();
             return false;
         }
         var slotsSize = SlotPosition.values().length;
         var clickedSlot = slots.getEnchantmentSlot(SlotPosition.values()[id / slotsSize]).get();
         SlotPosition toChange;
-        Identifier enchantmentId;
+        RegistryEntry<Enchantment> enchantment;
+        var changesBuilder = ComponentChanges.builder();
         var newEnchantment = generateEnchantment(player, clickedSlot.getSlotPosition());
         if (newEnchantment.isEmpty()) {
             return super.onButtonClick(player, id);
@@ -151,40 +149,48 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
 
         if (clickedSlot.getChosen().isPresent()) {
             var chosen = clickedSlot.getChosen().get();
-            enchantmentId = chosen.getEnchantmentId();
+            enchantment = chosen.getEnchantment();
 
-            if (!canReroll(player, enchantmentId, slots)) {
+            if (!canReroll(player, enchantment, slots)) {
                 return super.onButtonClick(player, id);
             }
-            clickedSlot.removeChosenEnchantment(itemStack);
-            clickedSlot.clearChoice();
+            var enchantmentBuilder = new ItemEnchantmentsComponent.Builder(EnchantmentHelper.getEnchantments(itemStack));
+            enchantmentBuilder.set(enchantment, 0);
+            changesBuilder.add(DataComponentTypes.ENCHANTMENTS, enchantmentBuilder.build());
+            clickedSlot = clickedSlot.withoutChoice();
             toChange = chosen.getChoicePosition();
         } else {
             toChange = SlotPosition.values()[id % slotsSize];
-            enchantmentId = clickedSlot.getChoice(toChange).get();
+            enchantment = clickedSlot.getChoice(toChange).get();
 
-            if (!canReroll(player, enchantmentId, slots)) {
+            if (!canReroll(player, enchantment, slots)) {
                 return super.onButtonClick(player, id);
             }
         }
 
-        clickedSlot.changeEnchantment(toChange, newEnchantment.get());
+        clickedSlot = clickedSlot.withNewEnchantment(toChange, newEnchantment.get());
         if (!player.isCreative()) {
-            rerollMaterialStack.decrement(slots.getNextRerollCost(enchantmentId));
+            rerollMaterialStack.decrement(slots.getNextRerollCost(enchantment));
         }
-        MCDE.getConfig().getRerollCostParameters().updateCost(slots);
-        slots.updateItemStack(itemStack);
-        player.playSound(SoundEvents.BLOCK_GRINDSTONE_USE, SoundCategory.BLOCKS, 0.5f, 1f);
+        
+        changesBuilder.add(EnchantmentSlots.COMPONENT_TYPE, MCDE.getConfig()
+                .getRerollCostParameters()
+                .updateCost(slots)
+                .withSlot(clickedSlot)
+                .build());
+        itemStack.applyChanges(changesBuilder.build());
+
+        player.playSoundToPlayer(SoundEvents.BLOCK_GRINDSTONE_USE, SoundCategory.BLOCKS, 0.5f, 1f);
         inventory.markDirty();
         return super.onButtonClick(player, id);
     }
 
-    public boolean canReroll(PlayerEntity player, Identifier enchantmentId, EnchantmentSlots slots) {
+    public boolean canReroll(PlayerEntity player, RegistryEntry<Enchantment> enchantment, EnchantmentSlots slots) {
         if (player.isCreative()) {
             return true;
         }
         ItemStack lapisLazuliStack = inventory.getStack(1);
-        return lapisLazuliStack.isOf(Items.LAPIS_LAZULI) && lapisLazuliStack.getCount() >= slots.getNextRerollCost(enchantmentId);
+        return lapisLazuliStack.isOf(Items.LAPIS_LAZULI) && lapisLazuliStack.getCount() >= slots.getNextRerollCost(enchantment);
     }
 
     @Override
@@ -239,34 +245,36 @@ public class RollBenchScreenHandler extends ScreenHandler implements ScreenHandl
         }
     }
 
-    public List<Identifier> getCandidatesForReroll(SlotPosition clickedSlot) {
+    public List<RegistryEntry<Enchantment>> getCandidatesForReroll(SlotPosition clickedSlot) {
         var itemStack = inventory.getStack(0);
         var slotsOptional = EnchantmentSlots.fromItemStack(itemStack);
         if (slotsOptional.isEmpty()) {
             return List.of();
         }
         var slots = slotsOptional.get();
-        var candidates = EnchantmentUtils.getEnchantmentsNotInItem(itemStack);
+        
+        var candidates = context.get((world, pos) -> EnchantmentUtils.getEnchantmentsNotInItem(world, itemStack))
+            .orElse(Stream.empty());
         if (!MCDE.getConfig().isCompatibilityRequired()) {
             return candidates.collect(Collectors.toList());
         }
         var enchantmentsNotInClickedSlot =
             slots.stream().filter(s -> !s.getSlotPosition().equals(clickedSlot))
             .flatMap(s -> s.choices().stream())
-            .map(c -> c.getEnchantmentId())
+            .map(c -> c.getEnchantment())
             .toList();
         candidates = candidates.filter(id -> EnchantmentUtils.isCompatible(enchantmentsNotInClickedSlot, id))
-            .filter(id -> EnchantmentUtils.isCompatible(EnchantmentHelper.get(itemStack).keySet().stream()
-                        .map(EnchantmentUtils::getEnchantmentId)
-                        .filter(enchantmentId -> slots.getEnchantmentSlot(clickedSlot)
+            .filter(id -> EnchantmentUtils.isCompatible(EnchantmentHelper.getEnchantments(itemStack).getEnchantments()
+                        .stream()
+                        .filter(enchantment -> slots.getEnchantmentSlot(clickedSlot)
                             .flatMap(slot -> slot.getChosen())
-                            .map(c -> !c.getEnchantmentId().equals(enchantmentId))
+                            .map(c -> !c.getEnchantment().equals(enchantment))
                             .orElse(true))
                         .toList(), id));
         return candidates.collect(Collectors.toList());
     }
 
-    public Optional<Identifier> generateEnchantment(PlayerEntity player, SlotPosition clickedSlot) {
+    public Optional<RegistryEntry<Enchantment>> generateEnchantment(PlayerEntity player, SlotPosition clickedSlot) {
         return EnchantmentUtils.generateEnchantment(
             inventory.getStack(0),
             context.get((world, pos) -> world.getServer().getPlayerManager().getPlayer(player.getUuid())),

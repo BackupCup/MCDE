@@ -9,10 +9,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.item.ItemStack;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
@@ -118,16 +115,14 @@ public class EnchantmentSlot {
         return this;
     }
 
-    public boolean isMaxedOut() {
-        return chosen.map(pos -> level >= enchantments.get(pos).value().getMaxLevel()).orElse(false);
+    public EnchantmentSlot withNewEnchantment(SlotPosition pos, RegistryEntry<Enchantment> enchantment) {
+        var newMap = new EnumMap<>(enchantments);
+        newMap.put(pos, enchantment);
+        return new EnchantmentSlot(slot, newMap, level, chosen);
     }
 
-    public void removeChosenEnchantment(ItemStack itemStack) {
-        getChosen().ifPresent(c -> {
-            var builder = new ItemEnchantmentsComponent.Builder(EnchantmentHelper.getEnchantments(itemStack));
-            builder.set(c.getEnchantment(), 0);
-            EnchantmentHelper.set(itemStack, builder.build());
-        });
+    public boolean isMaxedOut() {
+        return chosen.map(pos -> level >= enchantments.get(pos).value().getMaxLevel()).orElse(false);
     }
 
     public static EnchantmentSlot of(SlotPosition slot, RegistryEntry<Enchantment> first) {

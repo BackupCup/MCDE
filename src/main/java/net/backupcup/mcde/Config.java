@@ -18,16 +18,18 @@ import blue.endless.jankson.api.SyntaxError;
 import net.backupcup.mcde.util.AdvancementList;
 import net.backupcup.mcde.util.EnchantmentList;
 import net.backupcup.mcde.util.EnchantmentSlots;
+import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.ModTags;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.registry.Registries;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.entry.RegistryEntry.Reference;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.world.World;
 
 public class Config implements CustomPayload {
     public static final CustomPayload.Id<Config> PACKET_ID = new CustomPayload.Id<>(MCDE.id("sync_config"));
@@ -199,9 +201,10 @@ public class Config implements CustomPayload {
             this.powerful = powerful;
         }
 
-        public void updateCost(EnchantmentSlots slots) {
-            slots.setNextRerollCost(normal.getNextCost(slots.getNextRerollCost()));
-            slots.setNextRerollCostPowerful(powerful.getNextCost(slots.getNextRerollCostPowerful()));
+        public EnchantmentSlots.Builder updateCost(EnchantmentSlots slots) {
+            return EnchantmentSlots.builder(slots)
+                .setNextRerollCost(normal.getNextCost(slots.getNextRerollCost()))
+                .setNextRerollCostPowerful(powerful.getNextCost(slots.getNextRerollCostPowerful()));
         }
 
         public RerollCost getNormal() {
@@ -226,7 +229,7 @@ public class Config implements CustomPayload {
             this.step = step;
         }
 
-        public int getEnchantCost(Identifier id, int level) {
+        public int getEnchantCost(int level) {
             return startCost + step * (level - 1);
         }
 
@@ -252,10 +255,10 @@ public class Config implements CustomPayload {
             this.powerful = powerful;
         }
 
-        public int getEnchantCost(Identifier id, int level) {
-            return MCDE.getConfig().isEnchantmentPowerful(id) ? 
-                powerful.getEnchantCost(id, level) :
-                normal.getEnchantCost(id, level);
+        public int getEnchantCost(RegistryEntry<Enchantment> enchantment, int level) {
+            return MCDE.getConfig().isEnchantmentPowerful(enchantment) ? 
+                powerful.getEnchantCost(level) :
+                normal.getEnchantCost(level);
         }
 
         public EnchantCost getNormal() {
@@ -346,16 +349,16 @@ public class Config implements CustomPayload {
         return allowCurses;
     }
 
-    public boolean isEnchantmentPowerful(Identifier id) {
-        return ModTags.isIn(id, ModTags.Enchantments.POWERFUL);
+    public boolean isEnchantmentPowerful(RegistryEntry<Enchantment> enchantment) {
+        return enchantment.isIn(ModTags.Enchantments.POWERFUL);
     }
 
-    public int getEnchantCost(Identifier id, int level) {
-        return enchantCost.getEnchantCost(id, level);
+    public int getEnchantCost(RegistryEntry<Enchantment> enchantment, int level) {
+        return enchantCost.getEnchantCost(enchantment, level);
     }
 
-    public RerollCost getRerollCostParameters(Identifier id) {
-        return isEnchantmentPowerful(id) ? rerollCost.powerful : rerollCost.normal;
+    public RerollCost getRerollCostParameters(RegistryEntry<Enchantment> enchantment) {
+        return isEnchantmentPowerful(enchantment) ? rerollCost.powerful : rerollCost.normal;
     }
 
     public RerollCostParameters getRerollCostParameters() {
@@ -418,20 +421,20 @@ public class Config implements CustomPayload {
         return progressChances;
     }
 
-    public List<Enchantment> getVillagerBookPool() {
-        return Registries.ENCHANTMENT.stream().filter(villagerBookPool::contains).toList();
+    public List<Reference<Enchantment>> getVillagerBookPool(World world) {
+        return EnchantmentUtils.getEnchantmentStream(world).filter(villagerBookPool::contains).toList();
     }
 
     public boolean isInCustomTreasurePool(Identifier id) {
         return treasurePool.contains(id);
     }
 
-    public boolean isInCustomTreasurePool(Enchantment enchantment) {
+    public boolean isInCustomTreasurePool(Reference<Enchantment> enchantment) {
         return treasurePool.contains(enchantment);
     }
 
-    public List<Enchantment> getCustomTreasurePool() {
-        return Registries.ENCHANTMENT.stream().filter(treasurePool::contains).toList();
+    public List<Reference<Enchantment>> getCustomTreasurePool(World world) {
+        return EnchantmentUtils.getEnchantmentStream(world).filter(treasurePool::contains).toList();
     }
 
     public List<Unlock> getUnlocks() {

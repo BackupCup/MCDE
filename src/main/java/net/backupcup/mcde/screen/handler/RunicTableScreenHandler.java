@@ -1,23 +1,24 @@
 package net.backupcup.mcde.screen.handler;
 
-import java.util.Optional;
 import net.backupcup.mcde.MCDE;
 import net.backupcup.mcde.block.ModBlocks;
-import net.backupcup.mcde.util.EnchantmentSlot;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.backupcup.mcde.util.SlotPosition;
-import net.minecraft.advancement.AdvancementEntry;
-import net.minecraft.advancement.PlayerAdvancementTracker;
+import net.minecraft.component.ComponentChanges;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ItemEnchantmentsComponent;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.slot.Slot;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.stat.Stats;
@@ -73,32 +74,37 @@ public class RunicTableScreenHandler extends ScreenHandler {
         var clickedSlot = slots.getEnchantmentSlot(SlotPosition.values()[id / posAmount]).get();
         var chosen = clickedSlot.getChosen();
         int level = 1;
-        Identifier enchantmentId;
+        RegistryEntry<Enchantment> enchantment;
         if (chosen.isPresent()) {
             if (chosen.get().isMaxedOut()) {
                 return super.onButtonClick(player, id);
             }
-            clickedSlot.upgrade();
-            level = chosen.get().getLevel();
-            enchantmentId = chosen.get().getEnchantmentId();
-            if (!canEnchant(player, enchantmentId, level)) {
+            clickedSlot = clickedSlot.withUpgrade();
+            enchantment = chosen.get().getEnchantment();
+            level = clickedSlot.getLevel();
+            if (!canEnchant(player, enchantment, level)) {
                 return super.onButtonClick(player, id);
             }
         } else {
             int choicePos = id % posAmount;
-            enchantmentId = clickedSlot.getChoice(SlotPosition.values()[choicePos]).get();
-            if (!canEnchant(player, enchantmentId, level)) {
+            enchantment = clickedSlot.getChoice(SlotPosition.values()[choicePos]).get();
+            if (!canEnchant(player, enchantment, level)) {
                 return super.onButtonClick(player, id);
             }
-            clickedSlot.setChosen(SlotPosition.values()[choicePos], level);
+            clickedSlot = clickedSlot.withChosen(SlotPosition.values()[choicePos], level).orElse(clickedSlot);
         }
-        slots.updateItemStack(itemStack);
+        var componentBuilder = new ItemEnchantmentsComponent.Builder(EnchantmentHelper.getEnchantments(itemStack));
+        componentBuilder.set(enchantment, level);
+        itemStack.applyChanges(ComponentChanges.builder()
+                .add(DataComponentTypes.ENCHANTMENTS, componentBuilder.build())
+                .add(EnchantmentSlots.COMPONENT_TYPE, EnchantmentSlots.builder(slots).withSlot(clickedSlot).build())
+                .build());
         if (clickedSlot.isMaxedOut()) {
             player.incrementStat(Stats.ENCHANT_ITEM);
         }
-        player.playSound(SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, SoundCategory.BLOCKS, 0.5f, 1f);
+        player.playSoundToPlayer(SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, SoundCategory.BLOCKS, 0.5f, 1f);
         if (!player.isCreative()) {
-            player.addExperienceLevels(-MCDE.getConfig().getEnchantCost(enchantmentId, level));
+            player.addExperienceLevels(-MCDE.getConfig().getEnchantCost(enchantment, level));
         }
         inventory.markDirty();
         context.run((world, pos) -> {
@@ -162,10 +168,10 @@ public class RunicTableScreenHandler extends ScreenHandler {
         }
     }
 
-    public static boolean canEnchant(PlayerEntity player, Identifier enchantmentId, int level) {
+    public static boolean canEnchant(PlayerEntity player, RegistryEntry<Enchantment> enchantment, int level) {
         if (player.isCreative()) {
             return true;
         }
-        return player.experienceLevel >= MCDE.getConfig().getEnchantCost(enchantmentId, level);
+        return player.experienceLevel >= MCDE.getConfig().getEnchantCost(enchantment, level);
     }
 }
