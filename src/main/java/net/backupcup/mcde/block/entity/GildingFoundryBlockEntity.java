@@ -11,23 +11,20 @@ import net.backupcup.mcde.util.EnchantmentUtils;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.component.ComponentChanges;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventories;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -86,13 +83,12 @@ public class GildingFoundryBlockEntity extends BlockEntity implements ExtendedSc
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
         var weaponStack  = inventory.get(0);
-        if (!weaponStack.isEmpty()) {
+        if (!weaponStack.isEmpty() && generated.isEmpty()) {
             generated = EnchantmentUtils.generateEnchantment(
-                world,
                 weaponStack,
-                Optional.of(world.getServer().getPlayerManager().getPlayer(inv.player.getUuid())),
-                GildingFoundryScreenHandler.getCandidatesForGidling(weaponStack)
-            );
+                Optional.of(world.getServer().getPlayerManager().getPlayer(player.getUuid())),
+                GildingFoundryScreenHandler.getCandidatesForGidling(world, weaponStack)
+            ).map(RegistryEntry.class::cast);
         }
         return new GildingFoundryScreenHandler(
             syncId,
@@ -135,16 +131,22 @@ public class GildingFoundryBlockEntity extends BlockEntity implements ExtendedSc
         var ingridient = inventory.get(1);
         var item = ingridient.getItem();
         ingridient.decrement(MCDE.getConfig().getGildingCost());
-        var id = generated.get();
+        var enchantment = generated.get();
         EnchantmentSlots.fromItemStack(weaponStack).ifPresent(slots -> {
+            var slotsBuilder = EnchantmentSlots.builder(slots);
+            var enchantmentBuilder = new ItemEnchantmentsComponent.Builder(weaponStack.getEnchantments());
             if (item.equals(Items.EMERALD)) {
-                var map = EnchantmentHelper.get(weaponStack);
-                map.keySet().removeAll(slots.getGildingEnchantments());
-                EnchantmentHelper.set(map, weaponStack);
-                slots.removeAllGildings();
+                for (var gild : slots.getGilding()) {
+                    enchantmentBuilder.set(gild, 0);
+                }
+                slotsBuilder.clearGildings();
             }
-            slots.addGilding(id);
-            slots.updateItemStack(weaponStack);
+            slotsBuilder.addGilding(enchantment);
+            enchantmentBuilder.add(enchantment, 1);
+            weaponStack.applyChanges(ComponentChanges.builder()
+                    .add(DataComponentTypes.ENCHANTMENTS, enchantmentBuilder.build())
+                    .add(EnchantmentSlots.COMPONENT_TYPE, slotsBuilder.build())
+                    .build());
         });
     }
 

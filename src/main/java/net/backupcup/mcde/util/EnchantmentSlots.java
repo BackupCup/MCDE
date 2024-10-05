@@ -287,7 +287,19 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
         var mergedSlotMap = new EnumMap<SlotPosition, EnchantmentSlot>(SlotPosition.class);
         mergedSlotMap.putAll(first.slots);
         for (var kvp : second.slots.entrySet()) {
-            mergedSlotMap.putIfAbsent(kvp.getKey(), kvp.getValue());
+            var present = mergedSlotMap.putIfAbsent(kvp.getKey(), kvp.getValue());
+            if (present != null && !present.isMaxedOut()) {
+                if (present.getLevel() == kvp.getValue().getLevel()) {
+                    mergedSlotMap.put(kvp.getKey(), present.withUpgrade());
+                }
+                else {
+                    var max = present;
+                    if (present.getLevel() < kvp.getValue().getLevel()) {
+                        max = kvp.getValue();
+                    }
+                    mergedSlotMap.put(kvp.getKey(), max);
+                }
+            }
         }
         Set<RegistryEntry<Enchantment>> newGilding = switch (MCDE.getConfig().getGildingMergeStrategy()) {
             case REMOVE -> new HashSet<>();

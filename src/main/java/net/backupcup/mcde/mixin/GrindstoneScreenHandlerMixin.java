@@ -1,28 +1,25 @@
 package net.backupcup.mcde.mixin;
 
-import java.util.Map;
+import java.util.Set;
 
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.sugar.Local;
 
-import net.backupcup.mcde.MCDE;
-import net.backupcup.mcde.util.EnchantmentSlot;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.EnchantmentUtils;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.screen.GrindstoneScreenHandler;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
@@ -44,14 +41,8 @@ public abstract class GrindstoneScreenHandlerMixin extends ScreenHandler {
             super(inventory, index, x, y);
         }
 
-        @Inject(method = "onTakeItem", at = @At("HEAD"))
-        private void mcde$onTake(PlayerEntity playerEntity, ItemStack itemStack, CallbackInfo ci) {
-            MCDE.LOGGER.info("On Take");
-        }
-
-        @ModifyExpressionValue(method = "getExperience(Lnet/minecraft/item/ItemStack;)I", at = @At(target = "Lnet/minecraft/enchantment/Enchantment;isCursed()Z", value = "INVOKE"))
-        private boolean mcde$isCursedOrGilding(boolean original, ItemStack itemStack, @Local Enchantment enchantment) {
-            MCDE.LOGGER.info("{}'s slots: {}", itemStack.getName().getString(), EnchantmentSlots.fromItemStack(itemStack));
+        @ModifyExpressionValue(method = "getExperience(Lnet/minecraft/item/ItemStack;)I", at = @At(target = "Lnet/minecraft/registry/entry/RegistryEntry;isIn(Lnet/minecraft/registry/tag/TagKey;)Z", value = "INVOKE"))
+        private boolean mcde$isCursedOrGilding(boolean original, ItemStack itemStack, @Local(index = 6) RegistryEntry<Enchantment> enchantment) {
             return original || EnchantmentUtils.isGilding(enchantment, itemStack);
         }
     }
@@ -59,20 +50,28 @@ public abstract class GrindstoneScreenHandlerMixin extends ScreenHandler {
     @ModifyReturnValue(method = "grind", at = @At("RETURN"))
     private ItemStack mcde$removeChoiceOnGrind(ItemStack itemStack, ItemStack item) {
         return EnchantmentSlots.fromItemStack(item).map(slots -> {
+            var builder = EnchantmentSlots.builder(slots);
             for (var slot : slots) {
-                slot.clearChoice();
+                builder.withSlot(slot.withoutChoice());
             }
-            MCDE.LOGGER.info("{}'s NBT before update: {}", itemStack.getName().getString(), itemStack.getNbt());
-            slots.updateItemStack(itemStack);
-            MCDE.LOGGER.info("{}'s NBT after update: {}", itemStack.getName().getString(), itemStack.getNbt());
+            itemStack.set(EnchantmentSlots.COMPONENT_TYPE, builder.build());
             return itemStack;
         }).orElse(itemStack);
     }
 
-    @ModifyVariable(method = "grind", at = @At("STORE"))
-    private Map<Enchantment, Integer> mcde$isCursedOrGilding(Map<Enchantment, Integer> map, ItemStack item) {
-        map = EnchantmentHelper.get(item);
-        map.entrySet().removeIf(kvp -> !kvp.getKey().isCursed() && !EnchantmentUtils.isGilding(kvp.getKey(), item));
-        return map;
+    @Inject(
+        method = "grind",
+        at = @At(
+            value = "INVOKE",
+            target = "net/minecraft/enchantment/EnchantmentHelper.apply(Lnet/minecraft/item/ItemStack;Ljava/util/function/Consumer;)Lnet/minecraft/component/type/ItemEnchantmentsComponent;",
+            shift = At.Shift.AFTER
+        )
+    )
+    private void mcde$reAddGilding(ItemStack stack, CallbackInfoReturnable<ItemStack> ci) {
+        EnchantmentHelper.apply(stack, builder -> {
+            for (var gild : EnchantmentSlots.fromItemStack(stack).map(slots -> slots.getGilding()).orElse(Set.of())) {
+                builder.set(gild, 1);
+            }
+        });
     }
 }

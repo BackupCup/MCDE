@@ -51,6 +51,7 @@ public class SlotsGenerator {
     public EnchantmentSlots.Builder generateEnchantments() {
         var builder = EnchantmentSlots.builder();
         var pool = (ObjectArrayList<Reference<Enchantment>>)Util.copyShuffled(this.pool, random);
+        MCDE.LOGGER.info("Pool: {}");
         boolean isTwoChoiceGenerated = false;
 
         if (pool.isEmpty()) {

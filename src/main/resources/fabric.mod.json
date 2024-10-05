@@ -22,10 +22,10 @@
   "environment": "*",
   "entrypoints": {
     "mcde:init": [
-      "net.backupcup.mcde.MCDEnchantments"
+      "net.backupcup.mcde.MCDE"
     ],
     "main": [
-      "net.backupcup.mcde.MCDEnchantments"
+      "net.backupcup.mcde.MCDE"
     ],
     "client": [
       "net.backupcup.mcde.MCDEClient"
@@ -38,8 +38,8 @@
   "depends": {
     "fabricloader": ">=0.16.5",
     "fabric-api": "*",
-    "minecraft": ">=1.20 <=1.20.1",
-    "java": ">=17"
+    "minecraft": ">=1.21 <=1.21.1",
+    "java": ">=21"
   },
   "suggests": {
     "mcdw": ">=5.0.12-1.19",

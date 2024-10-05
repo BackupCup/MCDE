@@ -10,7 +10,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.EnchantingTableBlock;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -18,7 +17,7 @@ import net.minecraft.world.World;
 @Mixin(EnchantingTableBlock.class)
 public class EnchantingTableBlockMixin {
     @Inject(method = "onUse", at = @At("HEAD"), cancellable = true)
-    private void mcde$restrictUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit, CallbackInfoReturnable<ActionResult> cir) {
+    private void mcde$restrictUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit, CallbackInfoReturnable<ActionResult> cir) {
         if (MCDE.getConfig().isUsingEnchantingTableAllowed()) {
             return;
         }

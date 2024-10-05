@@ -105,12 +105,12 @@ public class EnchantmentSlot {
     }
 
     public EnchantmentSlot withLevel(int level) {
-        return new EnchantmentSlot(slot, enchantments, level);
+        return new EnchantmentSlot(slot, enchantments, level, chosen);
     }
 
     public EnchantmentSlot withUpgrade() {
         if (!isMaxedOut()) {
-            return new EnchantmentSlot(slot, enchantments, level + 1);
+            return new EnchantmentSlot(slot, enchantments, level + 1, chosen);
         }
         return this;
     }
