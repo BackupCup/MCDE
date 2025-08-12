@@ -54,5 +54,8 @@ public abstract class ItemEnchantmentsComponentMixin implements TooltipAppender 
             original.call(textConsumer, Text.translatable("item.tooltip.gilded", enchantment.value().description())
                 .formatted(Formatting.GOLD));
         }
+        else {
+            original.call(textConsumer, text);
+        }
     }
 }
