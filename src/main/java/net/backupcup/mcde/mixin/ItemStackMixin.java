@@ -8,7 +8,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 
-import net.backupcup.mcde.util.ConsumerWrapper;
 import net.backupcup.mcde.util.EnchantmentSlots;
 import net.backupcup.mcde.util.FunctionalWrapper;
 import net.minecraft.component.ComponentHolder;

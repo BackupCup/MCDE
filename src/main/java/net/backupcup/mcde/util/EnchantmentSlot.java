@@ -4,6 +4,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
@@ -71,6 +72,18 @@ public class EnchantmentSlot {
 
     public Optional<Choice> getChosen() {
         return chosen.map(pos -> new Choice(this, pos));
+    }
+
+    public boolean isChosen() {
+        return chosen.isPresent();
+    }
+
+    public boolean contains(RegistryEntry<Enchantment> enchantment) {
+        return enchantments.containsValue(enchantment);
+    }
+
+    public boolean contains(Predicate<RegistryEntry<Enchantment>> predicate) {
+        return enchantments.values().stream().anyMatch(predicate);
     }
 
     public Optional<EnchantmentSlot> withChosen(SlotPosition pos, int level) {

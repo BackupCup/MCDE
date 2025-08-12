@@ -36,10 +36,6 @@ public class EnchantmentUtils {
     public static Stream<Reference<Enchantment>> getEnchantmentsForItem(World world, ItemStack itemStack) {
         var existing = EnchantmentHelper.getEnchantments(itemStack).getEnchantments();
         return getAllEnchantmentsForItem(world, itemStack)
-            .map(entry -> {
-                MCDE.LOGGER.info("Got {}", entry);
-                return entry;
-            })
             .filter(entry -> !existing.contains(entry));
     }
 
@@ -50,10 +46,6 @@ public class EnchantmentUtils {
 
         return getEnchantmentStream(world)
             .filter(MCDE.getConfig()::isEnchantmentAllowed)
-            .map(e -> {
-                MCDE.LOGGER.info("Found {}", e);
-                return e;
-            })
             .filter(e -> e.isIn(EnchantmentTags.IN_ENCHANTING_TABLE) || !MCDE.getConfig().isAvailabilityForRandomSelectionRespected())
             .filter(e -> !e.isIn(EnchantmentTags.TREASURE) || MCDE.getConfig().isTreasureAllowed())
             .filter(e -> !e.isIn(EnchantmentTags.CURSE) || MCDE.getConfig().areCursedAllowed())
@@ -85,7 +77,6 @@ public class EnchantmentUtils {
                     return;
                 }
                 context.run((world, pos) -> {
-                    MCDE.LOGGER.info("Generating...");
                     var server = world.getServer();
                     var serverPlayerEntity = Optional.ofNullable(server.getPlayerManager().getPlayer(player.getUuid()));
                     var slots = SlotsGenerator.forItemStack(world, stack)

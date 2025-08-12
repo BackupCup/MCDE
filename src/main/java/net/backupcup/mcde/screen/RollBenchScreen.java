@@ -304,7 +304,6 @@ public class RollBenchScreen extends HandledScreen<RollBenchScreenHandler> imple
                 default -> 0f;
             };
             drawAnimationRerollButtonFrame(ctx, frameEasing(easing).apply(progress), isInRerollButton(mouseX, mouseY));
-            MCDE.LOGGER.info(String.format("progress: %.2f", rerollButtonAnimationProgress));
             rerollButtonAnimationProgress += delta / rerollButtonAnimationDuration;
         }
 

@@ -67,7 +67,7 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
             return;
         }
         if (slotsOptional1.isPresent() ^ slotsOptional2.isPresent()) {
-            var slots = slotsOptional1.orElse(slotsOptional2.get());
+            var slots = slotsOptional1.orElseGet(() -> slotsOptional2.get());
             EnchantmentHelper.apply(result, builder -> {
                 for (var gild : slots.getGilding()) {
                     builder.set(gild, 1);

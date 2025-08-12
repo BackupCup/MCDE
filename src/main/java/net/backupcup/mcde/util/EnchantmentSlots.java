@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -17,6 +19,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.backupcup.mcde.MCDE;
+import net.backupcup.mcde.Config.GildingMergeStrategy;
 import net.minecraft.component.ComponentType;
 import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.enchantment.Enchantment;
@@ -284,24 +287,43 @@ public class EnchantmentSlots implements Iterable<EnchantmentSlot> {
     }
 
     public static EnchantmentSlots merge(EnchantmentSlots first, EnchantmentSlots second) {
+        return merge(first, second, MCDE.getConfig().isCompatibilityRequired(), MCDE.getConfig().getGildingMergeStrategy());
+    }
+
+    public static EnchantmentSlots merge(
+        EnchantmentSlots first,
+        EnchantmentSlots second,
+        boolean requireCompatibility,
+        GildingMergeStrategy mergeStrategy
+    ) {
         var mergedSlotMap = new EnumMap<SlotPosition, EnchantmentSlot>(SlotPosition.class);
-        mergedSlotMap.putAll(first.slots);
-        for (var kvp : second.slots.entrySet()) {
-            var present = mergedSlotMap.putIfAbsent(kvp.getKey(), kvp.getValue());
-            if (present != null && !present.isMaxedOut()) {
-                if (present.getLevel() == kvp.getValue().getLevel()) {
-                    mergedSlotMap.put(kvp.getKey(), present.withUpgrade());
-                }
-                else {
-                    var max = present;
-                    if (present.getLevel() < kvp.getValue().getLevel()) {
-                        max = kvp.getValue();
-                    }
-                    mergedSlotMap.put(kvp.getKey(), max);
-                }
+        for (var pos : SlotPosition.values()) {
+            var optionalFirst = first.getEnchantmentSlot(pos);
+            var optionalSecond = second.getEnchantmentSlot(pos);
+            if (optionalFirst.isEmpty() || optionalSecond.isEmpty()) {
+                optionalFirst.or(() -> optionalSecond).ifPresent(slot -> mergedSlotMap.put(pos, slot));
+                continue;
             }
+            var firstSlot = optionalFirst.get();
+            var secondSlot = optionalSecond.get();
+            Function<EnchantmentSlot, Predicate<Choice>> check = slot -> requireCompatibility ?
+                c -> slot.contains(e -> !Enchantment.canBeCombined(e, c.getEnchantment()) || e.equals(c.getEnchantment())) :
+                c -> slot.contains(c.getEnchantment());
+            if (mergedSlotMap.values().stream().flatMap(slot -> slot.choices().stream()).anyMatch(check.apply(firstSlot))) {
+                mergedSlotMap.put(pos, secondSlot);
+                continue;
+            }
+            if (mergedSlotMap.values().stream().flatMap(slot -> slot.choices().stream()).anyMatch(check.apply(secondSlot))) {
+                mergedSlotMap.put(pos, firstSlot);
+                continue;
+            }
+            if (firstSlot.isChosen() ^ secondSlot.isChosen()) {
+                mergedSlotMap.put(pos, firstSlot.isChosen() ? firstSlot : secondSlot);
+                continue;
+            }
+            mergedSlotMap.put(pos, firstSlot);
         }
-        Set<RegistryEntry<Enchantment>> newGilding = switch (MCDE.getConfig().getGildingMergeStrategy()) {
+        Set<RegistryEntry<Enchantment>> newGilding = switch (mergeStrategy) {
             case REMOVE -> new HashSet<>();
             case FIRST -> new HashSet<>(first.gilding);
             case SECOND -> new HashSet<>(second.gilding);
