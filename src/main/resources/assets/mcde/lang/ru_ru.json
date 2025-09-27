@@ -42,6 +42,9 @@
   "enchantment.minecraft.piercing.desc": "Позволяет снарядам пробивать существ насквозь.",
   "enchantment.minecraft.soul_speed.desc": "Увеличивает скорость передвижения на блоках душ.",
   "enchantment.minecraft.swift_sneak.desc": "Увеличивает скорость передвижения при подкрадывании.",
+  "enchantment.minecraft.breach.desc": "Снижает эффективность брони на цели, включая врождённые очки брони.",
+  "enchantment.minecraft.density.desc": "Увеличивает урон за каждый упавший блок, увеличиваясь на 1 за уровень.",
+  "enchantment.minecraft.wind_burst.desc": "При попадании в объект испускает порыв ветра при сокрушительном ударе булавой, который подбрасывает атакующего вверх.",
 
   "message.mcde.max_level": "(Наивысший уровень)",
   "message.mcde.levels_required": "(%d уровней нужно)",

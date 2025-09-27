@@ -42,6 +42,9 @@
   "enchantment.minecraft.piercing.desc": "Дозволяє снарядам пронизувати мобів.",
   "enchantment.minecraft.soul_speed.desc": "Збільшує швидкість пересування на блоках душ.",
   "enchantment.minecraft.swift_sneak.desc": "Збільшує швидкість пересування під час підкрадання.",
+  "enchantment.minecraft.breach.desc": "Зменшує ефективність захисту на цілі, включаючи вроджені очки захисту.",
+  "enchantment.minecraft.density.desc": "Збільшує шкоду розгромної атаки булави.",
+  "enchantment.minecraft.wind_burst.desc": "Викликає порив вітру при виконанні удару булавою, який підкидає нападника вгору.",
 
   "message.mcde.max_level": "(Макс рівень)",
   "message.mcde.levels_required": "(%d рівнів необхідно)",
